@@ -18,12 +18,21 @@ const Inventory = () => {
   const { user, loading } = useSupabaseAuth();
   const navigate = useNavigate();
   const {
-    products,
+    products: rawProducts,
     isLoading: isProductsLoading,
     addProduct,
     updateProduct,
     deleteProduct
   } = useSupabaseProducts();
+
+  // Add mapping logic here to conform to local Product type
+  const products: Product[] = (rawProducts || []).map((product: any) => ({
+    ...product,
+    gstRate: product.gst_rate, // map Supabase's gst_rate to gstRate
+    // Remove gst_rate to avoid prop pollution if you wish:
+    // ...remove gst_rate
+  }));
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBrand, setFilterBrand] = useState('');
   const [filterType, setFilterType] = useState('');
