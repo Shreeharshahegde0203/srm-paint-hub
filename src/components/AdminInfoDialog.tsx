@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
 import { Button } from "./ui/button";
@@ -86,6 +85,45 @@ export default function AdminInfoDialog() {
                 rows={2}
                 value={edit.businessHours}
                 onChange={e => handleChange("businessHours", e.target.value)}
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block font-medium mb-1">Find Us - Map Embed URL</label>
+              <input
+                className="w-full border rounded p-2"
+                placeholder="Paste Google Maps Embed URL (optional)"
+                value={edit.mapEmbedUrl ?? ""}
+                onChange={e => handleChange("mapEmbedUrl", e.target.value)}
+              />
+              <small className="text-gray-400">Leave blank to show placeholder</small>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block font-medium mb-1">Map Display Text</label>
+              <input
+                className="w-full border rounded p-2"
+                placeholder="Label shown on the Find Us map"
+                value={edit.mapDisplayText ?? ""}
+                onChange={e => handleChange("mapDisplayText", e.target.value)}
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block font-medium mb-1">Location Description</label>
+              <textarea
+                className="w-full border rounded p-2"
+                rows={2}
+                placeholder="Describe your location (street, area, city, etc.)"
+                value={edit.locationDescription ?? ""}
+                onChange={e => handleChange("locationDescription", e.target.value)}
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block font-medium mb-1">Directions / Landmarks</label>
+              <textarea
+                className="w-full border rounded p-2"
+                rows={2}
+                placeholder="Add custom directions or nearest landmarks"
+                value={edit.directions ?? ""}
+                onChange={e => handleChange("directions", e.target.value)}
               />
             </div>
           </div>

@@ -1,20 +1,23 @@
-
 import React from 'react';
 import { MapPin, Phone, Mail, Clock, Package } from 'lucide-react';
 import { useCompanyInfo } from "../contexts/CompanyInfoContext";
 
 const Contact = () => {
+  // Get company location fields
   const { companyInfo } = useCompanyInfo();
-
   // Split address into separate lines if it contains \n
   const multilineAddress =
     companyInfo.address?.replace(/\\n/g, "<br />") ||
     "123 Paint Street, Market Area<br />Mumbai, Maharashtra 400001";
-
   // Split business hours into separate lines if it contains \n
   const businessHours =
     companyInfo.businessHours?.split('\n') ||
     ["Monday - Saturday: 9:00 AM - 7:00 PM", "Sunday: 10:00 AM - 5:00 PM"];
+  // Use location info
+  const mapEmbedUrl = companyInfo.mapEmbedUrl?.trim();
+  const mapDisplayText = companyInfo.mapDisplayText || "Google Maps Integration";
+  const locationDescription = companyInfo.locationDescription || "123 Paint Street, Mumbai";
+  const directions = companyInfo.directions || "";
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -112,18 +115,40 @@ const Contact = () => {
 
           {/* Map and Contact Form */}
           <div className="space-y-6">
-            {/* Google Maps Placeholder */}
+            {/* Google Maps or Location Info */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Find Us</h2>
-              <div className="bg-gray-200 h-64 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-600">Google Maps Integration</p>
-                  <p className="text-sm text-gray-500">123 Paint Street, Mumbai</p>
+              {mapEmbedUrl ? (
+                <div className="mb-4">
+                  <iframe
+                    src={mapEmbedUrl}
+                    width="100%"
+                    height="250"
+                    allowFullScreen
+                    loading="lazy"
+                    className="border-0 rounded-md w-full"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title={mapDisplayText}
+                  ></iframe>
                 </div>
+              ) : (
+                <div className="bg-gray-200 h-64 rounded-lg flex items-center justify-center mb-4">
+                  <div className="text-center">
+                    <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-600">{mapDisplayText}</p>
+                    <p className="text-sm text-gray-500">{locationDescription}</p>
+                  </div>
+                </div>
+              )}
+              <div className="mt-1">
+                <p className="text-gray-700 text-sm whitespace-pre-line">{locationDescription}</p>
+                {directions && (
+                  <div className="mt-1 text-gray-600 text-xs whitespace-pre-line">
+                    <span className="font-semibold">How to reach:</span> {directions}
+                  </div>
+                )}
               </div>
             </div>
-
             {/* Quick Contact Form */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Quick Inquiry</h2>
