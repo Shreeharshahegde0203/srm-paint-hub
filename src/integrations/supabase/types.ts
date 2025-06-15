@@ -9,6 +9,35 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      bill_attachments: {
+        Row: {
+          file_url: string
+          id: string
+          receipt_id: string
+          uploaded_at: string | null
+        }
+        Insert: {
+          file_url: string
+          id?: string
+          receipt_id: string
+          uploaded_at?: string | null
+        }
+        Update: {
+          file_url?: string
+          id?: string
+          receipt_id?: string
+          uploaded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bill_attachments_receipt_id_fkey"
+            columns: ["receipt_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_receipts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           address: string | null
@@ -38,6 +67,102 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      inventory_movements: {
+        Row: {
+          created_at: string | null
+          id: string
+          movement_type: string
+          product_id: string
+          quantity: number
+          reason: string | null
+          related_receipt_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          movement_type: string
+          product_id: string
+          quantity: number
+          reason?: string | null
+          related_receipt_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          movement_type?: string
+          product_id?: string
+          quantity?: number
+          reason?: string | null
+          related_receipt_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_movements_related_receipt_id_fkey"
+            columns: ["related_receipt_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_receipts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_receipts: {
+        Row: {
+          bill_due_date: string | null
+          bill_paid: boolean | null
+          cost_price: number
+          created_at: string | null
+          id: string
+          product_id: string
+          quantity: number
+          receiving_date: string
+          supplier_id: string | null
+        }
+        Insert: {
+          bill_due_date?: string | null
+          bill_paid?: boolean | null
+          cost_price: number
+          created_at?: string | null
+          id?: string
+          product_id: string
+          quantity: number
+          receiving_date: string
+          supplier_id?: string | null
+        }
+        Update: {
+          bill_due_date?: string | null
+          bill_paid?: boolean | null
+          cost_price?: number
+          created_at?: string | null
+          id?: string
+          product_id?: string
+          quantity?: number
+          receiving_date?: string
+          supplier_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_receipts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_receipts_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invoice_items: {
         Row: {
@@ -119,15 +244,20 @@ export type Database = {
           brand: string
           code: string
           color: string
+          cost_price: number | null
           created_at: string | null
           description: string | null
           expiry_date: string | null
           gst_rate: number
           id: string
           image: string | null
+          last_received_date: string | null
           name: string
           price: number
+          reorder_level: number | null
+          selling_price: number | null
           stock: number
+          supplier_id: string | null
           type: string
           unit: string
           updated_at: string | null
@@ -137,15 +267,20 @@ export type Database = {
           brand: string
           code: string
           color: string
+          cost_price?: number | null
           created_at?: string | null
           description?: string | null
           expiry_date?: string | null
           gst_rate?: number
           id?: string
           image?: string | null
+          last_received_date?: string | null
           name: string
           price: number
+          reorder_level?: number | null
+          selling_price?: number | null
           stock: number
+          supplier_id?: string | null
           type: string
           unit?: string
           updated_at?: string | null
@@ -155,20 +290,33 @@ export type Database = {
           brand?: string
           code?: string
           color?: string
+          cost_price?: number | null
           created_at?: string | null
           description?: string | null
           expiry_date?: string | null
           gst_rate?: number
           id?: string
           image?: string | null
+          last_received_date?: string | null
           name?: string
           price?: number
+          reorder_level?: number | null
+          selling_price?: number | null
           stock?: number
+          supplier_id?: string | null
           type?: string
           unit?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -185,6 +333,113 @@ export type Database = {
           created_at?: string | null
           full_name?: string | null
           id?: string
+        }
+        Relationships: []
+      }
+      purchase_order_items: {
+        Row: {
+          cost_price: number | null
+          id: string
+          ordered_quantity: number
+          product_id: string
+          purchase_order_id: string
+        }
+        Insert: {
+          cost_price?: number | null
+          id?: string
+          ordered_quantity: number
+          product_id: string
+          purchase_order_id: string
+        }
+        Update: {
+          cost_price?: number | null
+          id?: string
+          ordered_quantity?: number
+          product_id?: string
+          purchase_order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_orders: {
+        Row: {
+          created_at: string | null
+          expected_delivery_date: string | null
+          id: string
+          order_date: string
+          order_number: string
+          supplier_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expected_delivery_date?: string | null
+          id?: string
+          order_date: string
+          order_number: string
+          supplier_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expected_delivery_date?: string | null
+          id?: string
+          order_date?: string
+          order_number?: string
+          supplier_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_orders_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          email: string | null
+          gst_number: string | null
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          email?: string | null
+          gst_number?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          email?: string | null
+          gst_number?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }

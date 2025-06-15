@@ -7,6 +7,7 @@ import { useSupabaseAuth } from "../contexts/SupabaseAuthContext";
 import { useSupabaseProducts } from "../hooks/useSupabaseProducts";
 import { useNavigate } from "react-router-dom";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import ReceiveStockDialog from "../components/ReceiveStockDialog";
 
 // Define possible view modes as a type
 type ViewMode = "large" | "medium" | "small" | "list";
@@ -373,13 +374,16 @@ const Inventory = () => {
               </h1>
               <p className="text-gray-600 dark:text-gray-300 mt-1">Manage your Dulux & Indigo paint stock with product codes and smart tracking</p>
             </div>
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 dark:hover:bg-red-800 flex items-center"
-            >
-              <Plus className="mr-2 h-5 w-5" />
-              Add Product
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowAddForm(true)}
+                className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 dark:hover:bg-red-800 flex items-center"
+              >
+                <Plus className="mr-2 h-5 w-5" />
+                Add Product
+              </button>
+              <ReceiveStockDialog products={rawProducts || []} onReceived={() => { /* TODO: trigger refresh if needed */ }} />
+            </div>
           </div>
         </div>
 
