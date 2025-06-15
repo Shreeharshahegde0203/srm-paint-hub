@@ -12,7 +12,7 @@ interface ProductShowcaseCardProps {
     brand: string;
     type: string;
     color: string;
-    description: string;
+    description?: string; // <--- Make description optional
     stock: number;
     code: string;
   };
@@ -69,7 +69,7 @@ const ProductShowcaseCard: React.FC<ProductShowcaseCardProps> = ({ product, inde
           {product.type} · {product.color}
         </div>
         <p className="text-xs text-blue-900 line-clamp-2 mb-0 opacity-70 group-hover:opacity-100 group-hover:translate-y-0 transition-all">
-          {product.description}
+          {product.description || ""}
         </p>
         <div className="flex justify-between items-center mt-3">
           <span className="text-[11px] text-blue-800/80 font-mono">Code: {product.code}</span>
