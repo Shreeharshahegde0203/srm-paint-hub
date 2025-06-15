@@ -10,18 +10,14 @@ import { toast } from "@/components/ui/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 
 // --- Type definitions for Supabase integration ---
-// Fix: Use the Supabase type exactly, for all Product usage.
-import type { Tables } from "@/integrations/supabase/types";
-
-// Use the Supabase type throughout for accuracy:
+// Use the Supabase type exactly for Product usage:
 type Product = Tables<"products">;
 type Customer = Tables<"customers">;
 type Invoice = Tables<"invoices"> & {
   customer: Customer | null;
   items?: InvoiceItem[];
 };
-
-// Fix: InvoiceItem needs to include product? (for UI), plus unitPrice and total used in form
+// InvoiceItem includes full product for UI, and prices for calculations
 type InvoiceItem = Tables<"invoice_items"> & {
   product?: Product;
   unitPrice?: number;
@@ -173,7 +169,7 @@ const Billing = () => {
       name: '', phone: '', address: '', email: ''
     });
 
-    // Fix: strongly type items to include all fields
+    // Fix: include all fields to match InvoiceItem type + default values
     const [items, setItems] = useState<Array<{
       product?: Product;
       quantity: number;
@@ -181,7 +177,7 @@ const Billing = () => {
       total: number;
     }>>([{ product: undefined, quantity: 1, unitPrice: 0, total: 0 }]);
     const [discount, setDiscount] = useState(0);
-    const [status, setStatus] = useState('pending'); // Paid/Pending/Overdue
+    const [status, setStatus] = useState('pending');
 
     const addItem = () =>
       setItems([
@@ -205,6 +201,7 @@ const Billing = () => {
       arr[idx] = {
         ...arr[idx],
         product,
+        // Use the correct price property from Product
         unitPrice: Number(product.price) || 0,
         total: (arr[idx].quantity || 1) * (Number(product.price) || 0)
       };
@@ -222,10 +219,10 @@ const Billing = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      // Fix: for API, map to expected structure
       try {
         await createInvoice({
           customer: customerData as any,
+          // Provide all required fields, and map fields as needed
           items: items.map(item => ({
             product: item.product,
             quantity: item.quantity,
