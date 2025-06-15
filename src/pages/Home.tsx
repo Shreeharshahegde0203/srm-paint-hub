@@ -123,69 +123,49 @@ const Home = () => {
         </div>
       </section>
 
-      {/* New Featured Products Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* --- NEW PRODUCT SHOWCASE SECTION (replaces old Featured Products/Explore Products) --- */}
+      <section className="relative py-24 bg-gradient-to-tl from-white via-slate-50 to-blue-50 overflow-hidden">
+        {/* Sparkle Animation BG */}
+        <div className="pointer-events-none absolute inset-0 z-0">
+          <div className="absolute left-1/3 top-10 animate-float w-40 h-40 rounded-full bg-orange-300/30 blur-3xl"></div>
+          <div className="absolute right-1/2 top-1/2 animate-float delay-700 w-24 h-24 rounded-full bg-indigo-300/20 blur-2xl"></div>
+          <div className="absolute left-40 bottom-10 animate-float delay-100 w-32 h-32 rounded-full bg-pink-300/30 blur-2xl"></div>
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 animate-fade-in">
-              Featured Products
+            <h2 className="text-3xl md:text-4xl font-extrabold text-blue-900 mb-4 animate-fade-in">
+              Product Showcase
             </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto animate-fade-in delay-200">
-              Discover our premium collection of Dulux and Indigo paints
+            <p className="text-lg text-blue-600 max-w-2xl mx-auto animate-fade-in delay-100">
+              Experience our select collection of Dulux & Indigo paints – interactive, colorful, and ready to inspire your next project!
             </p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-            {featuredProducts.map((product, index) => (
-              <div
-                key={product.id}
-                className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-6 border border-slate-100 overflow-hidden animate-fade-in hover:scale-105 relative cursor-pointer"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="relative overflow-hidden h-48">
-                  <FeaturedProductImage src={product.image} alt={product.name} />
-                  <div className="absolute top-4 right-4">
-                    <span className="bg-white/90 px-2 py-1 rounded-full text-xs font-medium text-slate-700 shadow">
-                      {product.brand}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-6 flex flex-col">
-                  <div className="flex-grow">
-                    <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
-                      {product.name}
-                    </h3>
-                    <p className="text-sm text-slate-600 mb-2">{product.type} • {product.color}</p>
-                    <p className="text-xs text-slate-500 mb-4 line-clamp-2 h-8">{product.description}</p>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-slate-100">
-                    <div className="flex justify-between items-center">
-                      {/* Price Removed: Only show units, maybe stock */}
-                      <span className="text-xs text-slate-400">Code: {product.code}</span>
-                      <span className={`text-sm font-medium px-3 py-1 rounded-full transition-colors duration-300 ${
-                        product.stock > 20 ? 'bg-green-100 text-green-800 group-hover:bg-green-200' : 'bg-red-100 text-red-800 group-hover:bg-red-200'
-                      }`}>
-                        Stock: {product.stock}
-                      </span>
-                    </div>
-                  </div>
-                  {/* Subtle scale effect circle on hover */}
-                  <div className="absolute left-0 top-0 w-full h-2 group-hover:bg-gradient-to-r from-blue-100 to-orange-100 opacity-80 transition-all duration-500"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8">
+            {featuredProducts.map((product, idx) => (
+              <div key={product.id} className="relative group">
+                {/* Animated reveal using staggered delay */}
+                <div className="transition-transform duration-300 hover:-translate-y-2 focus:-translate-y-2">
+                  <React.Suspense fallback={
+                    <div className="w-full h-56 bg-gradient-to-r from-blue-300/30 to-blue-100/20 rounded-2xl animate-pulse"></div>
+                  }>
+                    {/* Animated Product Card */}
+                    <ProductShowcaseCard product={product} index={idx} />
+                  </React.Suspense>
                 </div>
               </div>
             ))}
           </div>
-
-          <div className="text-center">
-            <Link
-              to="/inventory"
-              className="inline-flex items-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 btn-interactive animate-fade-in focus:outline focus:ring-2 focus:ring-blue-600"
-            >
-              Explore Products
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
+          {/* Micro-interaction: fun sparkle accent */}
+          <div className="flex justify-center mt-10">
+            <span className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-100 via-blue-100 to-pink-100 px-6 py-3 rounded-xl font-semibold text-blue-900/80 shadow animate-fade-in duration-300 border border-blue-100">
+              <Sparkles className="h-5 w-5 text-yellow-400 animate-pulse" />
+              Vibrant colors, Ultra-Smooth Finish!
+              <Sparkles className="h-5 w-5 text-indigo-300 animate-pulse delay-200" />
+            </span>
           </div>
         </div>
+        {/* Subtle reveal glow */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white to-transparent"></div>
       </section>
 
       {/* Enhanced Management Features */}
