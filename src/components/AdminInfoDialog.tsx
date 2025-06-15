@@ -107,26 +107,33 @@ export default function AdminInfoDialog() {
     setPreviewKey(Date.now());
   };
 
-  // Handler for Info button, prevents native navigation just in case
+  // Strengthen event prevention - do everything to block navigation
   const handleTriggerClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    // Also prevent any default blur or focus events just in case
+    if (typeof e.nativeEvent.stopImmediatePropagation === "function") {
+      e.nativeEvent.stopImmediatePropagation();
+    }
     console.log("[AdminInfoDialog] Info button clicked");
     setOpen(true);
+    return false;
   };
 
   return (
     <TooltipProvider>
       <Dialog open={open} onOpenChange={setOpen}>
+        {/* Not inside any Link or a */}
         <DialogTrigger asChild>
           <Button
             variant="outline"
             className="ml-3 flex items-center gap-2"
             title="Edit Company Info"
-            // NOTE: Must use button; do NOT use <a> or <Link>
             type="button"
             tabIndex={0}
             onClick={handleTriggerClick}
+            data-dialog-opener="true"
+            // No href, no navigation - only opens dialog
           >
             <Info className="mr-1 h-4 w-4" />
             Info

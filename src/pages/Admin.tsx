@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Shield, Users, Settings, BarChart3, Package, FileText, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -43,6 +42,7 @@ const Admin = () => {
               <p className="text-gray-600 dark:text-gray-300 mt-1">Complete administrative control panel</p>
             </div>
             <div className="flex items-center">
+              {/* Just a component, NOT inside any <Link>! */}
               <AdminInfoDialog />
               <button
                 onClick={logout}
@@ -54,7 +54,7 @@ const Admin = () => {
             </div>
           </div>
         </div>
-
+        {/* ... keep existing code (rest of dashboard) the same ... */}
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6">
