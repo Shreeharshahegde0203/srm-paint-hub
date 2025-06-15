@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Palette, FileText, Shield, Sparkles } from 'lucide-react';
 import Logo from '../components/Logo';
 import { productsDatabase } from '../data/products';
+import FeaturedProductImage from "../components/FeaturedProductImage";
+import duluxLogo from "../assets/dulux-logo.svg";
+import indigoLogo from "../assets/indigo-logo.svg";
 
 const Home = () => {
   const services = [
@@ -136,17 +139,13 @@ const Home = () => {
             {featuredProducts.map((product, index) => (
               <div
                 key={product.id}
-                className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-6 border border-slate-100 overflow-hidden animate-fade-in"
+                className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-6 border border-slate-100 overflow-hidden animate-fade-in hover:scale-105 relative cursor-pointer"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div className="relative overflow-hidden h-48">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
+                  <FeaturedProductImage src={product.image} alt={product.name} />
                   <div className="absolute top-4 right-4">
-                    <span className="bg-white px-2 py-1 rounded-full text-xs font-medium text-slate-700">
+                    <span className="bg-white/90 px-2 py-1 rounded-full text-xs font-medium text-slate-700 shadow">
                       {product.brand}
                     </span>
                   </div>
@@ -161,15 +160,17 @@ const Home = () => {
                   </div>
                   <div className="mt-4 pt-4 border-t border-slate-100">
                     <div className="flex justify-between items-center">
-                      <div>
-                        <span className="text-xl font-bold text-slate-900">₹{product.price}</span>
-                        <span className="text-sm text-slate-500 ml-1">/{product.unit}</span>
-                      </div>
-                      <span className={`text-sm font-medium px-3 py-1 rounded-full ${product.stock > 20 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                      {/* Price Removed: Only show units, maybe stock */}
+                      <span className="text-xs text-slate-400">Code: {product.code}</span>
+                      <span className={`text-sm font-medium px-3 py-1 rounded-full transition-colors duration-300 ${
+                        product.stock > 20 ? 'bg-green-100 text-green-800 group-hover:bg-green-200' : 'bg-red-100 text-red-800 group-hover:bg-red-200'
+                      }`}>
                         Stock: {product.stock}
                       </span>
                     </div>
                   </div>
+                  {/* Subtle scale effect circle on hover */}
+                  <div className="absolute left-0 top-0 w-full h-2 group-hover:bg-gradient-to-r from-blue-100 to-orange-100 opacity-80 transition-all duration-500"></div>
                 </div>
               </div>
             ))}
@@ -178,9 +179,9 @@ const Home = () => {
           <div className="text-center">
             <Link
               to="/inventory"
-              className="inline-flex items-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105"
+              className="inline-flex items-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 btn-interactive animate-fade-in focus:outline focus:ring-2 focus:ring-blue-600"
             >
-              View All Products
+              Explore Products
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
           </div>
@@ -273,17 +274,17 @@ const Home = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-4xl mx-auto">
-            <div className="group bg-slate-700 p-12 rounded-2xl text-center hover:bg-slate-600 transition-all duration-500 hover:scale-105 border border-slate-600 cursor-pointer animate-fade-in">
-              <div className="bg-white p-8 rounded-xl mb-6 mx-auto w-32 h-32 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
-                <span className="text-2xl font-bold text-slate-800">DULUX</span>
+            <div className="group bg-slate-700 p-12 rounded-2xl text-center hover:bg-slate-600 transition-all duration-500 hover:scale-105 border border-slate-600 cursor-pointer animate-fade-in relative overflow-hidden">
+              <div className="bg-white p-8 rounded-xl mb-6 mx-auto w-32 h-32 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <img src={duluxLogo} alt="Dulux Logo" className="h-20 w-28 object-contain" draggable={false} />
               </div>
               <h3 className="text-2xl font-bold mb-3 group-hover:text-blue-300 transition-colors">Dulux Paints</h3>
               <p className="text-slate-300 group-hover:text-white transition-colors">Premium quality paints with superior finish and durability</p>
             </div>
 
-            <div className="group bg-slate-700 p-12 rounded-2xl text-center hover:bg-slate-600 transition-all duration-500 hover:scale-105 border border-slate-600 cursor-pointer animate-fade-in delay-200">
-              <div className="bg-white p-8 rounded-xl mb-6 mx-auto w-32 h-32 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
-                <span className="text-2xl font-bold text-indigo-800">INDIGO</span>
+            <div className="group bg-slate-700 p-12 rounded-2xl text-center hover:bg-slate-600 transition-all duration-500 hover:scale-105 border border-slate-600 cursor-pointer animate-fade-in delay-200 relative overflow-hidden">
+              <div className="bg-white p-8 rounded-xl mb-6 mx-auto w-32 h-32 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <img src={indigoLogo} alt="Indigo Logo" className="h-20 w-28 object-contain" draggable={false} />
               </div>
               <h3 className="text-2xl font-bold mb-3 group-hover:text-indigo-300 transition-colors">Indigo Paints</h3>
               <p className="text-slate-300 group-hover:text-white transition-colors">Innovative paint solutions with exceptional color range</p>
