@@ -369,21 +369,21 @@ const Billing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-6 transition-colors">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
                 <FileText className="mr-3 h-8 w-8 text-green-600" />
                 Professional Billing System
               </h1>
-              <p className="text-gray-600 mt-1">Create GST compliant invoices with smart product lookup and professional PDF generation</p>
+              <p className="text-gray-600 dark:text-gray-300 mt-1">Create GST compliant invoices with smart product lookup and professional PDF generation</p>
             </div>
             <button
               onClick={() => setShowCreateForm(true)}
-              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 flex items-center"
+              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 dark:hover:bg-green-800 flex items-center"
             >
               <Plus className="mr-2 h-5 w-5" />
               Create Invoice
@@ -392,14 +392,14 @@ const Billing = () => {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-6 transition-colors">
           <div className="flex space-x-4">
             <button
               onClick={() => setActiveTab('invoices')}
               className={`px-4 py-2 rounded-lg font-medium ${
                 activeTab === 'invoices' 
                 ? 'bg-green-600 text-white' 
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                : 'bg-gray-100 dark:bg-slate-900 text-gray-700 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-slate-700'
               }`}
             >
               Invoices
@@ -409,7 +409,7 @@ const Billing = () => {
               className={`px-4 py-2 rounded-lg font-medium ${
                 activeTab === 'products' 
                 ? 'bg-green-600 text-white' 
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                : 'bg-gray-100 dark:bg-slate-900 text-gray-700 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-slate-700'
               }`}
             >
               Manage Products
@@ -431,7 +431,7 @@ const Billing = () => {
         {activeTab === 'invoices' && (
           <>
             {/* Search */}
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-6 transition-colors">
               <div className="relative max-w-md">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <input
@@ -439,7 +439,7 @@ const Billing = () => {
                   placeholder="Search invoices..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
                 />
               </div>
             </div>
@@ -447,20 +447,20 @@ const Billing = () => {
             {/* Invoices List */}
             <div className="space-y-4">
               {filteredInvoices.map((invoice) => (
-                <div key={invoice.id} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                <div key={invoice.id} className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow transition-colors">
                   <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                     <div className="flex-1">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-                        <h3 className="text-xl font-bold text-gray-900">{invoice.invoiceNumber}</h3>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">{invoice.invoiceNumber}</h3>
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          invoice.status === 'paid' ? 'bg-green-100 text-green-800' :
-                          invoice.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
+                          invoice.status === 'paid' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' :
+                          invoice.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200' :
+                          'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-300'
                         }`}>
                           {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
                         </span>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-300">
                         <div>
                           <p><strong>Customer:</strong> {invoice.customer.name}</p>
                           <p><strong>Phone:</strong> {invoice.customer.phone}</p>
@@ -475,17 +475,17 @@ const Billing = () => {
                     
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                       <div className="text-right">
-                        <p className="text-2xl font-bold text-gray-900">₹{invoice.total.toFixed(2)}</p>
-                        <p className="text-sm text-gray-600">Total Amount</p>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-white">₹{invoice.total.toFixed(2)}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">Total Amount</p>
                       </div>
                       
                       <div className="flex gap-2">
-                        <button className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg">
+                        <button className="text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900 p-2 rounded-lg">
                           <Eye className="h-5 w-5" />
                         </button>
                         <button 
                           onClick={() => handleDownloadPDF(invoice)}
-                          className="text-green-600 hover:bg-green-50 p-2 rounded-lg"
+                          className="text-green-600 hover:bg-green-50 dark:hover:bg-green-900 p-2 rounded-lg"
                         >
                           <Download className="h-5 w-5" />
                         </button>
@@ -499,9 +499,9 @@ const Billing = () => {
             {/* Empty state */}
             {filteredInvoices.length === 0 && (
               <div className="text-center py-12">
-                <FileText className="mx-auto h-16 w-16 text-gray-300 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No invoices found</h3>
-                <p className="text-gray-600">Create your first invoice to get started</p>
+                <FileText className="mx-auto h-16 w-16 text-gray-300 dark:text-gray-700 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No invoices found</h3>
+                <p className="text-gray-600 dark:text-gray-300">Create your first invoice to get started</p>
               </div>
             )}
           </>

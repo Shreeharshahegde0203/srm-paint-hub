@@ -291,21 +291,21 @@ const Inventory = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-6 transition-colors">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
                 <Package className="mr-3 h-8 w-8 text-blue-600" />
                 Smart Inventory Management
               </h1>
-              <p className="text-gray-600 mt-1">Manage your Dulux & Indigo paint stock with product codes and smart tracking</p>
+              <p className="text-gray-600 dark:text-gray-300 mt-1">Manage your Dulux & Indigo paint stock with product codes and smart tracking</p>
             </div>
             <button
               onClick={() => setShowAddForm(true)}
-              className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 flex items-center"
+              className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 dark:hover:bg-red-800 flex items-center"
             >
               <Plus className="mr-2 h-5 w-5" />
               Add Product
@@ -315,17 +315,17 @@ const Inventory = () => {
 
         {/* Low Stock Alert */}
         {lowStockProducts.length > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
+          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl p-6 mb-6 transition-colors">
             <div className="flex items-center mb-4">
               <AlertTriangle className="h-6 w-6 text-red-600 mr-2" />
-              <h2 className="text-lg font-bold text-red-800">Low Stock Alert</h2>
+              <h2 className="text-lg font-bold text-red-800 dark:text-red-200">Low Stock Alert</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {lowStockProducts.map(product => (
-                <div key={product.id} className="bg-white p-4 rounded-lg border border-red-200">
-                  <p className="font-medium text-gray-900">{product.code} - {product.name}</p>
-                  <p className="text-sm text-gray-600">{product.brand} • {product.color}</p>
-                  <p className="text-sm font-bold text-red-600">Only {product.stock} units left</p>
+                <div key={product.id} className="bg-white dark:bg-red-950/50 p-4 rounded-lg border border-red-200 dark:border-red-800 transition-colors">
+                  <p className="font-medium text-gray-900 dark:text-white">{product.code} - {product.name}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{product.brand} • {product.color}</p>
+                  <p className="text-sm font-bold text-red-600 dark:text-red-400">Only {product.stock} units left</p>
                 </div>
               ))}
             </div>
@@ -333,7 +333,7 @@ const Inventory = () => {
         )}
 
         {/* Filters + View Mode Toggle */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-6 transition-colors">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
             <div className="relative col-span-2">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -342,13 +342,13 @@ const Inventory = () => {
                 placeholder="Search by code, name, or color..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
               />
             </div>
             <select
               value={filterBrand}
               onChange={(e) => setFilterBrand(e.target.value)}
-              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
             >
               <option value="">All Brands</option>
               {brands.map(brand => (
@@ -358,7 +358,7 @@ const Inventory = () => {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
             >
               <option value="">All Types</option>
               {types.map(type => (
@@ -378,7 +378,7 @@ const Inventory = () => {
               />
             </div>
           </div>
-          <div className="mt-3 flex items-center text-sm text-gray-600">
+          <div className="mt-3 flex items-center text-sm text-gray-600 dark:text-gray-300">
             <Filter className="mr-2 h-4 w-4" />
             {filteredProducts.length} products found
           </div>
@@ -386,8 +386,8 @@ const Inventory = () => {
 
         {/* Products */}
         {viewMode === "list" ? (
-          <div className="bg-white rounded-xl shadow overflow-x-auto">
-            <div className="divide-y divide-gray-200">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow overflow-x-auto transition-colors">
+            <div className="divide-y divide-gray-200 dark:divide-slate-700">
               {filteredProducts.map(product => renderProductCard(product))}
             </div>
           </div>
@@ -399,9 +399,9 @@ const Inventory = () => {
 
         {filteredProducts.length === 0 && (
           <div className="text-center py-12">
-            <Package className="mx-auto h-16 w-16 text-gray-300 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
-            <p className="text-gray-600">Try adjusting your search or filters</p>
+            <Package className="mx-auto h-16 w-16 text-gray-300 dark:text-gray-700 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No products found</h3>
+            <p className="text-gray-600 dark:text-gray-300">Try adjusting your search or filters</p>
           </div>
         )}
       </div>
