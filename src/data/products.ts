@@ -1,3 +1,4 @@
+import { Product } from './products';
 
 export interface Product {
   id: string;

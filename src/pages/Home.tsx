@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Palette, FileText, Shield, Sparkles, ShoppingCart, Star } from 'lucide-react';
+import { ArrowRight, Palette, FileText, Shield, Sparkles } from 'lucide-react';
 import Logo from '../components/Logo';
 import { productsDatabase } from '../data/products';
 
@@ -140,11 +139,11 @@ const Home = () => {
                 className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-6 border border-slate-100 overflow-hidden animate-fade-in"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className="relative overflow-hidden">
+                <div className="relative overflow-hidden h-48">
                   <img
                     src={product.image}
                     alt={product.name}
-                    className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                   <div className="absolute top-4 right-4">
                     <span className="bg-white px-2 py-1 rounded-full text-xs font-medium text-slate-700">
@@ -152,30 +151,24 @@ const Home = () => {
                     </span>
                   </div>
                 </div>
-                <div className="p-6">
-                  <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
-                    {product.name}
-                  </h3>
-                  <p className="text-sm text-slate-600 mb-2">{product.type} • {product.color}</p>
-                  <p className="text-xs text-slate-500 mb-4 line-clamp-2">{product.description}</p>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <span className="text-xl font-bold text-slate-900">₹{product.price}</span>
-                      <span className="text-sm text-slate-500 ml-1">/{product.unit}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                      <span className="text-sm text-slate-600 ml-1">4.8</span>
-                    </div>
+                <div className="p-6 flex flex-col">
+                  <div className="flex-grow">
+                    <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
+                      {product.name}
+                    </h3>
+                    <p className="text-sm text-slate-600 mb-2">{product.type} • {product.color}</p>
+                    <p className="text-xs text-slate-500 mb-4 line-clamp-2 h-8">{product.description}</p>
                   </div>
-                  <div className="mt-4 flex justify-between items-center">
-                    <span className={`text-sm ${product.stock > 20 ? 'text-green-600' : 'text-red-600'}`}>
-                      {product.stock > 20 ? 'In Stock' : `Only ${product.stock} left`}
-                    </span>
-                    <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors flex items-center">
-                      <ShoppingCart className="h-4 w-4 mr-1" />
-                      Add to Cart
-                    </button>
+                  <div className="mt-4 pt-4 border-t border-slate-100">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <span className="text-xl font-bold text-slate-900">₹{product.price}</span>
+                        <span className="text-sm text-slate-500 ml-1">/{product.unit}</span>
+                      </div>
+                      <span className={`text-sm font-medium px-3 py-1 rounded-full ${product.stock > 20 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        Stock: {product.stock}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
