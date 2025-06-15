@@ -19,24 +19,40 @@ export function useSupabaseProducts() {
   // 2. Add product
   const addMutation = useMutation({
     mutationFn: async (product: TablesInsert<"products">) => {
+      console.log("Attempting to add product:", product);
       const { data, error } = await supabase.from("products").insert(product).select("*").single();
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error inserting product:", error);
+        throw error;
+      }
+      console.log("Product added successfully in DB:", data);
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
-    }
+    },
+    onError: (error: Error) => {
+      console.error("Error in addProduct mutation:", error.message);
+    },
   });
 
   // 3. Update
   const updateMutation = useMutation({
     mutationFn: async ({ id, product }: { id: string; product: TablesUpdate<"products"> }) => {
+      console.log(`Attempting to update product ${id}:`, product);
       const { data, error } = await supabase.from("products").update(product).eq("id", id).select("*").single();
-      if (error) throw error;
+      if (error) {
+        console.error(`Supabase error updating product ${id}:`, error);
+        throw error;
+      }
+      console.log("Product updated successfully in DB:", data);
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+    onError: (error: Error) => {
+      console.error("Error in updateProduct mutation:", error.message);
     }
   });
 
