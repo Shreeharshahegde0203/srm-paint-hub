@@ -196,10 +196,12 @@ const Billing = () => {
     const [customerData, setCustomerData] = useState<Partial<Customer>>({
       name: '', phone: '', address: '', email: ''
     });
+    // Store items as full Tables<"products"> not mapped Product
     const [items, setItems] = useState<any[]>([{ product: undefined, quantity: 1, unitPrice: 0, total: 0 }]);
     const [discount, setDiscount] = useState(0);
     const [status, setStatus] = useState('pending'); // Paid/Pending/Overdue
 
+    // addItem, updateItem same as before
     const addItem = () =>
       setItems([...items, { product: undefined, quantity: 1, unitPrice: 0, total: 0 }]);
     const updateItem = (idx: number, field: string, value: any) => {
@@ -213,11 +215,12 @@ const Billing = () => {
       setItems(arr);
     };
 
-    const handleProductSelect = (idx: number, product: Product) => {
+    // --- Correctly store raw Supabase product (all fields) in the invoice item
+    const handleProductSelect = (idx: number, product: any) => {
       const arr = [...items];
       arr[idx] = {
         ...arr[idx],
-        product, // The entire Product is stored; guaranteed to have all required fields
+        product, // store full Supabase product row, not mapped local Product
         unitPrice: product.price,
         total: (arr[idx].quantity || 1) * product.price
       };
@@ -280,6 +283,7 @@ const Billing = () => {
                   <div key={index} className="bg-white dark:bg-slate-800 p-4 rounded-lg border dark:border-gray-700">
                     <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                       <div className="md:col-span-2">
+                        {/* Pass full Supabase product or undefined */}
                         <ProductSelector
                           onProductSelect={(product) => handleProductSelect(index, product)}
                           selectedProduct={item.product ?? undefined}
