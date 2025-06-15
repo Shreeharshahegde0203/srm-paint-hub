@@ -169,7 +169,7 @@ const Billing = () => {
       name: '', phone: '', address: '', email: ''
     });
 
-    // Use Supabase Product + all required invoice item fields!
+    // Always use the Supabase Product type for product
     const [items, setItems] = useState<Array<{
       product?: Product;
       quantity: number;
@@ -199,14 +199,14 @@ const Billing = () => {
       setItems(arr);
     };
 
-    // ProductSelector expects Supabase Product! Assign all invoice fields too
+    // ProductSelector expects Supabase Product type (snake_case)
     const handleProductSelect = (idx: number, product: Product) => {
       const arr = [...items];
       arr[idx] = {
         ...arr[idx],
-        product, // product is full Supabase Product (with gst_rate, etc)
+        product,
         unitPrice: Number(product.price) || 0,
-        total: (arr[idx].quantity || 1) * (Number(product.price) || 0),
+        total: (arr[idx].quantity || 1) * (Number(product.price) || 0)
       };
       setItems(arr);
     };
@@ -226,7 +226,7 @@ const Billing = () => {
         await createInvoice({
           customer: customerData as any,
           items: items.map(item => ({
-            product: item.product, // Supabase product shape
+            product: item.product,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             total: item.total,
@@ -271,7 +271,7 @@ const Billing = () => {
                   <div key={index} className="bg-white dark:bg-slate-800 p-4 rounded-lg border dark:border-gray-700">
                     <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                       <div className="md:col-span-2">
-                        {/* ProductSelector expects Supabase Product! */}
+                        {/* Pass product as is, selectedProduct can be undefined or Product (Supabase) */}
                         <ProductSelector
                           onProductSelect={(product) => handleProductSelect(index, product)}
                           selectedProduct={item.product}
