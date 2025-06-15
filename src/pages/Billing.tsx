@@ -169,7 +169,7 @@ const Billing = () => {
       name: '', phone: '', address: '', email: ''
     });
 
-    // Fix: include all fields to match InvoiceItem type + default values
+    // Use Supabase Product and add required pricing fields
     const [items, setItems] = useState<Array<{
       product?: Product;
       quantity: number;
@@ -201,9 +201,8 @@ const Billing = () => {
       arr[idx] = {
         ...arr[idx],
         product,
-        // Use the correct price property from Product
         unitPrice: Number(product.price) || 0,
-        total: (arr[idx].quantity || 1) * (Number(product.price) || 0)
+        total: (arr[idx].quantity || 1) * (Number(product.price) || 0),
       };
       setItems(arr);
     };
@@ -220,11 +219,11 @@ const Billing = () => {
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       try {
+        // Only pass the required fields for each item (snake_case)
         await createInvoice({
           customer: customerData as any,
-          // Provide all required fields, and map fields as needed
           items: items.map(item => ({
-            product: item.product,
+            product: item.product, // Pass entire product (Supabase type)
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             total: item.total,
