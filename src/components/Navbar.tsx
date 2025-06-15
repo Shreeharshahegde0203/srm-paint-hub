@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, LogOut } from 'lucide-react';
+import { Menu, X, LogOut, Shield } from 'lucide-react';
 // Remove: import { useAuth } from '../contexts/AuthContext';
 import Logo from './Logo';
 import { ThemeToggle } from "./ThemeToggle";
@@ -38,7 +38,20 @@ const Navbar = () => {
     name: 'Reports',
     path: '/reports'
   }];
-  const navItems = isAuthenticated ? adminNavItems : publicNavItems;
+
+  // Always show Admin Dashboard for admin, even if not on admin pages
+  // This helps the admin quickly access the dashboard from anywhere
+  const navItems = isAuthenticated
+    ? (isAdmin
+        ? [
+            ...adminNavItems,
+            // If already on dashboard, don't duplicate link
+            // No-op (already included above)
+          ]
+        : adminNavItems
+      )
+    : publicNavItems;
+
   const isActive = (path: string) => location.pathname === path;
 
   const handleLogout = async () => {
@@ -59,10 +72,24 @@ const Navbar = () => {
           </div>
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            {navItems.map(item => <Link key={item.name} to={item.path} className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${isActive(item.path) ? 'text-red-600 bg-red-50 border-b-2 border-red-600 dark:text-red-400 dark:bg-red-950 dark:border-red-900' : 'text-gray-700 hover:text-red-600 hover:bg-gray-50 dark:text-gray-200 dark:hover:text-red-400 dark:hover:bg-gray-800'}`}>
-                {item.name}
-              </Link>)}
-
+            {(isAdmin
+              ? [
+                  ...adminNavItems.map(item => (
+                    <Link key={item.name} to={item.path} className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${isActive(item.path) ? 'text-red-600 bg-red-50 border-b-2 border-red-600 dark:text-red-400 dark:bg-red-950 dark:border-red-900' : 'text-gray-700 hover:text-red-600 hover:bg-gray-50 dark:text-gray-200 dark:hover:text-red-400 dark:hover:bg-gray-800'}`}>
+                      {item.name === "Dashboard" ? (
+                        <span className="flex items-center">
+                          <Shield className="w-4 h-4 mr-1 text-blue-600" /> {item.name}
+                        </span>
+                      ) : item.name}
+                    </Link>
+                  ))
+                ]
+              : navItems.map(item => (
+                  <Link key={item.name} to={item.path} className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${isActive(item.path) ? 'text-red-600 bg-red-50 border-b-2 border-red-600 dark:text-red-400 dark:bg-red-950 dark:border-red-900' : 'text-gray-700 hover:text-red-600 hover:bg-gray-50 dark:text-gray-200 dark:hover:text-red-400 dark:hover:bg-gray-800'}`}>
+                    {item.name}
+                  </Link>
+                )))
+            }
             {!isAuthenticated ? <Link to="/admin-login" className="bg-blue-900 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-800 transition-colors dark:bg-blue-700 dark:hover:bg-blue-600">
                 Admin Login
               </Link> : <button onClick={handleLogout} className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-colors flex items-center dark:bg-red-800 dark:hover:bg-red-700">
@@ -83,10 +110,27 @@ const Navbar = () => {
         {/* Mobile Navigation */}
         {isOpen && <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white dark:bg-slate-900">
-              {navItems.map(item => <Link key={item.name} to={item.path} className={`block px-3 py-2 rounded-md text-base font-medium ${isActive(item.path) ? 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-950' : 'text-gray-700 hover:text-red-600 hover:bg-gray-50 dark:text-gray-200 dark:hover:text-red-400 dark:hover:bg-gray-800'}`} onClick={() => setIsOpen(false)}>
-                  {item.name}
-                </Link>)}
-
+              {(isAdmin
+                ? adminNavItems.map(item => (
+                    <Link
+                      key={item.name}
+                      to={item.path}
+                      className={`block px-3 py-2 rounded-md text-base font-medium ${isActive(item.path) ? 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-950' : 'text-gray-700 hover:text-red-600 hover:bg-gray-50 dark:text-gray-200 dark:hover:text-red-400 dark:hover:bg-gray-800'}`}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {item.name === "Dashboard" ? (
+                        <span className="flex items-center">
+                          <Shield className="w-4 h-4 mr-1 text-blue-600" /> {item.name}
+                        </span>
+                      ) : item.name}
+                    </Link>
+                ))
+                : navItems.map(item => (
+                    <Link key={item.name} to={item.path} className={`block px-3 py-2 rounded-md text-base font-medium ${isActive(item.path) ? 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-950' : 'text-gray-700 hover:text-red-600 hover:bg-gray-50 dark:text-gray-200 dark:hover:text-red-400 dark:hover:bg-gray-800'}`} onClick={() => setIsOpen(false)}>
+                      {item.name}
+                    </Link>
+                ))
+              )}
               {!isAuthenticated ? <Link to="/admin-login" className="block bg-blue-900 text-white px-3 py-2 rounded-md text-base font-medium hover:bg-blue-800 dark:bg-blue-700 dark:hover:bg-blue-600" onClick={() => setIsOpen(false)}>
                   Admin Login
                 </Link> : <button onClick={handleLogout} className="block w-full text-left bg-red-600 text-white px-3 py-2 rounded-md text-base font-medium hover:bg-red-700 dark:bg-red-800 dark:hover:bg-red-700">
