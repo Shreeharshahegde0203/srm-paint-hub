@@ -1,10 +1,9 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { useCompanyInfo } from "../contexts/CompanyInfoContext";
 import InvoiceTemplatePreview from "./InvoiceTemplatePreview";
-import { Info, Settings2, Palette, ColorPicker } from "lucide-react";
+import { Info, Settings2, Palette } from "lucide-react";
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
@@ -300,7 +299,7 @@ export default function AdminInfoDialog() {
             </div>
             {/* Invoice Content Customization */}
             <div>
-              {groupLabel(ColorPicker, "Invoice Contents")}
+              {groupLabel(Palette, "Invoice Contents")}
               <div className="mb-2">
                 <label className="block font-medium mb-1">HSN/SAC Template</label>
                 <Input
