@@ -6,36 +6,28 @@ import { productsDatabase } from '../data/products';
 import FeaturedProductImage from "../components/FeaturedProductImage";
 import indigoLogo from "../assets/indigo-logo.svg";
 import ProductShowcaseCard from "../components/ProductShowcaseCard";
-
 const Home = () => {
-  const services = [
-    {
-      icon: <Palette className="h-12 w-12 text-orange-600" />,
-      title: 'Premium Paint Collection',
-      description: 'Extensive range of Dulux and Indigo premium paints including emulsion, exterior, and specialty coatings.',
-    },
-    {
-      icon: <FileText className="h-12 w-12 text-blue-600" />,
-      title: 'Expert Consultation',
-      description: 'Professional color matching and paint selection guidance from our experienced team.',
-    },
-    {
-      icon: <Shield className="h-12 w-12 text-purple-600" />,
-      title: 'Quality Assurance',
-      description: 'Authentic products with manufacturer warranty and comprehensive after-sales support.',
-    },
-    {
-      icon: <Sparkles className="h-12 w-12 text-green-600" />,
-      title: 'Custom Solutions',
-      description: 'Tailored paint solutions for residential, commercial, and industrial projects.',
-    },
-  ];
+  const services = [{
+    icon: <Palette className="h-12 w-12 text-orange-600" />,
+    title: 'Premium Paint Collection',
+    description: 'Extensive range of Dulux and Indigo premium paints including emulsion, exterior, and specialty coatings.'
+  }, {
+    icon: <FileText className="h-12 w-12 text-blue-600" />,
+    title: 'Expert Consultation',
+    description: 'Professional color matching and paint selection guidance from our experienced team.'
+  }, {
+    icon: <Shield className="h-12 w-12 text-purple-600" />,
+    title: 'Quality Assurance',
+    description: 'Authentic products with manufacturer warranty and comprehensive after-sales support.'
+  }, {
+    icon: <Sparkles className="h-12 w-12 text-green-600" />,
+    title: 'Custom Solutions',
+    description: 'Tailored paint solutions for residential, commercial, and industrial projects.'
+  }];
 
   // Get featured products (first 8 products for display)
   const featuredProducts = productsDatabase.slice(0, 8);
-
-  return (
-    <div className="min-h-screen">
+  return <div className="min-h-screen">
       {/* Enhanced Hero Section */}
       <section className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white overflow-hidden">
         {/* Animated paint splashes with enhanced animations */}
@@ -64,10 +56,7 @@ const Home = () => {
               Experience excellence in color, durability, and finish.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in delay-700">
-              <Link
-                to="/contact"
-                className="group bg-transparent border-2 border-white hover:bg-white hover:text-slate-900 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105"
-              >
+              <Link to="/contact" className="group bg-transparent border-2 border-white hover:bg-white hover:text-slate-900 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105">
                 Visit Store
               </Link>
             </div>
@@ -83,7 +72,7 @@ const Home = () => {
       </section>
 
       {/* Enhanced Services Section */}
-      <section className="py-20 bg-slate-50">
+      <section className="py-20 bg-slate-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 animate-fade-in">
@@ -95,12 +84,9 @@ const Home = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {services.map((service, index) => (
-              <div
-                key={index}
-                className="group bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-6 border border-slate-100 cursor-pointer animate-fade-in"
-                style={{ animationDelay: `${index * 150}ms` }}
-              >
+            {services.map((service, index) => <div key={index} className="group bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-6 border border-slate-100 cursor-pointer animate-fade-in" style={{
+            animationDelay: `${index * 150}ms`
+          }}>
                 <div className="flex justify-center mb-6 transform group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
                   {service.icon}
                 </div>
@@ -110,8 +96,7 @@ const Home = () => {
                 <p className="text-slate-600 text-center leading-relaxed">
                   {service.description}
                 </p>
-              </div>
-            ))}
+              </div>)}
           </div>
         </div>
       </section>
@@ -129,10 +114,7 @@ const Home = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <Link
-              to="/inventory"
-              className="group bg-gradient-to-br from-blue-50 to-indigo-100 p-8 rounded-2xl hover:from-blue-100 hover:to-indigo-200 transition-all duration-500 border border-blue-200 hover:shadow-2xl transform hover:-translate-y-3 animate-fade-in"
-            >
+            <Link to="/inventory" className="group bg-gradient-to-br from-blue-50 to-indigo-100 p-8 rounded-2xl hover:from-blue-100 hover:to-indigo-200 transition-all duration-500 border border-blue-200 hover:shadow-2xl transform hover:-translate-y-3 animate-fade-in">
               <div className="text-blue-600 mb-4 transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                 <Palette className="h-16 w-16" />
               </div>
@@ -148,10 +130,7 @@ const Home = () => {
               </div>
             </Link>
 
-            <Link
-              to="/billing"
-              className="group bg-gradient-to-br from-orange-50 to-red-100 p-8 rounded-2xl hover:from-orange-100 hover:to-red-200 transition-all duration-500 border border-orange-200 hover:shadow-2xl transform hover:-translate-y-3 animate-fade-in delay-200"
-            >
+            <Link to="/billing" className="group bg-gradient-to-br from-orange-50 to-red-100 p-8 rounded-2xl hover:from-orange-100 hover:to-red-200 transition-all duration-500 border border-orange-200 hover:shadow-2xl transform hover:-translate-y-3 animate-fade-in delay-200">
               <div className="text-orange-600 mb-4 transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                 <FileText className="h-16 w-16" />
               </div>
@@ -167,10 +146,7 @@ const Home = () => {
               </div>
             </Link>
 
-            <Link
-              to="/reports"
-              className="group bg-gradient-to-br from-green-50 to-emerald-100 p-8 rounded-2xl hover:from-green-100 hover:to-emerald-200 transition-all duration-500 border border-green-200 hover:shadow-2xl transform hover:-translate-y-3 animate-fade-in delay-400"
-            >
+            <Link to="/reports" className="group bg-gradient-to-br from-green-50 to-emerald-100 p-8 rounded-2xl hover:from-green-100 hover:to-emerald-200 transition-all duration-500 border border-green-200 hover:shadow-2xl transform hover:-translate-y-3 animate-fade-in delay-400">
               <div className="text-green-600 mb-4 transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                 <Shield className="h-16 w-16" />
               </div>
@@ -205,13 +181,10 @@ const Home = () => {
             {/* Dulux Card with uploaded marketing image */}
             <div className="group bg-slate-700 p-12 rounded-2xl text-center hover:bg-slate-600 transition-all duration-500 hover:scale-105 border border-slate-600 cursor-pointer animate-fade-in relative overflow-hidden">
               <div className="bg-white p-3 rounded-xl mb-6 mx-auto w-60 h-36 flex items-center justify-center transform group-hover:scale-105 transition-transform duration-300 shadow-lg overflow-hidden">
-                <img
-                  src="/lovable-uploads/d7d318f5-963c-4ba4-9a1b-fa0bea2b1cc1.png"
-                  alt="Dulux Branding"
-                  className="object-contain w-full h-full"
-                  draggable={false}
-                  style={{ maxWidth: '100%', maxHeight: '100%' }}
-                />
+                <img src="/lovable-uploads/d7d318f5-963c-4ba4-9a1b-fa0bea2b1cc1.png" alt="Dulux Branding" className="object-contain w-full h-full" draggable={false} style={{
+                maxWidth: '100%',
+                maxHeight: '100%'
+              }} />
               </div>
               <h3 className="text-2xl font-bold mb-3 group-hover:text-blue-300 transition-colors">Dulux Paints</h3>
               <p className="text-slate-300 group-hover:text-white transition-colors">Premium quality paints with superior finish and durability</p>
@@ -219,12 +192,7 @@ const Home = () => {
             {/* Indigo Card with uploaded logo */}
             <div className="group bg-slate-700 p-12 rounded-2xl text-center hover:bg-slate-600 transition-all duration-500 hover:scale-105 border border-slate-600 cursor-pointer animate-fade-in delay-200 relative overflow-hidden">
               <div className="bg-white p-8 rounded-xl mb-6 mx-auto w-32 h-32 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <img
-                  src="/lovable-uploads/ff131b2b-764d-4f4e-be84-86ccf5e338b0.png"
-                  alt="Indigo Logo"
-                  className="h-20 w-28 object-contain"
-                  draggable={false}
-                />
+                <img src="/lovable-uploads/ff131b2b-764d-4f4e-be84-86ccf5e338b0.png" alt="Indigo Logo" className="h-20 w-28 object-contain" draggable={false} />
               </div>
               <h3 className="text-2xl font-bold mb-3 group-hover:text-indigo-300 transition-colors">Indigo Paints</h3>
               <p className="text-slate-300 group-hover:text-white transition-colors">Innovative paint solutions with exceptional color range</p>
@@ -243,23 +211,15 @@ const Home = () => {
             Visit our store for expert advice and the finest quality paints from Dulux and Indigo
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/contact"
-              className="group bg-white text-red-600 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-slate-100 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 animate-fade-in delay-400"
-            >
+            <Link to="/contact" className="group bg-white text-red-600 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-slate-100 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 animate-fade-in delay-400">
               Visit Our Store
             </Link>
-            <Link
-              to="/billing"
-              className="group bg-transparent border-2 border-white hover:bg-white hover:text-red-600 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 animate-fade-in delay-600"
-            >
+            <Link to="/billing" className="group bg-transparent border-2 border-white hover:bg-white hover:text-red-600 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 animate-fade-in delay-600">
               Get Quote
             </Link>
           </div>
         </div>
       </section>
-    </div>
-  );
+    </div>;
 };
-
 export default Home;
