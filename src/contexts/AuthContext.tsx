@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const logout = () => {
     setIsAuthenticated(false);
     localStorage.removeItem('admin_authenticated');
-    navigate('/'); // Redirect to home page after logout
+    navigate('/'); // Now this will work since we're inside the Router
   };
 
   return (
