@@ -381,41 +381,6 @@ const Billing = () => {
     );
   };
 
-  // --- Regular Customers tab ---
-  const RegularCustomersSection = () => {
-    // Use the hook (if needed) or fetch customers for this table
-    const { customers, customersLoading } = require("../hooks/useRegularCustomers").useRegularCustomers();
-    const [customerHistoryId, setCustomerHistoryId] = useState<string | null>(null);
-
-    return (
-      <div>
-        <div className="flex justify-between mb-4">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Regular Customers</h2>
-        </div>
-        {customersLoading ? (
-          <div>Loading regular customers…</div>
-        ) : (
-          <div className="space-y-2">
-            {customers.map((cust) => (
-              <div
-                key={cust.id}
-                className="p-4 border rounded bg-white dark:bg-slate-900 hover:shadow cursor-pointer"
-                onClick={() => setCustomerHistoryId(cust.id)}
-              >
-                <div className="font-bold">{cust.name}</div>
-                <div className="text-sm text-gray-600">{cust.phone}</div>
-                {cust.address && (
-                  <div className="text-sm text-gray-500">{cust.address}</div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-        <CustomerHistoryModal customerId={customerHistoryId} onClose={() => setCustomerHistoryId(null)} />
-      </div>
-    );
-  };
-
   // --- New: track editing and deleting invoice state ---
   const [editingInvoice, setEditingInvoice] = useState<null | Invoice>(null);
   const [deletingInvoice, setDeletingInvoice] = useState<null | Invoice>(null);
