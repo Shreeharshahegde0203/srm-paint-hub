@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { CustomerSummary } from "./CustomerSummary";
@@ -6,8 +7,6 @@ import { ProjectsSection } from "./ProjectsSection";
 import { useCustomerProjects } from "@/hooks/useCustomerProjects";
 import { useCustomerInvoices } from "@/hooks/useCustomerInvoices";
 import { useSupabaseProducts } from "@/hooks/useSupabaseProducts";
-import { AddProjectDialog } from "./AddProjectDialog";
-import { toast } from "@/hooks/use-toast";
 
 interface Props {
   customer: any | null;
@@ -19,7 +18,7 @@ export default function RegularCustomerSidebar({ customer, open, onClose }: Prop
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Always call hooks at the top level, never conditionally!
-  const { getCustomerProjects, addProject } = useCustomerProjects();
+  const { getCustomerProjects } = useCustomerProjects();
   const { getCustomerInvoices } = useCustomerInvoices();
 
   // Call hook regardless, use "enabled" to suppress fetch if no ID
@@ -39,6 +38,7 @@ export default function RegularCustomerSidebar({ customer, open, onClose }: Prop
   } else {
     projects = [];
   }
+
   let invoices: any[] = [];
   if (Array.isArray(invoicesQuery.data)) {
     invoices = invoicesQuery.data;
@@ -80,38 +80,6 @@ export default function RegularCustomerSidebar({ customer, open, onClose }: Prop
     setSidebarOpen(open);
   }, [open]);
 
-  // Dialog state for Add Project
-  const [addProjectOpen, setAddProjectOpen] = useState(false);
-
-  // Handler to add project, using mutation from useCustomerProjects
-  const handleAddProject = async (form: {
-    project_name: string;
-    site_address?: string;
-    estimated_quantity?: number;
-    status?: string;
-    completion_date?: string;
-  }) => {
-    if (!customer?.id) {
-      toast({ title: "Missing customer", description: "No customer selected", variant: "destructive" });
-      return;
-    }
-    try {
-      await addProject({
-        regular_customer_id: customer.id,
-        project_name: form.project_name,
-        site_address: form.site_address,
-        estimated_quantity: form.estimated_quantity,
-        status: form.status || "in_progress",
-        completion_date: form.completion_date || null,
-      });
-      toast({ title: "Project added", description: "New project has been added for this customer" });
-      projectsQuery.refetch && projectsQuery.refetch();
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message || "Could not add project", variant: "destructive" });
-      throw err;
-    }
-  };
-
   // Don't render unless properly loaded and customer exists
   if (!sidebarOpen || !customer) return null;
 
@@ -139,17 +107,11 @@ export default function RegularCustomerSidebar({ customer, open, onClose }: Prop
         <ProjectsSection
           projects={projects}
           onEditProject={(proj) => {/* open project edit modal */}}
-          onAddProject={() => setAddProjectOpen(true)}
+          onAddProject={() => {/* open add project modal */}}
           onEditProduct={(projId, prod) => {/* open product edit modal */}}
           onAddProduct={(projId) => {/* open add product modal */}}
         />
       </div>
-      <AddProjectDialog
-        open={addProjectOpen}
-        onClose={() => setAddProjectOpen(false)}
-        onAdd={handleAddProject}
-        customerName={customer?.name}
-      />
     </div>
   );
 }
