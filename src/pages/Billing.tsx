@@ -169,13 +169,15 @@ const Billing = () => {
       name: '', phone: '', address: '', email: ''
     });
 
-    // Use Supabase Product and add required pricing fields
+    // Use Supabase Product + all required invoice item fields!
     const [items, setItems] = useState<Array<{
       product?: Product;
       quantity: number;
       unitPrice: number;
       total: number;
-    }>>([{ product: undefined, quantity: 1, unitPrice: 0, total: 0 }]);
+    }>>([
+      { product: undefined, quantity: 1, unitPrice: 0, total: 0 }
+    ]);
     const [discount, setDiscount] = useState(0);
     const [status, setStatus] = useState('pending');
 
@@ -185,6 +187,7 @@ const Billing = () => {
         { product: undefined, quantity: 1, unitPrice: 0, total: 0 }
       ]);
 
+    // Update any field, keep all fields
     const updateItem = (idx: number, field: string, value: any) => {
       const arr = [...items];
       arr[idx] = { ...arr[idx], [field]: value };
@@ -196,11 +199,12 @@ const Billing = () => {
       setItems(arr);
     };
 
+    // ProductSelector expects Supabase Product! Assign all invoice fields too
     const handleProductSelect = (idx: number, product: Product) => {
       const arr = [...items];
       arr[idx] = {
         ...arr[idx],
-        product,
+        product, // product is full Supabase Product (with gst_rate, etc)
         unitPrice: Number(product.price) || 0,
         total: (arr[idx].quantity || 1) * (Number(product.price) || 0),
       };
@@ -219,11 +223,10 @@ const Billing = () => {
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       try {
-        // Only pass the required fields for each item (snake_case)
         await createInvoice({
           customer: customerData as any,
           items: items.map(item => ({
-            product: item.product, // Pass entire product (Supabase type)
+            product: item.product, // Supabase product shape
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             total: item.total,
@@ -268,7 +271,11 @@ const Billing = () => {
                   <div key={index} className="bg-white dark:bg-slate-800 p-4 rounded-lg border dark:border-gray-700">
                     <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                       <div className="md:col-span-2">
-                        <ProductSelector onProductSelect={(product) => handleProductSelect(index, product)} selectedProduct={item.product} />
+                        {/* ProductSelector expects Supabase Product! */}
+                        <ProductSelector
+                          onProductSelect={(product) => handleProductSelect(index, product)}
+                          selectedProduct={item.product}
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-1">Quantity</label>
