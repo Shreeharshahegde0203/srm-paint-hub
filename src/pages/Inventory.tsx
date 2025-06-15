@@ -7,7 +7,7 @@ import { useSupabaseAuth } from "../contexts/SupabaseAuthContext";
 import { useSupabaseProducts } from "../hooks/useSupabaseProducts";
 import { useNavigate } from "react-router-dom";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
-import ReceiveStockDialog from "../components/ReceiveStockDialog";
+import UnifiedProductEntryDialog from "@/components/UnifiedProductEntryDialog";
 
 // Define possible view modes as a type
 type ViewMode = "large" | "medium" | "small" | "list";
@@ -47,6 +47,7 @@ const Inventory = () => {
     }
     return DEFAULT_VIEW;
   });
+  const [unifiedDialogOpen, setUnifiedDialogOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem(VIEW_MODE_KEY, viewMode);
@@ -376,13 +377,12 @@ const Inventory = () => {
             </div>
             <div className="flex gap-3">
               <button
-                onClick={() => setShowAddForm(true)}
-                className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 dark:hover:bg-red-800 flex items-center"
+                onClick={() => setUnifiedDialogOpen(true)}
+                className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 dark:hover:bg-green-800 flex items-center"
               >
                 <Plus className="mr-2 h-5 w-5" />
-                Add Product
+                Add / Receive Product
               </button>
-              <ReceiveStockDialog products={rawProducts || []} onReceived={() => { /* TODO: trigger refresh if needed */ }} />
             </div>
           </div>
         </div>
@@ -487,6 +487,14 @@ const Inventory = () => {
         <ProductForm
           product={editingProduct}
           onClose={() => setEditingProduct(null)}
+        />
+      )}
+      {/* Add/Edit Unified Modal */}
+      {unifiedDialogOpen && (
+        <UnifiedProductEntryDialog
+          products={rawProducts || []}
+          onClose={() => setUnifiedDialogOpen(false)}
+          onComplete={() => setUnifiedDialogOpen(false)}
         />
       )}
     </div>
