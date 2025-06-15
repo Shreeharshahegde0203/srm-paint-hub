@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { Plus, Search, Filter, Edit, Trash2, Package, AlertTriangle, Upload } from 'lucide-react';
 import { Product, productsDatabase } from '../data/products';
+import StockLevelIcon from '../components/StockLevelIcon';
 
 const Inventory = () => {
   const [products, setProducts] = useState<Product[]>(productsDatabase);
@@ -311,17 +311,15 @@ const Inventory = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-gray-600">Color:</span>
                     <span className="font-medium">{product.color}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-gray-600">Stock:</span>
-                    <span className={`font-medium ${product.stock < 20 ? 'text-red-600' : 'text-green-600'}`}>
-                      {product.stock} units
-                    </span>
+                    <StockLevelIcon stock={product.stock} />
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-gray-600">Price:</span>
                     <span className="font-medium text-blue-600">₹{product.price}</span>
                   </div>
