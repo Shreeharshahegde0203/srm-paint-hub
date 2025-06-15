@@ -149,18 +149,35 @@ const Billing = () => {
     const { data: customer } = await supabase
       .from("customers").select("*").eq("id", invoice.customer_id).maybeSingle();
 
-    // Compose PDF input using fetched data. 
-    // Map product to the format: { name, code, gstRate }
+    // Generate invoice number in the same format as elsewhere
+    const invoiceNumber =
+      (invoice.id && typeof invoice.id === "string" ? invoice.id : generateInvoiceNumber());
+    // Date and time fields based on invoice or now
+    const dateObj = invoice.created_at
+      ? new Date(invoice.created_at)
+      : new Date();
+    const date = dateObj.toLocaleDateString("en-IN");
+    const time = dateObj.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+
+    // Compose PDF input using fetched data as required by InvoiceData
     generateInvoicePDF({
-      ...invoice,
-      customer,
+      invoiceNumber,
+      date,
+      time,
+      customer: {
+        name: customer?.name ?? "",
+        phone: customer?.phone ?? "",
+        address: customer?.address ?? "",
+        email: customer?.email ?? undefined,
+        gstin: (customer as any)?.gstin ?? undefined, // just in case
+      },
       items: (items ?? []).map((item) => {
         const prod = products?.find((p) => p.id === item.product_id);
         return {
           product: {
             name: prod?.name ?? "",
             code: prod?.code ?? "",
-            gstRate: prod?.gst_rate ?? 18, // fallback to 18 if not found
+            gstRate: prod?.gst_rate ?? 18,
           },
           quantity: item.quantity,
           unitPrice: item.price,
@@ -168,7 +185,7 @@ const Billing = () => {
         };
       }),
       subtotal: (items ?? []).reduce((sum, i) => sum + i.quantity * i.price, 0),
-      discount: 0, // not available in current data structure
+      discount: 0,
       tax: ((items ?? []).reduce((sum, i) => sum + i.quantity * i.price, 0)) * 0.18,
       total: (items ?? []).reduce((sum, i) => sum + i.quantity * i.price, 0) * 1.18,
     });
@@ -183,7 +200,8 @@ const Billing = () => {
     const [discount, setDiscount] = useState(0);
     const [status, setStatus] = useState('pending'); // Paid/Pending/Overdue
 
-    const addItem = () => setItems([...items, { product: undefined, quantity: 1, unitPrice: 0, total: 0 }]);
+    const addItem = () =>
+      setItems([...items, { product: undefined, quantity: 1, unitPrice: 0, total: 0 }]);
     const updateItem = (idx: number, field: string, value: any) => {
       const arr = [...items];
       arr[idx] = { ...arr[idx], [field]: value };
@@ -199,7 +217,7 @@ const Billing = () => {
       const arr = [...items];
       arr[idx] = {
         ...arr[idx],
-        product,
+        product, // The entire Product is stored; guaranteed to have all required fields
         unitPrice: product.price,
         total: (arr[idx].quantity || 1) * product.price
       };
@@ -262,7 +280,10 @@ const Billing = () => {
                   <div key={index} className="bg-white dark:bg-slate-800 p-4 rounded-lg border dark:border-gray-700">
                     <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                       <div className="md:col-span-2">
-                        <ProductSelector onProductSelect={(product) => handleProductSelect(index, product)} selectedProduct={item.product} />
+                        <ProductSelector
+                          onProductSelect={(product) => handleProductSelect(index, product)}
+                          selectedProduct={item.product ?? undefined}
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-1">Quantity</label>
