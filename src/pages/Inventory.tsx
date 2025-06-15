@@ -91,21 +91,53 @@ const Inventory = () => {
       }
     );
 
+    const [submitError, setSubmitError] = useState<string | null>(null);
+
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      if (product) {
-        // Edit existing product
-        await updateProduct({ id: product.id, product: formData as TablesUpdate<"products"> });
-      } else {
-        // Add new product
-        const newProduct: TablesInsert<"products"> = {
-          ...formData,
-          gst_rate: 18,
-          unit: 'Litre'
-        } as TablesInsert<"products">;
-        await addProduct(newProduct);
+      setSubmitError(null);
+
+      // Transform for Supabase schema
+      const payload: any = {
+        code: formData.code,
+        name: formData.name,
+        brand: formData.brand,
+        type: formData.type,
+        color: formData.color,
+        stock: formData.stock,
+        price: formData.price,
+        gst_rate: formData.gstRate ?? 18, // map
+        unit: formData.unit || "Litre",
+      };
+
+      if (formData.description !== undefined) {
+        payload.description = formData.description;
       }
-      onClose();
+      if (formData.image !== undefined) {
+        payload.image = formData.image;
+      }
+      if (formData.batch_number !== undefined) {
+        payload.batch_number = formData.batch_number;
+      }
+      if (formData.expiry_date !== undefined) {
+        payload.expiry_date = formData.expiry_date;
+      }
+
+      try {
+        if (product) {
+          // Edit
+          console.log("Updating product with id:", product.id, "payload:", payload);
+          await updateProduct({ id: product.id, product: payload as TablesUpdate<"products"> });
+        } else {
+          // Add
+          console.log("Adding product payload:", payload);
+          await addProduct(payload as TablesInsert<"products">);
+        }
+        onClose();
+      } catch (error: any) {
+        console.error("Supabase product operation failed:", error);
+        setSubmitError(error.message || String(error));
+      }
     };
 
     return (
@@ -199,6 +231,11 @@ const Inventory = () => {
                 />
               </div>
             </div>
+            {submitError && (
+              <div className="bg-red-100 border border-red-400 text-red-700 p-2 rounded mt-2 text-sm">
+                {submitError}
+              </div>
+            )}
             <div className="flex gap-2 pt-4">
               <button
                 type="submit"
