@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { CustomerSummary } from "./CustomerSummary";
@@ -24,8 +25,34 @@ export default function RegularCustomerSidebar({ customer, open, onClose }: Prop
   const invoicesQuery = customer?.id ? getCustomerInvoices(customer.id) : { data: [], isLoading: false };
 
   // Defensive: always arrays, never undefined!
-  const projects = Array.isArray(projectsQuery?.data) ? projectsQuery.data : [];
-  const invoices = Array.isArray(invoicesQuery?.data) ? invoicesQuery.data : [];
+  // IMPORTANT: explicitly set to [] if not an array
+  let projects: any[] = [];
+  if (projectsQuery && Array.isArray(projectsQuery.data)) {
+    projects = projectsQuery.data;
+  } else if (projectsQuery && projectsQuery.data && typeof projectsQuery.data === "object" && projectsQuery.data !== null && "length" in projectsQuery.data) {
+    projects = projectsQuery.data;
+  } else {
+    projects = [];
+  }
+
+  let invoices: any[] = [];
+  if (invoicesQuery && Array.isArray(invoicesQuery.data)) {
+    invoices = invoicesQuery.data;
+  } else if (invoicesQuery && invoicesQuery.data && typeof invoicesQuery.data === "object" && invoicesQuery.data !== null && "length" in invoicesQuery.data) {
+    invoices = invoicesQuery.data;
+  } else {
+    invoices = [];
+  }
+
+  // DEBUG LOGGING to catch edge cases
+  if (process.env.NODE_ENV !== "production") {
+    if (!Array.isArray(projects)) {
+      console.warn("projects variable is not an array", projectsQuery, projectsQuery?.data);
+    }
+    if (!Array.isArray(invoices)) {
+      console.warn("invoices variable is not an array", invoicesQuery, invoicesQuery?.data);
+    }
+  }
 
   const { products } = useSupabaseProducts();
 
@@ -63,13 +90,13 @@ export default function RegularCustomerSidebar({ customer, open, onClose }: Prop
           dueAmount={dueAmount}
         />
         <InvoiceHistorySection
-          invoices={Array.isArray(invoices) ? invoices : []}
+          invoices={invoices}
           onEdit={(inv) => {/* show edit dialog, not implemented here */}}
           onView={(inv) => {/* show view dialog, not implemented here */}}
           onPrint={(inv) => window.print()}
         />
         <ProjectsSection
-          projects={Array.isArray(projects) ? projects : []}
+          projects={projects}
           onEditProject={(proj) => {/* open project edit modal */}}
           onAddProject={() => {/* open add project modal */}}
           onEditProduct={(projId, prod) => {/* open product edit modal */}}
