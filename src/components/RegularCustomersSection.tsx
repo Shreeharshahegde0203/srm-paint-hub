@@ -8,6 +8,7 @@ import CustomerForm from "./CustomerForm";
 import CustomerListItem from "./CustomerListItem";
 import ProductModal from "./ProductModal";
 import CustomerHistoryModal from "./CustomerHistoryModal";
+import RegularCustomerSidebar from "./RegularCustomerSidebar";
 
 const RegularCustomersSection = () => {
   const {
@@ -39,6 +40,9 @@ const RegularCustomersSection = () => {
 
   // State for customer invoice history modal
   const [historyCustomerId, setHistoryCustomerId] = useState<string | null>(null);
+
+  // Add state for sidebar
+  const [sidebarCustomer, setSidebarCustomer] = useState<any>(null);
 
   const handleAddOrEditCustomer = async (formData: any, isAddMode: boolean, customer: any) => {
     if (isAddMode) {
@@ -144,11 +148,19 @@ const RegularCustomersSection = () => {
               onEdit={handleEditCustomer}
               onViewDetails={setSelectedCustomer}
               onOpenProductModal={openProductModal}
-              onNameClick={() => setHistoryCustomerId(customer.id)}
+              // Sidebar opens on name click
+              onNameClick={() => setSidebarCustomer(customer)}
             />
           ))}
         </div>
       )}
+
+      {/* Sidebar for detailed view */}
+      <RegularCustomerSidebar
+        customer={sidebarCustomer}
+        open={!!sidebarCustomer}
+        onClose={() => setSidebarCustomer(null)}
+      />
 
       {/* Product Modal */}
       <ProductModal
