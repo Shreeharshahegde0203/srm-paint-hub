@@ -14,6 +14,7 @@ import EditInvoiceForm from "../components/EditInvoiceForm";
 import ConfirmDialog from "../components/ConfirmDialog";
 import CustomerHistoryModal from "../components/CustomerHistoryModal";
 import { Eye as EyeIcon, Download as DownloadIcon } from 'lucide-react';
+import RegularCustomersSection from "../components/RegularCustomersSection";
 
 // --- Type definitions for Supabase integration ---
 type Customer = Tables<"customers">;
