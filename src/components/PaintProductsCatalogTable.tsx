@@ -1,30 +1,29 @@
 
 import React, { useState } from "react";
-import { usePaintProductsCatalog } from "@/hooks/usePaintProductsCatalog";
+import { useUnifiedProducts } from "@/hooks/useUnifiedProducts";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Edit, Search, Plus } from "lucide-react";
 import AddPaintProductForm from "./AddPaintProductForm";
 
 const PaintProductsCatalogTable = () => {
-  const { catalog, isLoading, updateProduct } = usePaintProductsCatalog();
+  const { products, isLoading } = useUnifiedProducts();
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<any>(null);
 
-  const filteredCatalog = catalog?.filter(product =>
+  const filteredProducts = products?.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.brand.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (isLoading) {
-    return <div className="text-center py-8 text-gray-500">Loading paint products catalog...</div>;
+    return <div className="text-center py-8 text-gray-500">Loading unified products...</div>;
   }
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 transition-colors">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Paint Products Catalog</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Unified Products (Inventory + Catalog)</h2>
         <button
           onClick={() => setShowAddForm(true)}
           className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-green-700"
@@ -65,13 +64,15 @@ const PaintProductsCatalogTable = () => {
               <TableHead className="font-semibold">Brand</TableHead>
               <TableHead className="font-semibold">Type</TableHead>
               <TableHead className="font-semibold">Color</TableHead>
-              <TableHead className="font-semibold">Default Price</TableHead>
+              <TableHead className="font-semibold">Price</TableHead>
+              <TableHead className="font-semibold">Stock</TableHead>
+              <TableHead className="font-semibold">Source</TableHead>
               <TableHead className="font-semibold">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredCatalog?.map((product) => (
-              <TableRow key={product.id} className="hover:bg-gray-50 dark:hover:bg-slate-700">
+            {filteredProducts?.map((product) => (
+              <TableRow key={`${product.source}-${product.id}`} className="hover:bg-gray-50 dark:hover:bg-slate-700">
                 <TableCell className="font-mono text-sm">{product.code}</TableCell>
                 <TableCell className="font-medium">{product.name}</TableCell>
                 <TableCell>{product.brand}</TableCell>
@@ -83,10 +84,27 @@ const PaintProductsCatalogTable = () => {
                     </span>
                   )}
                 </TableCell>
-                <TableCell className="font-semibold text-green-600">₹{product.default_price}</TableCell>
+                <TableCell className="font-semibold text-green-600">₹{product.price}</TableCell>
+                <TableCell>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    product.stock > 0 
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                      : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                  }`}>
+                    {product.stock > 0 ? `${product.stock} units` : 'No Stock'}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    product.source === 'inventory' 
+                      ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' 
+                      : 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+                  }`}>
+                    {product.source === 'inventory' ? 'Inventory' : 'Catalog'}
+                  </span>
+                </TableCell>
                 <TableCell>
                   <button
-                    onClick={() => setEditingProduct(product)}
                     className="text-blue-600 hover:text-blue-800 dark:text-blue-400"
                   >
                     <Edit className="h-4 w-4" />
@@ -98,14 +116,14 @@ const PaintProductsCatalogTable = () => {
         </Table>
       </div>
 
-      {filteredCatalog?.length === 0 && (
+      {filteredProducts?.length === 0 && (
         <div className="text-center py-8 text-gray-500">
-          {searchTerm ? "No products found matching your search." : "No products in catalog yet."}
+          {searchTerm ? "No products found matching your search." : "No products in database yet."}
         </div>
       )}
 
       <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-        Showing {filteredCatalog?.length || 0} of {catalog?.length || 0} products
+        Showing {filteredProducts?.length || 0} unified products (inventory + catalog)
       </div>
     </div>
   );

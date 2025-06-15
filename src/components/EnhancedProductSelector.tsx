@@ -1,26 +1,26 @@
 
 import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
-import { useCachedProducts } from '../hooks/useCachedProducts';
+import { useUnifiedProducts } from '../hooks/useUnifiedProducts';
 import { useCachedBrands } from '../hooks/useReferenceData';
 import { Product } from '../data/products';
 
-// Helper to map DB product to local Product interface
-const mapDbProductToProduct = (dbProduct: any): Product => ({
-  id: dbProduct.id,
-  code: dbProduct.code,
-  name: dbProduct.name,
-  brand: dbProduct.brand,
-  type: dbProduct.type,
-  color: dbProduct.color,
-  price: dbProduct.price,
-  stock: dbProduct.stock,
-  image: dbProduct.image || undefined,
-  gstRate: dbProduct.gst_rate,
-  unit: dbProduct.unit,
-  batchNumber: dbProduct.batch_number ?? undefined,
-  expiryDate: dbProduct.expiry_date ?? undefined,
-  description: dbProduct.description ?? undefined,
+// Helper to map unified product to local Product interface
+const mapUnifiedProductToProduct = (unifiedProduct: any): Product => ({
+  id: unifiedProduct.id,
+  code: unifiedProduct.code,
+  name: unifiedProduct.name,
+  brand: unifiedProduct.brand,
+  type: unifiedProduct.type,
+  color: unifiedProduct.color,
+  price: unifiedProduct.price,
+  stock: unifiedProduct.stock,
+  image: undefined,
+  gstRate: unifiedProduct.gstRate || 18,
+  unit: unifiedProduct.unit || 'Litre',
+  batchNumber: undefined,
+  expiryDate: undefined,
+  description: unifiedProduct.description,
 });
 
 interface EnhancedProductSelectorProps {
@@ -33,7 +33,7 @@ const EnhancedProductSelector = ({ onProductSelect, selectedProduct }: EnhancedP
   const [isOpen, setIsOpen] = useState(false);
   const [showBrandSuggestions, setShowBrandSuggestions] = useState(false);
 
-  const { products, isLoading, searchProducts } = useCachedProducts();
+  const { products, isLoading, searchProducts } = useUnifiedProducts();
   const { getBrandSuggestions } = useCachedBrands();
 
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -41,9 +41,9 @@ const EnhancedProductSelector = ({ onProductSelect, selectedProduct }: EnhancedP
 
   useEffect(() => {
     if (searchTerm) {
-      // Search in cached products
-      const dbResults = searchProducts(searchTerm);
-      const mappedResults = dbResults.map(mapDbProductToProduct);
+      // Search in unified products
+      const results = searchProducts(searchTerm);
+      const mappedResults = results.map(mapUnifiedProductToProduct);
       setFilteredProducts(mappedResults);
       
       // Get brand suggestions
@@ -69,7 +69,7 @@ const EnhancedProductSelector = ({ onProductSelect, selectedProduct }: EnhancedP
     // Filter products by selected brand
     const brandProducts = products
       .filter(p => p.brand?.toLowerCase() === brand.toLowerCase())
-      .map(mapDbProductToProduct);
+      .map(mapUnifiedProductToProduct);
     setFilteredProducts(brandProducts);
   };
 
@@ -139,7 +139,14 @@ const EnhancedProductSelector = ({ onProductSelect, selectedProduct }: EnhancedP
                   <div>
                     <p className="font-medium text-gray-900">{product.code} - {product.name}</p>
                     <p className="text-sm text-gray-600">{product.brand} • {product.type} • {product.color}</p>
-                    <p className="text-sm text-gray-500">Stock: {product.stock} units</p>
+                    <p className="text-sm text-gray-500">
+                      Stock: {product.stock} units
+                      {product.stock === 0 && (
+                        <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded">
+                          Catalog Only
+                        </span>
+                      )}
+                    </p>
                   </div>
                   <p className="font-bold text-green-600">₹{product.price}</p>
                 </div>
