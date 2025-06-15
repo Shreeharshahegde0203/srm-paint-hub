@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Search, FileText, Download, Eye, Trash2 } from 'lucide-react';
 import ProductSelector from '../components/ProductSelector';
+import ProductManagement from '../components/ProductManagement';
 import { Product, productsDatabase } from '../data/products';
 import { generateInvoicePDF } from '../utils/pdfGenerator';
 
@@ -36,6 +37,7 @@ interface Invoice {
 }
 
 const Billing = () => {
+  const [products, setProducts] = useState<Product[]>(productsDatabase);
   const [invoices, setInvoices] = useState<Invoice[]>([
     {
       id: '1',
@@ -69,6 +71,7 @@ const Billing = () => {
 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState<'invoices' | 'products'>('invoices');
 
   const filteredInvoices = invoices.filter(invoice =>
     invoice.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -83,6 +86,22 @@ const Billing = () => {
 
   const handleDownloadPDF = (invoice: Invoice) => {
     generateInvoicePDF(invoice);
+  };
+
+  const handleAddProduct = (productData: Omit<Product, 'id'>) => {
+    const newProduct: Product = {
+      ...productData,
+      id: Date.now().toString()
+    };
+    setProducts([...products, newProduct]);
+  };
+
+  const handleUpdateProduct = (id: string, productData: Partial<Product>) => {
+    setProducts(products.map(p => p.id === id ? { ...p, ...productData } : p));
+  };
+
+  const handleDeleteProduct = (id: string) => {
+    setProducts(products.filter(p => p.id !== id));
   };
 
   const CreateInvoiceForm = ({ onClose }: { onClose: () => void }) => {
@@ -367,79 +386,120 @@ const Billing = () => {
           </div>
         </div>
 
-        {/* Search */}
+        {/* Tabs */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <input
-              type="text"
-              placeholder="Search invoices..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
-            />
+          <div className="flex space-x-4">
+            <button
+              onClick={() => setActiveTab('invoices')}
+              className={`px-4 py-2 rounded-lg font-medium ${
+                activeTab === 'invoices' 
+                ? 'bg-green-600 text-white' 
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Invoices
+            </button>
+            <button
+              onClick={() => setActiveTab('products')}
+              className={`px-4 py-2 rounded-lg font-medium ${
+                activeTab === 'products' 
+                ? 'bg-green-600 text-white' 
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Manage Products
+            </button>
           </div>
         </div>
 
-        {/* Invoices List */}
-        <div className="space-y-4">
-          {filteredInvoices.map((invoice) => (
-            <div key={invoice.id} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-                <div className="flex-1">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-                    <h3 className="text-xl font-bold text-gray-900">{invoice.invoiceNumber}</h3>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      invoice.status === 'paid' ? 'bg-green-100 text-green-800' :
-                      invoice.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-                    <div>
-                      <p><strong>Customer:</strong> {invoice.customer.name}</p>
-                      <p><strong>Phone:</strong> {invoice.customer.phone}</p>
-                      {invoice.customer.gstin && <p><strong>GSTIN:</strong> {invoice.customer.gstin}</p>}
-                    </div>
-                    <div>
-                      <p><strong>Date:</strong> {invoice.date} at {invoice.time}</p>
-                      <p><strong>Items:</strong> {invoice.items.length} product(s)</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-gray-900">₹{invoice.total.toFixed(2)}</p>
-                    <p className="text-sm text-gray-600">Total Amount</p>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <button className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg">
-                      <Eye className="h-5 w-5" />
-                    </button>
-                    <button 
-                      onClick={() => handleDownloadPDF(invoice)}
-                      className="text-green-600 hover:bg-green-50 p-2 rounded-lg"
-                    >
-                      <Download className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
+        {/* Product Management Tab */}
+        {activeTab === 'products' && (
+          <ProductManagement
+            products={products}
+            onAddProduct={handleAddProduct}
+            onUpdateProduct={handleUpdateProduct}
+            onDeleteProduct={handleDeleteProduct}
+          />
+        )}
+
+        {/* Invoices Tab */}
+        {activeTab === 'invoices' && (
+          <>
+            {/* Search */}
+            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+              <div className="relative max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <input
+                  type="text"
+                  placeholder="Search invoices..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                />
               </div>
             </div>
-          ))}
-        </div>
 
-        {/* Empty state */}
-        {filteredInvoices.length === 0 && (
-          <div className="text-center py-12">
-            <FileText className="mx-auto h-16 w-16 text-gray-300 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No invoices found</h3>
-            <p className="text-gray-600">Create your first invoice to get started</p>
-          </div>
+            {/* Invoices List */}
+            <div className="space-y-4">
+              {filteredInvoices.map((invoice) => (
+                <div key={invoice.id} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                  <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                    <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                        <h3 className="text-xl font-bold text-gray-900">{invoice.invoiceNumber}</h3>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          invoice.status === 'paid' ? 'bg-green-100 text-green-800' :
+                          invoice.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                        <div>
+                          <p><strong>Customer:</strong> {invoice.customer.name}</p>
+                          <p><strong>Phone:</strong> {invoice.customer.phone}</p>
+                          {invoice.customer.gstin && <p><strong>GSTIN:</strong> {invoice.customer.gstin}</p>}
+                        </div>
+                        <div>
+                          <p><strong>Date:</strong> {invoice.date} at {invoice.time}</p>
+                          <p><strong>Items:</strong> {invoice.items.length} product(s)</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-gray-900">₹{invoice.total.toFixed(2)}</p>
+                        <p className="text-sm text-gray-600">Total Amount</p>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <button className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg">
+                          <Eye className="h-5 w-5" />
+                        </button>
+                        <button 
+                          onClick={() => handleDownloadPDF(invoice)}
+                          className="text-green-600 hover:bg-green-50 p-2 rounded-lg"
+                        >
+                          <Download className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Empty state */}
+            {filteredInvoices.length === 0 && (
+              <div className="text-center py-12">
+                <FileText className="mx-auto h-16 w-16 text-gray-300 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No invoices found</h3>
+                <p className="text-gray-600">Create your first invoice to get started</p>
+              </div>
+            )}
+          </>
         )}
       </div>
 
