@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { Shield, Users, Settings, BarChart3, Package, FileText, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import ProductManagement from '../components/ProductManagement';
 import { Product, productsDatabase } from '../data/products';
+import AdminInfoDialog from '../components/AdminInfoDialog';
 
 const Admin = () => {
   const { logout } = useAuth();
@@ -41,13 +41,16 @@ const Admin = () => {
               </h1>
               <p className="text-gray-600 mt-1">Complete administrative control panel</p>
             </div>
-            <button
-              onClick={logout}
-              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </button>
+            <div className="flex items-center">
+              <AdminInfoDialog />
+              <button
+                onClick={logout}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center ml-3"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </button>
+            </div>
           </div>
         </div>
 

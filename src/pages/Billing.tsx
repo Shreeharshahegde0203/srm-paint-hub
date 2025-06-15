@@ -4,6 +4,8 @@ import ProductSelector from '../components/ProductSelector';
 import ProductManagement from '../components/ProductManagement';
 import { Product, productsDatabase } from '../data/products';
 import { generateInvoicePDF } from '../utils/pdfGenerator';
+import { useCompanyInfo } from "../contexts/CompanyInfoContext";
+import { setCompanyInfoForPDF } from "../utils/pdfGenerator";
 
 interface Customer {
   id: string;
@@ -84,7 +86,10 @@ const Billing = () => {
     return `SRM-${year}-${number}`;
   };
 
+  const { companyInfo } = useCompanyInfo();
+
   const handleDownloadPDF = (invoice: Invoice) => {
+    setCompanyInfoForPDF(companyInfo);
     generateInvoicePDF(invoice);
   };
 

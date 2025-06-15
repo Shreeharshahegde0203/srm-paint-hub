@@ -1,4 +1,6 @@
 
+import { useCompanyInfo } from "../contexts/CompanyInfoContext";
+
 interface InvoiceData {
   invoiceNumber: string;
   date: string;
@@ -26,14 +28,43 @@ interface InvoiceData {
   total: number;
 }
 
+// Plain JS access to company info (since context not available in pure JS file)
+let _companyInfo: any;
+export function setCompanyInfoForPDF(companyInfo: any) {
+  _companyInfo = companyInfo;
+}
+
 export const generateInvoicePDF = (invoice: InvoiceData) => {
-  // Create a new window for the invoice
+  const company = _companyInfo || {
+    name: "SHREERAM MARKETING",
+    tagline: "Premium Paints & Coatings Dealer",
+    address: "[Your Address Here]",
+    phone: "[Your Phone]",
+    email: "[Your Email]",
+    gstin: "[Your GSTIN Number]",
+    logoUrl: "",
+    footer: "Thank you for your business!\\nVisit us again for all your paint needs.",
+    terms: "This is a computer generated invoice and does not require signature.\\nTerms & Conditions: Payment due within 30 days. All disputes subject to local jurisdiction.",
+    invoiceColors: { primary: "#1e3a8a", accent: "#dc2626", text: "#333" }
+  };
+
+  // Create new window for invoice
   const printWindow = window.open('', '_blank', 'width=800,height=600');
-  
   if (!printWindow) {
     alert('Please allow popups to download the invoice');
     return;
   }
+
+  // escapeHTML helper for user content
+  const escapeHTML = (str: string = "") =>
+    str.replace(/[&<>"']/g, m =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m] || m)
+    );
+
+  // Format logo HTML
+  const logoHTML = company.logoUrl
+    ? `<img src="${company.logoUrl}" alt="Logo" style="max-height:48px;" />`
+    : `<span style="font-size:28px;font-weight:bold;color:${company.invoiceColors.primary};">SRM</span>`;
 
   const invoiceHTML = `
     <!DOCTYPE html>
@@ -41,10 +72,10 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
     <head>
       <title>Invoice ${invoice.invoiceNumber}</title>
       <style>
-        body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
-        .header { text-align: center; border-bottom: 2px solid #dc2626; padding-bottom: 20px; margin-bottom: 20px; }
-        .logo { font-size: 28px; font-weight: bold; color: #1e3a8a; margin-bottom: 5px; }
-        .company-name { font-size: 24px; font-weight: bold; color: #dc2626; margin-bottom: 5px; }
+        body { font-family: Arial, sans-serif; margin: 20px; color: ${company.invoiceColors.text}; }
+        .header { text-align: center; border-bottom: 2px solid ${company.invoiceColors.accent}; padding-bottom: 20px; margin-bottom: 20px; }
+        .logo { margin-bottom: 5px; }
+        .company-name { font-size: 24px; font-weight: bold; color: ${company.invoiceColors.accent}; margin-bottom: 5px; }
         .company-details { font-size: 14px; color: #666; }
         .invoice-info { display: flex; justify-content: space-between; margin-bottom: 20px; }
         .customer-info { margin-bottom: 20px; }
@@ -63,13 +94,13 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
     </head>
     <body>
       <div class="header">
-        <div class="logo">SRM</div>
-        <div class="company-name">SHREERAM MARKETING</div>
+        <div class="logo">${logoHTML}</div>
+        <div class="company-name">${escapeHTML(company.name)}</div>
         <div class="company-details">
-          Premium Paints & Coatings Dealer<br>
-          Address: [Your Address Here]<br>
-          Phone: [Your Phone] | Email: [Your Email]<br>
-          GSTIN: [Your GSTIN Number]
+          ${escapeHTML(company.tagline)}<br>
+          Address: ${escapeHTML(company.address)}<br>
+          Phone: ${escapeHTML(company.phone)} | Email: ${escapeHTML(company.email)}<br>
+          GSTIN: ${escapeHTML(company.gstin)}
         </div>
       </div>
 
@@ -82,11 +113,11 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
         </div>
         <div class="info-box" style="width: 45%;">
           <h3>Bill To</h3>
-          <strong>${invoice.customer.name}</strong><br>
-          Phone: ${invoice.customer.phone}<br>
-          ${invoice.customer.email ? `Email: ${invoice.customer.email}<br>` : ''}
-          Address: ${invoice.customer.address}<br>
-          ${invoice.customer.gstin ? `GSTIN: ${invoice.customer.gstin}` : ''}
+          <strong>${escapeHTML(invoice.customer.name)}</strong><br>
+          Phone: ${escapeHTML(invoice.customer.phone)}<br>
+          ${invoice.customer.email ? `Email: ${escapeHTML(invoice.customer.email)}<br>` : ''}
+          Address: ${escapeHTML(invoice.customer.address)}<br>
+          ${invoice.customer.gstin ? `GSTIN: ${escapeHTML(invoice.customer.gstin)}` : ''}
         </div>
       </div>
 
@@ -107,8 +138,8 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
           ${invoice.items.map((item, index) => `
             <tr>
               <td>${index + 1}</td>
-              <td>${item.product.code}</td>
-              <td>${item.product.name}</td>
+              <td>${escapeHTML(item.product.code)}</td>
+              <td>${escapeHTML(item.product.name)}</td>
               <td>${item.quantity}</td>
               <td class="text-right">₹${item.unitPrice.toFixed(2)}</td>
               <td class="text-right">₹${(item.quantity * item.unitPrice).toFixed(2)}</td>
@@ -142,13 +173,11 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
 
       <div class="gst-details">
         <strong>GST Details:</strong><br>
-        This is a computer generated invoice and does not require signature.<br>
-        Terms & Conditions: Payment due within 30 days. All disputes subject to local jurisdiction.
+        ${(company.terms || "").replace(/\\n/g, "<br>")}
       </div>
 
       <div class="footer">
-        <p>Thank you for your business!<br>
-        Visit us again for all your paint needs.</p>
+        ${(company.footer || "").replace(/\\n/g, "<br>")}
       </div>
     </body>
     </html>
@@ -157,9 +186,9 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
   printWindow.document.write(invoiceHTML);
   printWindow.document.close();
   printWindow.focus();
-  
-  // Auto print after a short delay
+
+  // Auto print after delay
   setTimeout(() => {
     printWindow.print();
-  }, 1000);
+  }, 800);
 };
