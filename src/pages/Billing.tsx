@@ -1,6 +1,8 @@
 
 import React, { useState } from 'react';
-import { Plus, Search, FileText, Download, Eye } from 'lucide-react';
+import { Plus, Search, FileText, Download, Eye, Trash2 } from 'lucide-react';
+import ProductSelector from '../components/ProductSelector';
+import { Product, productsDatabase } from '../data/products';
 
 interface Customer {
   id: string;
@@ -12,15 +14,17 @@ interface Customer {
 
 interface InvoiceItem {
   id: string;
-  productName: string;
+  product: Product;
   quantity: number;
-  price: number;
+  unitPrice: number;
   total: number;
 }
 
 interface Invoice {
   id: string;
+  invoiceNumber: string;
   date: string;
+  time: string;
   customer: Customer;
   items: InvoiceItem[];
   subtotal: number;
@@ -33,8 +37,10 @@ interface Invoice {
 const Billing = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([
     {
-      id: 'INV-2024-001',
+      id: '1',
+      invoiceNumber: 'SRM-2024-001',
       date: '2024-01-15',
+      time: '10:30 AM',
       customer: {
         id: '1',
         name: 'Rajesh Kumar',
@@ -43,32 +49,19 @@ const Billing = () => {
         email: 'rajesh@email.com'
       },
       items: [
-        { id: '1', productName: 'Asian Paints Wall Paint', quantity: 2, price: 1200, total: 2400 },
-        { id: '2', productName: 'Berger Primer', quantity: 1, price: 800, total: 800 }
+        { 
+          id: '1', 
+          product: productsDatabase[0], 
+          quantity: 2, 
+          unitPrice: 1200, 
+          total: 2400 
+        }
       ],
-      subtotal: 3200,
-      discount: 160,
-      tax: 576,
-      total: 3616,
+      subtotal: 2400,
+      discount: 120,
+      tax: 410.4,
+      total: 2690.4,
       status: 'paid'
-    },
-    {
-      id: 'INV-2024-002',
-      date: '2024-01-16',
-      customer: {
-        id: '2',
-        name: 'Priya Sharma',
-        phone: '+91 87654 32109',
-        address: '456 Garden Road, Delhi'
-      },
-      items: [
-        { id: '1', productName: 'Dulux Weather Shield', quantity: 3, price: 1800, total: 5400 }
-      ],
-      subtotal: 5400,
-      discount: 0,
-      tax: 972,
-      total: 6372,
-      status: 'pending'
     }
   ]);
 
@@ -77,8 +70,14 @@ const Billing = () => {
 
   const filteredInvoices = invoices.filter(invoice =>
     invoice.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    invoice.id.toLowerCase().includes(searchTerm.toLowerCase())
+    invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const generateInvoiceNumber = () => {
+    const year = new Date().getFullYear();
+    const number = (invoices.length + 1).toString().padStart(3, '0');
+    return `SRM-${year}-${number}`;
+  };
 
   const CreateInvoiceForm = ({ onClose }: { onClose: () => void }) => {
     const [customerData, setCustomerData] = useState<Partial<Customer>>({
@@ -89,30 +88,43 @@ const Billing = () => {
     });
 
     const [items, setItems] = useState<Partial<InvoiceItem>[]>([
-      { productName: '', quantity: 1, price: 0, total: 0 }
+      { product: undefined, quantity: 1, unitPrice: 0, total: 0 }
     ]);
 
     const [discount, setDiscount] = useState(0);
 
     const addItem = () => {
-      setItems([...items, { productName: '', quantity: 1, price: 0, total: 0 }]);
+      setItems([...items, { product: undefined, quantity: 1, unitPrice: 0, total: 0 }]);
     };
 
     const updateItem = (index: number, field: keyof InvoiceItem, value: any) => {
       const newItems = [...items];
       newItems[index] = { ...newItems[index], [field]: value };
       
-      if (field === 'quantity' || field === 'price') {
+      if (field === 'quantity' || field === 'unitPrice') {
         const quantity = field === 'quantity' ? value : newItems[index].quantity || 0;
-        const price = field === 'price' ? value : newItems[index].price || 0;
-        newItems[index].total = quantity * price;
+        const unitPrice = field === 'unitPrice' ? value : newItems[index].unitPrice || 0;
+        newItems[index].total = quantity * unitPrice;
       }
       
       setItems(newItems);
     };
 
+    const handleProductSelect = (index: number, product: Product) => {
+      const newItems = [...items];
+      newItems[index] = { 
+        ...newItems[index], 
+        product, 
+        unitPrice: product.price,
+        total: (newItems[index].quantity || 1) * product.price
+      };
+      setItems(newItems);
+    };
+
     const removeItem = (index: number) => {
-      setItems(items.filter((_, i) => i !== index));
+      if (items.length > 1) {
+        setItems(items.filter((_, i) => i !== index));
+      }
     };
 
     const subtotal = items.reduce((sum, item) => sum + (item.total || 0), 0);
@@ -124,11 +136,17 @@ const Billing = () => {
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       
+      const now = new Date();
       const newInvoice: Invoice = {
-        id: `INV-2024-${String(invoices.length + 1).padStart(3, '0')}`,
-        date: new Date().toISOString().split('T')[0],
+        id: Date.now().toString(),
+        invoiceNumber: generateInvoiceNumber(),
+        date: now.toISOString().split('T')[0],
+        time: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
         customer: customerData as Customer,
-        items: items as InvoiceItem[],
+        items: items.map(item => ({
+          ...item,
+          id: Date.now().toString() + Math.random()
+        })) as InvoiceItem[],
         subtotal,
         discount: discountAmount,
         tax,
@@ -142,7 +160,7 @@ const Billing = () => {
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-xl p-6 w-full max-w-4xl max-h-screen overflow-y-auto">
+        <div className="bg-white rounded-xl p-6 w-full max-w-5xl max-h-screen overflow-y-auto">
           <h3 className="text-2xl font-bold mb-6">Create New Invoice</h3>
           
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -199,45 +217,56 @@ const Billing = () => {
               
               <div className="space-y-4">
                 {items.map((item, index) => (
-                  <div key={index} className="grid grid-cols-1 md:grid-cols-5 gap-4 bg-white p-4 rounded-lg">
-                    <input
-                      type="text"
-                      placeholder="Product Name"
-                      value={item.productName}
-                      onChange={(e) => updateItem(index, 'productName', e.target.value)}
-                      className="w-full p-2 border rounded-lg"
-                      required
-                    />
-                    <input
-                      type="number"
-                      placeholder="Qty"
-                      value={item.quantity}
-                      onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value))}
-                      className="w-full p-2 border rounded-lg"
-                      min="1"
-                      required
-                    />
-                    <input
-                      type="number"
-                      placeholder="Price"
-                      value={item.price}
-                      onChange={(e) => updateItem(index, 'price', parseFloat(e.target.value))}
-                      className="w-full p-2 border rounded-lg"
-                      min="0"
-                      step="0.01"
-                      required
-                    />
-                    <div className="flex items-center p-2 bg-gray-100 rounded-lg">
-                      <span className="text-sm font-medium">₹{item.total?.toFixed(2) || '0.00'}</span>
+                  <div key={index} className="bg-white p-4 rounded-lg border">
+                    <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                      <div className="md:col-span-2">
+                        <ProductSelector
+                          onProductSelect={(product) => handleProductSelect(index, product)}
+                          selectedProduct={item.product}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Quantity</label>
+                        <input
+                          type="number"
+                          placeholder="Qty"
+                          value={item.quantity}
+                          onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 1)}
+                          className="w-full p-2 border rounded-lg"
+                          min="1"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Unit Price</label>
+                        <input
+                          type="number"
+                          placeholder="Price"
+                          value={item.unitPrice}
+                          onChange={(e) => updateItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                          className="w-full p-2 border rounded-lg"
+                          min="0"
+                          step="0.01"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Total</label>
+                        <div className="flex items-center p-2 bg-gray-100 rounded-lg h-10">
+                          <span className="text-sm font-medium">₹{item.total?.toFixed(2) || '0.00'}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-end">
+                        <button
+                          type="button"
+                          onClick={() => removeItem(index)}
+                          className="text-red-600 hover:bg-red-50 p-2 rounded-lg h-10"
+                          disabled={items.length === 1}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => removeItem(index)}
-                      className="text-red-600 hover:bg-red-50 p-2 rounded-lg"
-                      disabled={items.length === 1}
-                    >
-                      Remove
-                    </button>
                   </div>
                 ))}
               </div>
@@ -272,7 +301,7 @@ const Billing = () => {
                     <span>Tax (18%):</span>
                     <span>₹{tax.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between font-bold text-lg">
+                  <div className="flex justify-between font-bold text-lg border-t pt-2">
                     <span>Total:</span>
                     <span>₹{total.toFixed(2)}</span>
                   </div>
@@ -312,7 +341,7 @@ const Billing = () => {
                 <FileText className="mr-3 h-8 w-8 text-green-600" />
                 Billing & Invoices
               </h1>
-              <p className="text-gray-600 mt-1">Create and manage customer invoices</p>
+              <p className="text-gray-600 mt-1">Create and manage customer invoices with smart product lookup</p>
             </div>
             <button
               onClick={() => setShowCreateForm(true)}
@@ -345,7 +374,7 @@ const Billing = () => {
               <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                 <div className="flex-1">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-                    <h3 className="text-xl font-bold text-gray-900">{invoice.id}</h3>
+                    <h3 className="text-xl font-bold text-gray-900">{invoice.invoiceNumber}</h3>
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                       invoice.status === 'paid' ? 'bg-green-100 text-green-800' :
                       invoice.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
@@ -360,7 +389,7 @@ const Billing = () => {
                       <p><strong>Phone:</strong> {invoice.customer.phone}</p>
                     </div>
                     <div>
-                      <p><strong>Date:</strong> {invoice.date}</p>
+                      <p><strong>Date:</strong> {invoice.date} at {invoice.time}</p>
                       <p><strong>Items:</strong> {invoice.items.length} product(s)</p>
                     </div>
                   </div>
