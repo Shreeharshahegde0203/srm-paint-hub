@@ -1,14 +1,21 @@
 
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 
+/**
+ * Checks if the user is authenticated using Supabase.
+ * Optionally, restrict to a certain email (admin).
+ */
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  adminOnly?: boolean; // future extensibility
 }
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { isAuthenticated, loading } = useAuth();
+const ADMIN_EMAIL = "admin@admin.com"; // Change as needed for your admin
+
+const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRouteProps) => {
+  const { user, loading } = useSupabaseAuth();
 
   if (loading) {
     return (
@@ -18,8 +25,14 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/admin" replace />;
+  if (!user) {
+    // Not logged in
+    return <Navigate to="/auth" replace />;
+  }
+
+  if (adminOnly && user.email !== ADMIN_EMAIL) {
+    // Not an admin user
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;

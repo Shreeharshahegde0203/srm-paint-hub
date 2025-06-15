@@ -30,14 +30,15 @@ function App() {
           <Sonner />
           <BrowserRouter>
             <CompanyInfoProvider>
-              <AuthProvider>
+              <SupabaseAuthProvider>
                 <Layout>
                   <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/contact" element={<Contact />} />
+                    {/* Redirect calls to /admin-login to /auth, handled in AdminLogin page */}
                     <Route path="/admin-login" element={<AdminLogin />} />
                     <Route path="/admin" element={
-                      <ProtectedRoute>
+                      <ProtectedRoute adminOnly>
                         <Admin />
                       </ProtectedRoute>
                     } />
@@ -60,7 +61,7 @@ function App() {
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Layout>
-              </AuthProvider>
+              </SupabaseAuthProvider>
             </CompanyInfoProvider>
           </BrowserRouter>
         </TooltipProvider>
