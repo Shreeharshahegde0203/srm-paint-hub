@@ -68,6 +68,41 @@ export type Database = {
         }
         Relationships: []
       }
+      inventory: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_restocked_date: string | null
+          min_stock_alert_threshold: number | null
+          product_code: string
+          quantity: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_restocked_date?: string | null
+          min_stock_alert_threshold?: number | null
+          product_code: string
+          quantity?: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_restocked_date?: string | null
+          min_stock_alert_threshold?: number | null
+          product_code?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_product_code_fkey"
+            columns: ["product_code"]
+            isOneToOne: true
+            referencedRelation: "paint_products"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       inventory_movements: {
         Row: {
           created_at: string | null
@@ -240,6 +275,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      paint_products: {
+        Row: {
+          brand: string
+          code: string
+          color: string | null
+          created_at: string | null
+          default_price: number
+          description: string | null
+          id: string
+          name: string
+          type: string
+        }
+        Insert: {
+          brand: string
+          code: string
+          color?: string | null
+          created_at?: string | null
+          default_price: number
+          description?: string | null
+          id?: string
+          name: string
+          type: string
+        }
+        Update: {
+          brand?: string
+          code?: string
+          color?: string | null
+          created_at?: string | null
+          default_price?: number
+          description?: string | null
+          id?: string
+          name?: string
+          type?: string
+        }
+        Relationships: []
       }
       products: {
         Row: {
