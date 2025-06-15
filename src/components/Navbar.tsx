@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, LogOut, Shield, Info } from 'lucide-react';
@@ -82,18 +81,7 @@ const Navbar = () => {
                 )))}
             {/* Info button ALWAYS visible if authenticated */}
             {isAuthenticated && (
-              <span className="ml-2">
-                <AdminInfoDialog
-                  trigger={
-                    <button
-                      aria-label="App Info"
-                      className="inline-flex items-center px-2 py-2 rounded-full bg-blue-50 hover:bg-blue-200 dark:bg-blue-950 dark:hover:bg-blue-800 transition-colors"
-                    >
-                      <Info className="w-5 h-5 text-blue-700 dark:text-blue-400" />
-                    </button>
-                  }
-                />
-              </span>
+              <AdminInfoDialog />
             )}
             {!isAuthenticated ? (
               <Link to="/admin-login" className="bg-blue-900 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-800 transition-colors dark:bg-blue-700 dark:hover:bg-blue-600">
@@ -159,16 +147,7 @@ const Navbar = () => {
               {/* Info button on mobile - always if authenticated */}
               {isAuthenticated && (
                 <div className="px-3 py-2">
-                  <AdminInfoDialog
-                    trigger={
-                      <button
-                        aria-label="App Info"
-                        className="inline-flex items-center px-2 py-2 rounded-full bg-blue-50 hover:bg-blue-200 dark:bg-blue-950 dark:hover:bg-blue-800 transition-colors"
-                      >
-                        <Info className="w-5 h-5 text-blue-700 dark:text-blue-400" />
-                      </button>
-                    }
-                  />
+                  <AdminInfoDialog />
                 </div>
               )}
               {!isAuthenticated ? (
