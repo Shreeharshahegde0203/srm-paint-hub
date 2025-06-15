@@ -1,6 +1,7 @@
 
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
 
+// Add businessHours to interface
 interface CompanyInfo {
   name: string;
   tagline: string;
@@ -11,6 +12,7 @@ interface CompanyInfo {
   logoUrl: string;
   footer: string;
   terms: string;
+  businessHours: string;
   invoiceColors: {
     primary: string;
     accent: string;
@@ -28,6 +30,7 @@ const defaultCompanyInfo: CompanyInfo = {
   logoUrl: "",
   footer: "Thank you for your business!\nVisit us again for all your paint needs.",
   terms: "This is a computer generated invoice and does not require signature.\nTerms & Conditions: Payment due within 30 days. All disputes subject to local jurisdiction.",
+  businessHours: "Monday - Saturday: 9:00 AM - 7:00 PM\nSunday: 10:00 AM - 5:00 PM",
   invoiceColors: {
     primary: "#1e3a8a", // blue
     accent: "#dc2626", // red

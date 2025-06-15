@@ -1,8 +1,21 @@
 
 import React from 'react';
 import { MapPin, Phone, Mail, Clock, Package } from 'lucide-react';
+import { useCompanyInfo } from "../contexts/CompanyInfoContext";
 
 const Contact = () => {
+  const { companyInfo } = useCompanyInfo();
+
+  // Split address into separate lines if it contains \n
+  const multilineAddress =
+    companyInfo.address?.replace(/\\n/g, "<br />") ||
+    "123 Paint Street, Market Area<br />Mumbai, Maharashtra 400001";
+
+  // Split business hours into separate lines if it contains \n
+  const businessHours =
+    companyInfo.businessHours?.split('\n') ||
+    ["Monday - Saturday: 9:00 AM - 7:00 PM", "Sunday: 10:00 AM - 5:00 PM"];
+
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-7xl mx-auto">
@@ -10,9 +23,11 @@ const Contact = () => {
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center">
             <Mail className="mr-3 h-8 w-8 text-blue-600" />
-            Contact Shreeram Marketing
+            Contact {companyInfo.name || "Shreeram Marketing"}
           </h1>
-          <p className="text-gray-600 mt-1">Get in touch with us for all your paint needs</p>
+          <p className="text-gray-600 mt-1">
+            {companyInfo.tagline || "Get in touch with us for all your paint needs"}
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -28,7 +43,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">Phone</h3>
-                    <p className="text-gray-600">+91 98765 43210</p>
+                    <p className="text-gray-600">{companyInfo.phone || "+91 98765 43210"}</p>
                   </div>
                 </div>
 
@@ -38,7 +53,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">Email</h3>
-                    <p className="text-gray-600">info@shreerammarketing.com</p>
+                    <p className="text-gray-600">{companyInfo.email || "info@shreerammarketing.com"}</p>
                   </div>
                 </div>
 
@@ -48,10 +63,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">Address</h3>
-                    <p className="text-gray-600">
-                      123 Paint Street, Market Area<br />
-                      Mumbai, Maharashtra 400001
-                    </p>
+                    <p className="text-gray-600" dangerouslySetInnerHTML={{ __html: multilineAddress }} />
                   </div>
                 </div>
 
@@ -62,8 +74,12 @@ const Contact = () => {
                   <div>
                     <h3 className="font-semibold text-gray-900">Business Hours</h3>
                     <p className="text-gray-600">
-                      Monday - Saturday: 9:00 AM - 7:00 PM<br />
-                      Sunday: 10:00 AM - 5:00 PM
+                      {businessHours.map((line, idx) => (
+                        <span key={idx}>
+                          {line}
+                          <br />
+                        </span>
+                      ))}
                     </p>
                   </div>
                 </div>

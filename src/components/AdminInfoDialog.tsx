@@ -36,14 +36,13 @@ export default function AdminInfoDialog() {
           <Info className="mr-1 h-4 w-4" /> Info
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Company Info & Invoice Template</DialogTitle>
           <DialogDescription>
             Change contact details and invoice template appearance here.
           </DialogDescription>
         </DialogHeader>
-
         <form
           className="space-y-4"
           onSubmit={e => {
@@ -79,6 +78,15 @@ export default function AdminInfoDialog() {
             <div className="md:col-span-2">
               <label className="block font-medium mb-1">Logo URL (optional, leave blank for default logo)</label>
               <input className="w-full border rounded p-2" value={edit.logoUrl} onChange={e => handleChange("logoUrl", e.target.value)} />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block font-medium mb-1">Business Hours (lines separated by \n)</label>
+              <textarea
+                className="w-full border rounded p-2"
+                rows={2}
+                value={edit.businessHours}
+                onChange={e => handleChange("businessHours", e.target.value)}
+              />
             </div>
           </div>
 

@@ -6,7 +6,10 @@ import { productsDatabase } from '../data/products';
 import FeaturedProductImage from "../components/FeaturedProductImage";
 import indigoLogo from "../assets/indigo-logo.svg";
 import ProductShowcaseCard from "../components/ProductShowcaseCard";
+import { useCompanyInfo } from "../contexts/CompanyInfoContext";
+
 const Home = () => {
+  const { companyInfo } = useCompanyInfo();
   const services = [{
     icon: <Palette className="h-12 w-12 text-orange-600" />,
     title: 'Premium Paint Collection',
@@ -46,10 +49,10 @@ const Home = () => {
               <Logo className="h-24" />
             </div>
             <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-blue-100 to-orange-100 bg-clip-text text-transparent animate-fade-in">
-              Shreeram Marketing
+              {companyInfo.name || "Shreeram Marketing"}
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-blue-200 animate-fade-in delay-300">
-              Authorized Dealer for Dulux & Indigo Premium Paints
+              {companyInfo.tagline || "Authorized Dealer for Dulux & Indigo Premium Paints"}
             </p>
             <p className="text-lg mb-12 text-slate-300 max-w-3xl mx-auto animate-fade-in delay-500">
               Transform your spaces with the finest quality paints from India's most trusted brands. 
