@@ -1,10 +1,10 @@
-
 import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, DollarSign, Package, Users, AlertTriangle, Calendar } from 'lucide-react';
 import { useSupabaseProducts } from '../hooks/useSupabaseProducts';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 
 // Helper: Group and sum by key
 function groupBy(arr, key) {
@@ -49,13 +49,20 @@ const Reports = () => {
     }
   });
 
+  // Fix: Type all loaded data 
+  const typedInvoices = (invoicesData ?? []) as Tables<"invoices">[];
+  const typedInvoiceItems = (invoiceItemsData ?? []) as Tables<"invoice_items">[];
+  const typedProducts = (products ?? []) as Tables<"products">[];
+  const typedCustomers = (customersData ?? []) as Tables<"customers">[];
+
   // Loading/Error state
   const loading = productsLoading || invoicesLoading || invoiceItemsLoading || customersLoading;
   const error = productsError || invoicesError || invoiceItemsError || customersError;
 
   // Data Computation
   const statistics = useMemo(() => {
-    if (!invoicesData || !invoiceItemsData || !products) {
+    // Use typed arrays everywhere
+    if (!typedInvoices.length || !typedInvoiceItems.length || !typedProducts.length) {
       return {
         totalRevenue: 0,
         totalOrders: 0,
@@ -69,58 +76,80 @@ const Reports = () => {
       };
     }
 
-    // Revenue, products sold, orders (for all time, or last 7 days, could be filtered by date)
-    const totalRevenue = invoicesData.reduce((sum, inv) => sum + Number(inv.total || 0), 0);
-    const totalOrders = invoicesData.length;
-    const productsSold = invoiceItemsData.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
-    const activeCustomerIds = Array.from(new Set(invoicesData.map(i => i.customer_id).filter(Boolean)));
+    // Revenue, products sold, orders
+    const totalRevenue = typedInvoices.reduce(
+      (sum, inv) => sum + Number(inv.total ?? 0), 
+      0
+    );
+    const totalOrders = typedInvoices.length;
+    const productsSold = typedInvoiceItems.reduce(
+      (sum, item) => sum + Number(item.quantity ?? 0), 
+      0
+    );
+    const activeCustomerIds = Array.from(
+      new Set(typedInvoices.map(i => i.customer_id).filter(Boolean))
+    );
     const activeCustomers = activeCustomerIds.length;
 
-    // Low stock: products below threshold (choose 20 as threshold for now)
-    const lowStockItems = products.filter(p => p.stock !== null && p.stock <= 20);
+    // Low stock: products below threshold (20 units)
+    const lowStockItems = typedProducts.filter(
+      p => typeof p.stock === "number" && p.stock <= 20
+    );
 
     // Top selling products (by quantity)
-    const productSales = {};
-    invoiceItemsData.forEach(item => {
+    const productSales: Record<string, number> = {};
+    typedInvoiceItems.forEach(item => {
       if (!item.product_id) return;
-      productSales[item.product_id] = (productSales[item.product_id] || 0) + (item.quantity || 0);
+      productSales[item.product_id] = 
+        (productSales[item.product_id] ?? 0) + Number(item.quantity ?? 0);
     });
 
-    const productRevenues = {};
-    invoiceItemsData.forEach(item => {
+    const productRevenues: Record<string, number> = {};
+    typedInvoiceItems.forEach(item => {
       if (!item.product_id) return;
-      productRevenues[item.product_id] = (productRevenues[item.product_id] || 0) + ((item.price || 0) * (item.quantity || 0));
+      const revenue = Number(item.price ?? 0) * Number(item.quantity ?? 0);
+      productRevenues[item.product_id] = 
+        (productRevenues[item.product_id] ?? 0) + revenue;
     });
 
     const topProducts = Object.entries(productSales)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 4)
       .map(([productId, sold]) => {
-        const product = products.find(p => p.id === productId) || {};
+        const product = typedProducts.find(p => p.id === productId);
         return {
-          name: product.name || 'Unknown Product',
+          name: product?.name ?? 'Unknown Product',
           sales: sold,
-          revenue: productRevenues[productId] || 0,
+          revenue: productRevenues[productId] ?? 0,
         };
       });
 
     // Recent customers (last 3 by order)
-    const recentCustomersSet = {};
-    const recentInvoices = [...invoicesData]
-      .sort((a, b) => (b.created_at ? new Date(b.created_at).getTime() : 0) - (a.created_at ? new Date(a.created_at).getTime() : 0))
+    const recentCustomersSet: Record<string, boolean> = {};
+    const recentInvoices = [...typedInvoices]
+      .sort((a, b) =>
+        (b.created_at ? new Date(b.created_at).getTime() : 0) -
+        (a.created_at ? new Date(a.created_at).getTime() : 0)
+      )
       .filter(inv => inv.customer_id)
       .slice(0, 10);
 
-    const recentCustomersArr = [];
+    const recentCustomersArr: {
+      name: string; orders: number; totalSpent: number; lastOrder: string;
+    }[] = [];
     for (const inv of recentInvoices) {
+      if (!inv.customer_id) continue;
       if (recentCustomersSet[inv.customer_id]) continue;
       recentCustomersSet[inv.customer_id] = true;
-      const cust = (customersData || []).find(c => c.id === inv.customer_id) || {};
-      const customerInvoiceItems = invoiceItemsData.filter(i => i.invoice_id === inv.id);
-      const totalSpent = customerInvoiceItems.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
+      const cust = typedCustomers.find(c => c.id === inv.customer_id);
+      const customerInvoiceItems = typedInvoiceItems.filter(i => i.invoice_id === inv.id);
+      const totalSpent = customerInvoiceItems.reduce(
+        (sum, item) => sum + Number(item.price ?? 0) * Number(item.quantity ?? 0), 
+        0
+      );
       recentCustomersArr.push({
-        name: cust.name || 'Unknown Customer',
-        orders: invoicesData.filter(i => i.customer_id === cust.id).length,
+        name: cust?.name ?? 'Unknown Customer',
+        orders: typedInvoices.filter(i => i.customer_id === cust?.id).length,
         totalSpent,
         lastOrder: inv.created_at ? inv.created_at.split('T')[0] : '',
       });
@@ -128,15 +157,21 @@ const Reports = () => {
     }
 
     // Product type share (Pie Chart)
-    const typeGroups = groupBy(products, "type");
-    const totalTypeSales = {};
+    const typeGroups = groupBy(typedProducts, "type");
+    const totalTypeSales: Record<string, number> = {};
     Object.entries(typeGroups).forEach(([type, prods]) => {
-      totalTypeSales[type] = prods.reduce((sum, p) => sum + (productSales[p.id] || 0), 0);
+      totalTypeSales[type] = Array.isArray(prods)
+        ? prods.reduce(
+          (sum, p) => sum + (p && typeof p === 'object' && 'id' in p ? (productSales[p.id] ?? 0) : 0),
+          0
+        )
+        : 0;
     });
+    const typeColors = ['#1e3a8a', '#dc2626', '#16a34a', '#f59e0b', '#e11d48'];
     const productTypeShare = Object.entries(typeGroups).map(([type, prods], i) => ({
       name: type,
       value: totalTypeSales[type],
-      color: ['#1e3a8a', '#dc2626', '#16a34a', '#f59e0b', '#e11d48'][i % 5],
+      color: typeColors[i % typeColors.length],
     }));
 
     // Sales Data for Bar Chart (last 7 days)
@@ -149,12 +184,12 @@ const Reports = () => {
 
     const salesData = pastWeek.map((date) => {
       const dayStr = date.toLocaleDateString('en-US', { weekday: 'short' }); // e.g., Mon, Tue
-      const dayInvoices = invoicesData.filter(inv => {
+      const dayInvoices = typedInvoices.filter(inv => {
         if (!inv.created_at) return false;
         const invDate = new Date(inv.created_at);
         return invDate.toDateString() === date.toDateString();
       });
-      const daySales = dayInvoices.reduce((sum, inv) => sum + Number(inv.total || 0), 0);
+      const daySales = dayInvoices.reduce((sum, inv) => sum + Number(inv.total ?? 0), 0);
       const dayOrders = dayInvoices.length;
       return { name: dayStr, sales: daySales, orders: dayOrders };
     });
@@ -170,7 +205,7 @@ const Reports = () => {
       productTypeShare,
       salesData,
     };
-  }, [invoicesData, invoiceItemsData, products, customersData]);
+  }, [typedInvoices, typedInvoiceItems, typedProducts, typedCustomers]);
 
   const StatCard = ({ title, value, icon, color, change }: any) => (
     <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 transition-colors">
@@ -262,10 +297,10 @@ const Reports = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
-                <Tooltip formatter={(value, name) => [
+                <Tooltip formatter={(value: any, name: string) => [
                   name === 'sales' ? `₹${value}` : value,
                   name === 'sales' ? 'Sales' : 'Orders'
-                ]} />
+                ] as [string, string]} />
                 <Bar dataKey="sales" fill="#1e3a8a" />
               </BarChart>
             </ResponsiveContainer>
