@@ -1,16 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, DollarSign, Package, Users, AlertTriangle, Calendar as CalendarIcon } from 'lucide-react';
+import { TrendingUp, DollarSign, Package, Users, AlertTriangle, Calendar } from 'lucide-react';
 import { useSupabaseProducts } from '../hooks/useSupabaseProducts';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import { Calendar } from '../components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 
 // Helper: Group and sum by key
 function groupBy(arr, key) {
@@ -61,19 +55,6 @@ const Reports = () => {
   const typedProducts = (products ?? []) as Tables<"products">[];
   const typedCustomers = (customersData ?? []) as Tables<"customers">[];
 
-  // Add state for calendar popover & selected date
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [popoverOpen, setPopoverOpen] = useState(false);
-
-  // Filter invoices by selected date, if any; otherwise show all
-  const filteredInvoices = useMemo(() => {
-    if (!selectedDate) return typedInvoices;
-    const dateStr = selectedDate.toISOString().split('T')[0];
-    return typedInvoices.filter(inv =>
-      inv.created_at && inv.created_at.startsWith(dateStr)
-    );
-  }, [typedInvoices, selectedDate]);
-
   // Loading/Error state
   const loading = productsLoading || invoicesLoading || invoiceItemsLoading || customersLoading;
   const error = productsError || invoicesError || invoiceItemsError || customersError;
@@ -81,7 +62,7 @@ const Reports = () => {
   // Data Computation
   const statistics = useMemo(() => {
     // Use typed arrays everywhere
-    if (!filteredInvoices.length || !typedInvoiceItems.length || !typedProducts.length) {
+    if (!typedInvoices.length || !typedInvoiceItems.length || !typedProducts.length) {
       return {
         totalRevenue: 0,
         totalOrders: 0,
@@ -96,17 +77,17 @@ const Reports = () => {
     }
 
     // Revenue, products sold, orders
-    const totalRevenue = filteredInvoices.reduce(
+    const totalRevenue = typedInvoices.reduce(
       (sum, inv) => sum + Number(inv.total ?? 0), 
       0
     );
-    const totalOrders = filteredInvoices.length;
+    const totalOrders = typedInvoices.length;
     const productsSold = typedInvoiceItems.reduce(
       (sum, item) => sum + Number(item.quantity ?? 0), 
       0
     );
     const activeCustomerIds = Array.from(
-      new Set(filteredInvoices.map(i => i.customer_id).filter(Boolean))
+      new Set(typedInvoices.map(i => i.customer_id).filter(Boolean))
     );
     const activeCustomers = activeCustomerIds.length;
 
@@ -145,7 +126,7 @@ const Reports = () => {
 
     // Recent customers (last 3 by order)
     const recentCustomersSet: Record<string, boolean> = {};
-    const recentInvoices = [...filteredInvoices]
+    const recentInvoices = [...typedInvoices]
       .sort((a, b) =>
         (b.created_at ? new Date(b.created_at).getTime() : 0) -
         (a.created_at ? new Date(a.created_at).getTime() : 0)
@@ -168,7 +149,7 @@ const Reports = () => {
       );
       recentCustomersArr.push({
         name: cust?.name ?? 'Unknown Customer',
-        orders: filteredInvoices.filter(i => i.customer_id === cust?.id).length,
+        orders: typedInvoices.filter(i => i.customer_id === cust?.id).length,
         totalSpent,
         lastOrder: inv.created_at ? inv.created_at.split('T')[0] : '',
       });
@@ -203,7 +184,7 @@ const Reports = () => {
 
     const salesData = pastWeek.map((date) => {
       const dayStr = date.toLocaleDateString('en-US', { weekday: 'short' }); // e.g., Mon, Tue
-      const dayInvoices = filteredInvoices.filter(inv => {
+      const dayInvoices = typedInvoices.filter(inv => {
         if (!inv.created_at) return false;
         const invDate = new Date(inv.created_at);
         return invDate.toDateString() === date.toDateString();
@@ -224,7 +205,7 @@ const Reports = () => {
       productTypeShare,
       salesData,
     };
-  }, [filteredInvoices, typedInvoiceItems, typedProducts, typedCustomers]);
+  }, [typedInvoices, typedInvoiceItems, typedProducts, typedCustomers]);
 
   const StatCard = ({ title, value, icon, color, change }: any) => (
     <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 transition-colors">
@@ -258,46 +239,11 @@ const Reports = () => {
               </h1>
               <p className="text-gray-600 dark:text-gray-300 mt-1">Business insights and performance metrics</p>
             </div>
-            {/* New: Calendar Icon Popover for date selection */}
             <div className="flex items-center gap-4">
-              <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <button
-                    className="flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 gap-2 hover:bg-gray-200 dark:hover:bg-slate-700 focus:outline-none"
-                  >
-                    <CalendarIcon className="h-5 w-5 text-gray-400 dark:text-gray-300" />
-                    <span>
-                      {selectedDate
-                        ? selectedDate.toLocaleDateString()
-                        : "All Time"}
-                    </span>
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="w-auto p-0 z-50"
-                  align="end"
-                  style={{ minWidth: 0 }}
-                >
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate ?? undefined}
-                    onSelect={date => {
-                      setSelectedDate(date ?? null);
-                      setPopoverOpen(false);
-                    }}
-                    initialFocus
-                    className="p-3 pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-              {selectedDate && (
-                <button
-                  className="ml-2 px-2 py-1 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-100 rounded text-sm"
-                  onClick={() => setSelectedDate(null)}
-                >
-                  Clear
-                </button>
-              )}
+              <Calendar className="h-5 w-5 text-gray-400 dark:text-gray-300" />
+              <span className="px-4 py-2 border border-gray-300 dark:border-gray-650 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100">
+                Last 7 days
+              </span>
             </div>
           </div>
         </div>

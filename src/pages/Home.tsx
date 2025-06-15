@@ -1,244 +1,230 @@
 
-import React from "react";
-import Logo from "../components/Logo";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, Palette, FileText, Shield, Sparkles } from 'lucide-react';
+import Logo from '../components/Logo';
+import { productsDatabase } from '../data/products';
+import FeaturedProductImage from "../components/FeaturedProductImage";
 import indigoLogo from "../assets/indigo-logo.svg";
-import duluxLogo from "../assets/dulux-logo.svg";
+import ProductShowcaseCard from "../components/ProductShowcaseCard";
+import { useCompanyInfo } from "../contexts/CompanyInfoContext";
 
-// Animated SVG background paint splashes and drips
-const PaintSplashBG = () => (
-  <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" width="100%" height="100%" viewBox="0 0 1200 600" style={{position: "absolute", top:0, left:0, zIndex:0}}>
-    {/* Blur, semi-transparent paint splashes */}
-    <ellipse cx="140" cy="120" rx="85" ry="42" fill="#fbbf24" opacity="0.15" />
-    <ellipse cx="800" cy="80" rx="70" ry="32" fill="#2563eb" opacity="0.16" />
-    <ellipse cx="1100" cy="220" rx="80" ry="45" fill="#dc2626" opacity="0.13" />
-    {/* Large blue paint splash */}
-    <path d="M340 440 Q380 370 480 390 T600 465 Q590 520 520 490 Q480 480 410 480 Z" fill="#2563eb" opacity="0.09">
-      <animate attributeName="d" values="
-        M340 440 Q380 370 480 390 T600 465 Q590 520 520 490 Q480 480 410 480 Z;
-        M340 440 Q400 375 470 392 T595 470 Q590 520 520 490 Q480 480 410 480 Z;
-        M340 440 Q380 370 480 390 T600 465 Q590 520 520 490 Q480 480 410 480 Z
-      " keyTimes="0;0.5;1" dur="8s" repeatCount="indefinite" />
-    </path>
-    {/* Paint drips on top edge */}
-    <path d="M90,0 Q115,24 140,0 T190,0 Q215,26 250,0" stroke="#eab308" strokeWidth="8" fill="none" opacity=".2">
-      <animate attributeName="stroke-width" values="8;16;8" dur="2.5s" repeatCount="indefinite"/>
-    </path>
-    {/* Paint drip animation */}
-    <ellipse cx="1050" cy="30" rx="7" ry="18" fill="#dc2626" opacity=".22">
-      <animate attributeName="cy" values="30;90;30" dur="4s" repeatCount="indefinite" />
-      <animate attributeName="rx" values="7;12;7" dur="4s" repeatCount="indefinite" />
-    </ellipse>
-  </svg>
-);
+const Home = () => {
+  const { companyInfo } = useCompanyInfo();
+  const services = [{
+    icon: <Palette className="h-12 w-12 text-orange-600" />,
+    title: 'Premium Paint Collection',
+    description: 'Extensive range of Dulux and Indigo premium paints including emulsion, exterior, and specialty coatings.'
+  }, {
+    icon: <FileText className="h-12 w-12 text-blue-600" />,
+    title: 'Expert Consultation',
+    description: 'Professional color matching and paint selection guidance from our experienced team.'
+  }, {
+    icon: <Shield className="h-12 w-12 text-purple-600" />,
+    title: 'Quality Assurance',
+    description: 'Authentic products with manufacturer warranty and comprehensive after-sales support.'
+  }, {
+    icon: <Sparkles className="h-12 w-12 text-green-600" />,
+    title: 'Custom Solutions',
+    description: 'Tailored paint solutions for residential, commercial, and industrial projects.'
+  }];
 
-// Paint stroke animated text (Company Name)
-const BrushText = ({ children }: { children: React.ReactNode }) => (
-  <span
-    className="relative inline-block px-4"
-    style={{
-      background:
-        "linear-gradient(110deg, #dc2626 20%, #eab308 55%, #2563eb 90%)",
-      WebkitBackgroundClip: "text",
-      WebkitTextFillColor: "transparent",
-      filter: "drop-shadow(0 3px 12px #0002) drop-shadow(0 1px 0px #fff9)"
-    }}
-  >
-    <span className="animate-brushstroke">{children}</span>
-    {/* Animated underline brush stroke */}
-    <svg
-      viewBox="0 0 200 12"
-      className="absolute left-0 w-full h-3 mt-2"
-      style={{top: "85%", left: "0"}}
-    >
-      <path
-        d="M5,10 Q50,2 195,10"
-        stroke="#eab308"
-        strokeWidth="6"
-        fill="none"
-        opacity=".3"
-      >
-        <animate attributeName="opacity" values="0.3;0.9;0.3" dur="2.4s" repeatCount="indefinite" />
-      </path>
-    </svg>
-  </span>
-);
-
-// Animated paint roller for service list
-const PaintRoller = ({ delay = 0 }) => (
-  <svg width="40" height="28" viewBox="0 0 40 28" className="inline align-middle mr-2" style={{animation: `paintRollerSlide 1.3s ${delay}s cubic-bezier(0.7,0.2,0.2,1)`}}>
-    <rect x="2" y="11" width="20" height="8" rx="3" fill="#fbbf24"/>
-    <rect x="19" y="11" width="10" height="8" rx="3" fill="#a3e635"/>
-    <rect x="32" y="15" width="6" height="3" rx="1.5" fill="#1e293b" />
-    <rect x="18" y="17" width="3" height="8" rx="1.5" fill="#444" />
-    <circle cx="18.5" cy="24.5" r="2" fill="#444" />
-    <animateTransform attributeName="transform" type="translate" from="-15 0" to="0 0" dur="0.7s" begin={`${delay}s`} fill="freeze"/>
-  </svg>
-);
-
-const SERVICES = [
-  "Premium Interior & Exterior Paints",
-  "Custom Color Mixing & Consultation",
-  "Bulk Paint Supplies & Accessories",
-  "Dealer Support & Expert Guidance",
-  "Paint Tools and After-Sales Service",
-];
-
-const Home: React.FC = () => {
-  return (
-    <main className="min-h-screen bg-gradient-to-br from-white to-blue-50 dark:from-slate-900 dark:to-slate-800 flex flex-col items-center py-0 overflow-x-hidden relative">
-      {/* Animated SVG Background */}
-      <div className="absolute inset-0 w-full h-full z-0 pointer-events-none">
-        <PaintSplashBG />
-      </div>
-
-      {/* Animated Logo + Paint drip */}
-      <section className="w-full flex flex-col items-center pt-12 pb-2 z-10 relative">
-        <div className="animate-float">
-          <Logo className="h-28 w-auto mb-2 drop-shadow-2xl" />
+  // Get featured products (first 8 products for display)
+  const featuredProducts = productsDatabase.slice(0, 8);
+  return <div className="min-h-screen dark:bg-gray-900 transition-colors duration-300">
+      {/* Enhanced Hero Section */}
+      <section className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white overflow-hidden">
+        {/* Animated paint splashes with enhanced animations */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-10 w-32 h-32 bg-orange-500 rounded-full opacity-10 animate-pulse"></div>
+          <div className="absolute top-40 right-20 w-24 h-24 bg-green-500 rounded-full opacity-10 animate-pulse delay-1000"></div>
+          <div className="absolute bottom-32 left-1/3 w-28 h-28 bg-red-500 rounded-full opacity-10 animate-pulse delay-2000"></div>
+          <div className="absolute bottom-20 right-1/4 w-20 h-20 bg-yellow-500 rounded-full opacity-10 animate-pulse delay-3000"></div>
+          <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-blue-400 rounded-full opacity-10 animate-bounce delay-500"></div>
+          <div className="absolute top-3/4 right-1/3 w-12 h-12 bg-purple-400 rounded-full opacity-10 animate-bounce delay-1500"></div>
         </div>
-        {/* Color drip below logo */}
-        <div className="flex gap-1 h-5 items-end justify-center mt-0">
-          <div className="w-6 h-5 rounded-b-full bg-red-600 animate-drip" />
-          <div className="w-4 h-3 rounded-b-full bg-yellow-400 animate-drip-slow" />
-          <div className="w-7 h-4 rounded-b-full bg-blue-600 animate-drip-delay" />
-        </div>
-
-        {/* Company name with animated brush text */}
-        <h1 className="text-4xl sm:text-6xl font-extrabold drop-shadow mt-4 font-playfair" style={{letterSpacing:".03em"}}>
-          <BrushText>ShreeRam Marketing</BrushText>
-        </h1>
-        <h2 className="text-lg sm:text-2xl text-slate-700 dark:text-yellow-300 mt-3 font-medium font-playfair tracking-wide">
-          Colorful Solutions for Every Project
-        </h2>
-        <div className="mt-2 sm:mt-4 max-w-xl text-center text-md sm:text-lg text-slate-600 dark:text-slate-200 font-light px-4">
-          From vibrant walls to flawless finishes, our paints and creativity empower your dreams to shine bright.
-        </div>
-      </section>
-
-      {/* Paint Roller-reveal Services */}
-      <section className="w-full max-w-3xl mt-10 flex flex-col items-center px-3 pb-2 relative z-10">
-        <h3 className="text-xl sm:text-2xl font-bold text-blue-800 dark:text-yellow-200 mb-4 tracking-wide">Our Services</h3>
-        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full z-10 relative">
-          {SERVICES.map((service, i) => (
-            <li
-              key={service}
-              className="bg-white/90 dark:bg-slate-900/70 rounded-xl px-6 py-5 shadow-xl border border-blue-100 dark:border-slate-700 flex items-center gap-3 text-blue-900 dark:text-yellow-100 font-semibold relative overflow-hidden interactive-card reveal"
-              style={{
-                animation: `serviceRevealAnim 0.9s cubic-bezier(0.66,0.34,0.16,0.88) both`,
-                animationDelay: `${i * 0.12 + 0.25}s`,
-              }}
-            >
-              <PaintRoller delay={i * 0.11 + 0.15} />
-              <span>{service}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* Paint Dealer Logos with creative paint effect */}
-      <section className="w-full max-w-2xl mt-12 flex flex-col items-center px-3 mb-16 relative z-10">
-        <h3 className="text-xl sm:text-2xl font-bold mb-5 text-blue-900 dark:text-white tracking-wide">We Proudly Deal In</h3>
-        <div className="flex flex-wrap items-center justify-center gap-12 w-full">
-          {/* Indigo Paints Logo with animated paint-splash reveal */}
-          <div className="flex flex-col items-center group relative">
-            {/* Paint splash behind logo */}
-            <svg className="absolute -top-3 left-1/2 -translate-x-1/2 z-0" width="75" height="40">
-              <ellipse cx="38" cy="25" rx="32" ry="14" fill="#7964e6" opacity="0.33">
-                <animate attributeName="rx" values="32;40;32" dur="2.9s" repeatCount="indefinite"/>
-              </ellipse>
-            </svg>
-            <div className="bg-white rounded-2xl p-5 shadow-lg transition-transform duration-400 hover:scale-110 z-10 animate-splash-in">
-              <img
-                src={indigoLogo}
-                alt="Indigo Paints"
-                className="h-14 sm:h-20 w-auto"
-                style={{ filter: "drop-shadow(0 3px 20px #7964e6b0)" }}
-              />
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+          <div className="text-center">
+            <div className="flex justify-center mb-8 transform hover:scale-105 transition-transform duration-300">
+              <Logo className="h-24" />
             </div>
-            <span className="mt-3 text-indigo-900 dark:text-indigo-300 font-bold text-lg drop-shadow group-hover:underline transition-all duration-150">Indigo Paints</span>
-            {/* Animated paint drip */}
-            <svg width="18" height="34" className="absolute left-1/2 top-full -translate-x-1/2" style={{ zIndex: 10 }}>
-              <ellipse cx="9" cy="11" rx="7" ry="11" fill="#7964e6" opacity="0.24">
-                <animate attributeName="cy" values="11;27;11" dur="4.6s" repeatCount="indefinite"/>
-              </ellipse>
-            </svg>
-          </div>
-          {/* Dulux Logo with animated paint brush effect */}
-          <div className="flex flex-col items-center group relative">
-            {/* Animated brush behind Dulux */}
-            <svg className="absolute -top-6 left-1/2 -translate-x-1/2 z-0" width="80" height="42">
-              <path d="M4,30 Q32,5 76,31 Q58,38 19,38 Q10,36 4,30 Z" fill="#fb7185" opacity="0.19">
-                <animate attributeName="opacity" values="0.19;0.44;0.19" dur="2.1s" repeatCount="indefinite" />
-              </path>
-            </svg>
-            <div className="bg-white rounded-2xl p-5 shadow-lg transition-transform duration-400 hover:scale-110 z-10 animate-brush-in">
-              <img
-                src={duluxLogo}
-                alt="Dulux"
-                className="h-14 sm:h-20 w-auto"
-                style={{ filter: "drop-shadow(0 3px 18px #286acbb0)" }}
-              />
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-blue-100 to-orange-100 bg-clip-text text-transparent animate-fade-in">
+              {companyInfo.name || "Shreeram Marketing"}
+            </h1>
+            <p className="text-xl md:text-2xl mb-8 text-blue-200 animate-fade-in delay-300">
+              {companyInfo.tagline || "Authorized Dealer for Dulux & Indigo Premium Paints"}
+            </p>
+            <p className="text-lg mb-12 text-slate-300 max-w-3xl mx-auto animate-fade-in delay-500">
+              Transform your spaces with the finest quality paints from India's most trusted brands. 
+              Experience excellence in color, durability, and finish.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in delay-700">
+              <Link to="/contact" className="group bg-transparent border-2 border-white hover:bg-white hover:text-slate-900 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 dark:hover:bg-gray-900 dark:hover:text-white">
+                Visit Store
+              </Link>
             </div>
-            <span className="mt-3 text-blue-900 dark:text-blue-200 font-bold text-lg drop-shadow group-hover:underline transition-all duration-150">Dulux</span>
-            {/* Animated color splash below */}
-            <svg width="26" height="13" className="absolute left-1/2 top-full -translate-x-1/2 mt-2" style={{ zIndex: 10 }}>
-              <ellipse cx="13" cy="9" rx="12" ry="4" fill="#286acb" opacity="0.15">
-                <animate attributeName="rx" values="12;17;12" dur="3.6s" repeatCount="indefinite"/>
-              </ellipse>
-            </svg>
           </div>
         </div>
-        {/* Decorative color streak at the bottom */}
-        <div className="w-full flex justify-center mt-8 pointer-events-none">
-          <div className="bg-gradient-to-r from-indigo-400 via-yellow-400 to-blue-500 rounded-full h-2 w-48 blur-lg opacity-60 animate-pulse"></div>
+        
+        {/* Enhanced wave bottom */}
+        <div className="absolute bottom-0 left-0 w-full overflow-hidden">
+          <svg className="relative block w-full h-24" preserveAspectRatio="none" viewBox="0 0 1200 120">
+            <path d="M0,60 C200,20 400,100 600,60 C800,20 1000,100 1200,60 L1200,120 L0,120 Z" fill="rgb(248 250 252)" className="dark:fill-gray-900" />
+          </svg>
         </div>
       </section>
-      
-      {/* Extra Global CSS for Animations */}
-      <style>{`
-        @keyframes brushstroke {
-          0% { opacity: 0; letter-spacing: 0.05em;  filter: blur(8px); }
-          25% { opacity: 0.33; letter-spacing: 0; filter: blur(4px);}
-          60% { opacity: 1; letter-spacing: 0.03em; filter: blur(0px);}
-          100% { opacity: 1; }
-        }
-        .animate-brushstroke {
-          animation: brushstroke 2s cubic-bezier(.8,-0.5,.2,1.1) 1 both;
-        }
-        @keyframes serviceRevealAnim {
-          0% { opacity: 0; transform: translateY(28px) scale(0.96);}
-          80% { opacity: 1; transform: translateY(-5px) scale(1.01);}
-          100% { opacity: 1; transform: translateY(0) scale(1);}
-        }
-        @keyframes paintRollerSlide {
-          0% { transform: translateX(-30px) scale(0.7);}
-          82% { transform: translateX(2px) scale(1.08);}
-          100% { transform: translateX(0px) scale(1);}
-        }
-        .animate-brush-in {
-          animation: serviceRevealAnim 1.4s cubic-bezier(0.86,0.09,0.19,0.97) 0.39s both;
-        }
-        .animate-splash-in {
-          animation: serviceRevealAnim 1.2s cubic-bezier(0.66,0.34,0.16,0.88) 0.25s both;
-        }
-        @keyframes drip {
-          0%,100% {height:1.2rem; opacity:.6;}
-          49% {height:2.2rem; opacity:1;}
-          100% {height:1.2rem; opacity:.6;}
-        }
-        .animate-drip {
-          animation: drip 1.9s ease-in-out infinite both;
-        }
-        .animate-drip-delay {
-          animation: drip 2.5s .6s ease-in-out infinite both;
-        }
-        .animate-drip-slow {
-          animation: drip 2.7s .35s ease-in-out infinite both;
-        }
-      `}</style>
-    </main>
-  );
+
+      {/* Enhanced Services Section */}
+      <section className="py-20 bg-slate-50 dark:bg-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4 animate-fade-in">
+              Our Services
+            </h2>
+            <p className="text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto animate-fade-in delay-200">
+              Complete paint solutions with expert guidance and quality assurance
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {services.map((service, index) => <div key={index} className="group bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-6 border border-slate-100 dark:border-slate-700 cursor-pointer animate-fade-in" style={{
+            animationDelay: `${index * 150}ms`
+          }}>
+                <div className="flex justify-center mb-6 transform group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
+                  {service.icon}
+                </div>
+                <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4 text-center group-hover:text-blue-600 transition-colors">
+                  {service.title}
+                </h3>
+                <p className="text-slate-600 dark:text-slate-300 text-center leading-relaxed">
+                  {service.description}
+                </p>
+              </div>)}
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced Management Features */}
+      <section className="py-20 bg-slate-50 dark:bg-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4 animate-fade-in">
+              Digital Paint Solutions
+            </h2>
+            <p className="text-xl text-slate-600 dark:text-slate-300 animate-fade-in delay-200">
+              Modern inventory and billing system for seamless operations
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <Link to="/inventory" className="group bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-blue-950 p-8 rounded-2xl hover:from-blue-100 hover:to-indigo-200 dark:hover:from-gray-900 dark:hover:to-slate-900 transition-all duration-500 border border-blue-200 dark:border-slate-700 hover:shadow-2xl transform hover:-translate-y-3 animate-fade-in">
+              <div className="text-blue-600 mb-4 transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                <Palette className="h-16 w-16" />
+              </div>
+              <h3 className="text-2xl font-bold text-blue-900 dark:text-white mb-3 group-hover:text-blue-700 transition-colors">
+                Product Catalog
+              </h3>
+              <p className="text-blue-800 dark:text-blue-200 mb-4">
+                Browse our complete collection of Dulux and Indigo paints with real-time stock information and detailed specifications.
+              </p>
+              <div className="flex items-center text-blue-600 group-hover:text-blue-800 transition-colors">
+                <span className="font-semibold">View Products</span>
+                <ArrowRight className="ml-2 h-5 w-5 transform group-hover:translate-x-2 transition-transform" />
+              </div>
+            </Link>
+
+            <Link to="/billing" className="group bg-gradient-to-br from-orange-50 to-red-100 dark:from-gray-800 dark:to-red-950 p-8 rounded-2xl hover:from-orange-100 hover:to-red-200 dark:hover:from-gray-900 dark:hover:to-slate-900 transition-all duration-500 border border-orange-200 dark:border-slate-700 hover:shadow-2xl transform hover:-translate-y-3 animate-fade-in delay-200">
+              <div className="text-orange-600 mb-4 transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                <FileText className="h-16 w-16" />
+              </div>
+              <h3 className="text-2xl font-bold text-red-900 dark:text-white mb-3 group-hover:text-red-700 transition-colors">
+                Quick Billing
+              </h3>
+              <p className="text-red-800 dark:text-red-200 mb-4">
+                Fast and accurate billing system with GST compliance. Generate professional invoices instantly.
+              </p>
+              <div className="flex items-center text-orange-600 group-hover:text-red-800 transition-colors">
+                <span className="font-semibold">Create Invoice</span>
+                <ArrowRight className="ml-2 h-5 w-5 transform group-hover:translate-x-2 transition-transform" />
+              </div>
+            </Link>
+
+            <Link to="/reports" className="group bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-800 dark:to-green-950 p-8 rounded-2xl hover:from-green-100 hover:to-emerald-200 dark:hover:from-gray-900 dark:hover:to-slate-900 transition-all duration-500 border border-green-200 dark:border-slate-700 hover:shadow-2xl transform hover:-translate-y-3 animate-fade-in delay-400">
+              <div className="text-green-600 mb-4 transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                <Shield className="h-16 w-16" />
+              </div>
+              <h3 className="text-2xl font-bold text-green-900 dark:text-white mb-3 group-hover:text-green-700 transition-colors">
+                Business Analytics
+              </h3>
+              <p className="text-green-800 dark:text-green-200 mb-4">
+                Comprehensive reports and insights to track sales performance and inventory levels.
+              </p>
+              <div className="flex items-center text-green-600 group-hover:text-green-800 transition-colors">
+                <span className="font-semibold">View Reports</span>
+                <ArrowRight className="ml-2 h-5 w-5 transform group-hover:translate-x-2 transition-transform" />
+              </div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced Authorized Dealer Section with Brand Logos */}
+      <section className="py-20 bg-slate-800 dark:bg-slate-900 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 animate-fade-in">
+              Authorized Dealer
+            </h2>
+            <p className="text-xl text-slate-300 animate-fade-in delay-200">
+              Official partner for India's premium paint brands
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-4xl mx-auto">
+            {/* Dulux Card with uploaded marketing image */}
+            <div className="group bg-slate-700 dark:bg-slate-800 p-12 rounded-2xl text-center hover:bg-slate-600 dark:hover:bg-slate-700 transition-all duration-500 hover:scale-105 border border-slate-600 cursor-pointer animate-fade-in relative overflow-hidden">
+              <div className="bg-white dark:bg-slate-900 p-3 rounded-xl mb-6 mx-auto w-60 h-36 flex items-center justify-center transform group-hover:scale-105 transition-transform duration-300 shadow-lg overflow-hidden">
+                <img src="/lovable-uploads/d7d318f5-963c-4ba4-9a1b-fa0bea2b1cc1.png" alt="Dulux Branding" className="object-contain w-full h-full" draggable={false} style={{
+                maxWidth: '100%',
+                maxHeight: '100%'
+              }} />
+              </div>
+              <h3 className="text-2xl font-bold mb-3 group-hover:text-blue-300 transition-colors">Dulux Paints</h3>
+              <p className="text-slate-300 group-hover:text-white transition-colors">Premium quality paints with superior finish and durability</p>
+            </div>
+            {/* Indigo Card with uploaded logo */}
+            <div className="group bg-slate-700 dark:bg-slate-800 p-12 rounded-2xl text-center hover:bg-slate-600 dark:hover:bg-slate-700 transition-all duration-500 hover:scale-105 border border-slate-600 cursor-pointer animate-fade-in delay-200 relative overflow-hidden">
+              <div className="bg-white dark:bg-slate-900 p-8 rounded-xl mb-6 mx-auto w-32 h-32 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <img src="/lovable-uploads/ff131b2b-764d-4f4e-be84-86ccf5e338b0.png" alt="Indigo Logo" className="h-20 w-28 object-contain" draggable={false} />
+              </div>
+              <h3 className="text-2xl font-bold mb-3 group-hover:text-indigo-300 transition-colors">Indigo Paints</h3>
+              <p className="text-slate-300 group-hover:text-white transition-colors">Innovative paint solutions with exceptional color range</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced Call to Action Section */}
+      <section className="py-20 bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 dark:from-orange-700 dark:via-red-700 dark:to-pink-700 text-white">
+        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 animate-fade-in">
+            Ready to Transform Your Space?
+          </h2>
+          <p className="text-xl mb-8 text-orange-100 dark:text-orange-200 animate-fade-in delay-200">
+            Visit our store for expert advice and the finest quality paints from Dulux and Indigo
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/contact" className="group bg-white dark:bg-slate-800 text-red-600 dark:text-orange-400 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-slate-100 dark:hover:bg-slate-900 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 animate-fade-in delay-400">
+              Visit Our Store
+            </Link>
+            <Link to="/billing" className="group bg-transparent border-2 border-white hover:bg-white dark:hover:bg-slate-900 hover:text-red-600 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 animate-fade-in delay-600">
+              Get Quote
+            </Link>
+          </div>
+        </div>
+      </section>
+    </div>;
 };
-
 export default Home;
 

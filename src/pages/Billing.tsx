@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, FileText, Download, Eye, Trash2, Edit } from 'lucide-react';
 import ProductSelector from '../components/ProductSelector';
@@ -10,18 +11,14 @@ import { toast } from "@/components/ui/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 
 // --- Type definitions for Supabase integration ---
-// Use the Supabase type exactly for Product usage:
 type Product = Tables<"products">;
 type Customer = Tables<"customers">;
 type Invoice = Tables<"invoices"> & {
   customer: Customer | null;
   items?: InvoiceItem[];
 };
-// InvoiceItem includes full product for UI, and prices for calculations
 type InvoiceItem = Tables<"invoice_items"> & {
   product?: Product;
-  unitPrice?: number;
-  total?: number;
 };
 
 // --- Supabase hooks for invoices ---
@@ -152,36 +149,13 @@ const Billing = () => {
       .from("invoice_items").select("*").eq("invoice_id", invoice.id);
     const { data: customer } = await supabase
       .from("customers").select("*").eq("id", invoice.customer_id).maybeSingle();
-
-    // Helper to map Supabase product to local Product (camelCase)
-    const mapDbProductToProduct = (dbProduct: any): import("../data/products").Product => ({
-      id: dbProduct.id,
-      code: dbProduct.code,
-      name: dbProduct.name,
-      brand: dbProduct.brand,
-      type: dbProduct.type,
-      color: dbProduct.color,
-      price: dbProduct.price,
-      stock: dbProduct.stock,
-      image: dbProduct.image || undefined,
-      gstRate: dbProduct.gst_rate,
-      unit: dbProduct.unit,
-      batchNumber: dbProduct.batch_number ?? undefined,
-      expiryDate: dbProduct.expiry_date ?? undefined,
-      description: dbProduct.description ?? undefined,
-    });
-
-    // Compose PDF input using mapped Product type:
+    // Compose PDF input using fetched data:
     generateInvoicePDF({
       ...invoice,
       customer,
-      items: (items ?? []).map((item) => ({
+      items: items?.map((item) => ({
         ...item,
-        product: products
-          ? mapDbProductToProduct(products.find((p) => p.id === item.product_id))
-          : undefined,
-        unitPrice: item.price,
-        total: item.price * item.quantity,
+        product: products?.find((p) => p.id === item.product_id)
       })),
     });
   };
@@ -191,27 +165,11 @@ const Billing = () => {
     const [customerData, setCustomerData] = useState<Partial<Customer>>({
       name: '', phone: '', address: '', email: ''
     });
-
-    // Always use Supabase Product type, and include all required invoice item fields!
-    const [items, setItems] = useState<Array<{
-      product?: Product;
-      quantity: number;
-      unitPrice: number;
-      total: number;
-    }>>([
-      { product: undefined, quantity: 1, unitPrice: 0, total: 0 }
-    ]);
-
+    const [items, setItems] = useState<any[]>([{ product: undefined, quantity: 1, unitPrice: 0, total: 0 }]);
     const [discount, setDiscount] = useState(0);
-    const [status, setStatus] = useState('pending');
+    const [status, setStatus] = useState('pending'); // Paid/Pending/Overdue
 
-    const addItem = () =>
-      setItems([
-        ...items,
-        { product: undefined, quantity: 1, unitPrice: 0, total: 0 }
-      ]);
-
-    // Maintain all required keys in item!
+    const addItem = () => setItems([...items, { product: undefined, quantity: 1, unitPrice: 0, total: 0 }]);
     const updateItem = (idx: number, field: string, value: any) => {
       const arr = [...items];
       arr[idx] = { ...arr[idx], [field]: value };
@@ -223,28 +181,13 @@ const Billing = () => {
       setItems(arr);
     };
 
-    // When a product is selected, map demo product fields to Supabase product schema if needed.
-    const handleProductSelect = (idx: number, product: any) => {
-      // Accept both local Product (camelCase) and DB Product (snake_case)
-      let supabaseProduct: any = product;
-      if ('gstRate' in product) {
-        // Map local Product (camelCase) to Supabase Product (snake_case)
-        supabaseProduct = {
-          ...product,
-          gst_rate: product.gstRate,
-          batch_number: product.batchNumber,
-          expiry_date: product.expiryDate,
-        };
-        delete supabaseProduct.gstRate;
-        delete supabaseProduct.batchNumber;
-        delete supabaseProduct.expiryDate;
-      }
+    const handleProductSelect = (idx: number, product: Product) => {
       const arr = [...items];
       arr[idx] = {
         ...arr[idx],
-        product: supabaseProduct,
-        unitPrice: Number(supabaseProduct.price) || 0,
-        total: (arr[idx].quantity || 1) * (Number(supabaseProduct.price) || 0)
+        product,
+        unitPrice: product.price,
+        total: (arr[idx].quantity || 1) * product.price
       };
       setItems(arr);
     };
@@ -260,16 +203,11 @@ const Billing = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
+      // Create invoice in supabase
       try {
         await createInvoice({
           customer: customerData as any,
-          // Ensure the items array contains camelCase product for PDF, snake_case for Supabase
-          items: items.map(item => ({
-            product: item.product, // NOTE: Still snake_case for storage.
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            total: item.total,
-          })),
+          items,
           subtotal,
           discount: discountAmount,
           total,
@@ -310,11 +248,7 @@ const Billing = () => {
                   <div key={index} className="bg-white dark:bg-slate-800 p-4 rounded-lg border dark:border-gray-700">
                     <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                       <div className="md:col-span-2">
-                        {/* Always pass product as is (Supabase Product shape) */}
-                        <ProductSelector
-                          onProductSelect={(product) => handleProductSelect(index, product)}
-                          selectedProduct={item.product}
-                        />
+                        <ProductSelector onProductSelect={(product) => handleProductSelect(index, product)} selectedProduct={item.product} />
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-1">Quantity</label>
@@ -575,3 +509,4 @@ const Billing = () => {
 };
 
 export default Billing;
+
