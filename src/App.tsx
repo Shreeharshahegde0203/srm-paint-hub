@@ -16,52 +16,57 @@ import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import { CompanyInfoProvider } from "./contexts/CompanyInfoContext";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { SupabaseAuthProvider } from "./contexts/SupabaseAuthContext";
+import Auth from "./pages/Auth";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <ThemeProvider>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <CompanyInfoProvider>
-            <AuthProvider>
-              <Layout>
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/admin-login" element={<AdminLogin />} />
-                  <Route path="/admin" element={
-                    <ProtectedRoute>
-                      <Admin />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/inventory" element={
-                    <ProtectedRoute>
-                      <Inventory />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/billing" element={
-                    <ProtectedRoute>
-                      <Billing />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/reports" element={
-                    <ProtectedRoute>
-                      <Reports />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Layout>
-            </AuthProvider>
-          </CompanyInfoProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ThemeProvider>
-);
+function App() {
+  return (
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <CompanyInfoProvider>
+              <AuthProvider>
+                <Layout>
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/contact" element={<Contact />} />
+                    <Route path="/admin-login" element={<AdminLogin />} />
+                    <Route path="/admin" element={
+                      <ProtectedRoute>
+                        <Admin />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/inventory" element={
+                      <ProtectedRoute>
+                        <Inventory />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/billing" element={
+                      <ProtectedRoute>
+                        <Billing />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/reports" element={
+                      <ProtectedRoute>
+                        <Reports />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Layout>
+              </AuthProvider>
+            </CompanyInfoProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
+  );
+}
 
 export default App;

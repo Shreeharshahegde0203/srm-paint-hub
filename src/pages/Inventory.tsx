@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter, Edit, Trash2, Package, AlertTriangle } from 'lucide-react';
-import { Product, productsDatabase } from '../data/products';
+import { Product } from '../data/products';
 import StockLevelIcon from '../components/StockLevelIcon';
 import ViewModeToggle from '../components/ViewModeToggle';
+import { useSupabaseAuth } from "../contexts/SupabaseAuthContext";
+import { useSupabaseProducts } from "../hooks/useSupabaseProducts";
+import { useNavigate } from "react-router-dom";
+import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 // Define possible view modes as a type
 type ViewMode = "large" | "medium" | "small" | "list";
@@ -11,7 +15,15 @@ const VIEW_MODE_KEY = "inventory_view_mode";
 const DEFAULT_VIEW: ViewMode = "large";
 
 const Inventory = () => {
-  const [products, setProducts] = useState<Product[]>(productsDatabase);
+  const { user, loading } = useSupabaseAuth();
+  const navigate = useNavigate();
+  const {
+    products,
+    isLoading: isProductsLoading,
+    addProduct,
+    updateProduct,
+    deleteProduct
+  } = useSupabaseProducts();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBrand, setFilterBrand] = useState('');
   const [filterType, setFilterType] = useState('');
@@ -33,25 +45,25 @@ const Inventory = () => {
   const brands = ['Dulux', 'Indigo'];
   const types = ['Emulsion', 'Exterior', 'Primer', 'Enamel', 'Distemper', 'Wood Paint', 'Specialty'];
 
-  const filteredProducts = products.filter(product => {
+  const filteredProducts = products?.filter(product => {
     return (
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.color.toLowerCase().includes(searchTerm.toLowerCase())
+      product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.color?.toLowerCase().includes(searchTerm.toLowerCase())
     ) &&
     (filterBrand === '' || product.brand === filterBrand) &&
     (filterType === '' || product.type === filterType);
-  });
+  }) || [];
 
-  const lowStockProducts = products.filter(product => product.stock < 20);
+  const lowStockProducts = products?.filter(product => product.stock < 20) || [];
 
-  const handleDelete = (id: string) => {
-    setProducts(products.filter(p => p.id !== id));
+  const handleDelete = async (id: string) => {
+    await deleteProduct(id);
   };
 
   const generateProductCode = () => {
     const prefix = 'SRM';
-    const number = (products.length + 1).toString().padStart(3, '0');
+    const number = ((products?.length || 0) + 1).toString().padStart(3, '0');
     return `${prefix}${number}`;
   };
 
@@ -70,20 +82,19 @@ const Inventory = () => {
       }
     );
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       if (product) {
         // Edit existing product
-        setProducts(products.map(p => p.id === product.id ? { ...formData, id: product.id } as Product : p));
+        await updateProduct({ id: product.id, product: formData as TablesUpdate<"products"> });
       } else {
         // Add new product
-        const newProduct: Product = {
+        const newProduct: TablesInsert<"products"> = {
           ...formData,
-          id: Date.now().toString(),
-          gstRate: 18,
+          gst_rate: 18,
           unit: 'Litre'
-        } as Product;
-        setProducts([...products, newProduct]);
+        } as TablesInsert<"products">;
+        await addProduct(newProduct);
       }
       onClose();
     };
@@ -288,6 +299,19 @@ const Inventory = () => {
         </div>
       </div>
     );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    navigate("/auth");
+    return null;
   }
 
   return (
