@@ -211,18 +211,18 @@ const Inventory = () => {
   function renderProductCard(product: Product) {
     if (viewMode === "list") {
       return (
-        <div key={product.id} className="flex flex-col sm:flex-row items-center gap-3 sm:gap-0 p-3 border-b border-gray-100 bg-white hover:bg-blue-50/40 transition rounded-lg">
+        <div key={product.id} className="flex flex-col sm:flex-row items-center gap-3 sm:gap-0 p-3 border-b border-gray-100 bg-white dark:bg-slate-800 hover:bg-blue-50/40 dark:hover:bg-slate-700 transition rounded-lg">
           <div className="flex-1 flex flex-col md:flex-row md:items-center gap-2 min-w-0">
             <span className="text-xs text-gray-400 font-mono min-w-12 w-16">{product.code}</span>
-            <span className="font-semibold text-gray-900 truncate">{product.name}</span>
-            <span className="text-sm text-gray-700 px-2">{product.brand}</span>
-            <span className="text-xs text-gray-500">{product.type} • {product.color}</span>
+            <span className="font-semibold text-gray-900 dark:text-white truncate">{product.name}</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300 px-2">{product.brand}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">{product.type} • {product.color}</span>
           </div>
           <div className="flex items-center gap-3 ml-auto">
             <StockLevelIcon stock={product.stock} />
-            <span className="font-semibold text-blue-700 text-xs">₹{product.price}</span>
-            <button onClick={() => setEditingProduct(product)} className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg"><Edit className="h-4 w-4"/></button>
-            <button onClick={() => handleDelete(product.id)} className="text-red-600 hover:bg-red-50 p-2 rounded-lg"><Trash2 className="h-4 w-4"/></button>
+            <span className="font-semibold text-blue-700 dark:text-blue-300 text-xs">₹{product.price}</span>
+            <button onClick={() => setEditingProduct(product)} className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900 p-2 rounded-lg"><Edit className="h-4 w-4"/></button>
+            <button onClick={() => handleDelete(product.id)} className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 p-2 rounded-lg"><Trash2 className="h-4 w-4"/></button>
           </div>
         </div>
       );
@@ -230,7 +230,7 @@ const Inventory = () => {
     // Grid cards (large/medium/small)
     return (
       <div key={product.id} className={
-        "bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow " +
+        "bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow " +
         (viewMode === "medium" ? "p-2" : viewMode === "small" ? "p-1" : "")
       }>
         {(product.image && viewMode === "large") && (
@@ -242,47 +242,47 @@ const Inventory = () => {
               onError={e => { e.currentTarget.style.display='none'; }}
             />
             <div className="absolute top-2 right-2">
-              <span className="bg-white px-2 py-1 rounded-full text-xs font-medium text-gray-700">{product.brand}</span>
+              <span className="bg-white dark:bg-slate-700 px-2 py-1 rounded-full text-xs font-medium text-gray-700 dark:text-gray-100">{product.brand}</span>
             </div>
           </div>
         )}
         <div className={`p-${viewMode === "small" ? 2 : 6}`}>
           <div className="flex justify-between items-start mb-2">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">{product.code}</h3>
-              <p className="text-sm font-medium text-blue-600 line-clamp-1">{product.name}</p>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{product.code}</h3>
+              <p className="text-sm font-medium text-blue-600 dark:text-blue-300 line-clamp-1">{product.name}</p>
               {viewMode !== "small" && (
-                <p className="text-sm text-gray-600">{product.brand} • {product.type}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">{product.brand} • {product.type}</p>
               )}
             </div>
             <div className="flex space-x-2">
               <button
                 onClick={() => setEditingProduct(product)}
-                className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg"
+                className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900 p-2 rounded-lg"
               ><Edit className="h-4 w-4" /></button>
               <button
                 onClick={() => handleDelete(product.id)}
-                className="text-red-600 hover:bg-red-50 p-2 rounded-lg"
+                className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 p-2 rounded-lg"
               ><Trash2 className="h-4 w-4" /></button>
             </div>
           </div>
           <div className="space-y-1">
             <div className="flex justify-between items-center text-xs">
-              <span className="text-gray-600">Color:</span>
-              <span className="font-medium">{product.color}</span>
+              <span className="text-gray-600 dark:text-gray-300">Color:</span>
+              <span className="font-medium dark:text-gray-200">{product.color}</span>
             </div>
             <div className="flex justify-between items-center text-xs">
-              <span className="text-gray-600">Stock:</span>
+              <span className="text-gray-600 dark:text-gray-300">Stock:</span>
               <StockLevelIcon stock={product.stock} />
             </div>
             <div className="flex justify-between items-center text-xs">
-              <span className="text-gray-600">Price:</span>
-              <span className="font-medium text-blue-600">₹{product.price}</span>
+              <span className="text-gray-600 dark:text-gray-300">Price:</span>
+              <span className="font-medium text-blue-600 dark:text-blue-300">₹{product.price}</span>
             </div>
           </div>
           {product.stock < 20 && viewMode === "large" && (
-            <div className="mt-4 p-2 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600 font-medium">⚠️ Low Stock Alert</p>
+            <div className="mt-4 p-2 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="text-sm text-red-600 dark:text-red-400 font-medium">⚠️ Low Stock Alert</p>
             </div>
           )}
         </div>
