@@ -1,9 +1,27 @@
 
 import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
-// import { Product, productsDatabase } from '../data/products'; // REMOVE: static DB
+// import { Product, productsDatabase } from '../data/products';
 import { Product } from '../data/products';
 import { useSupabaseProducts } from '../hooks/useSupabaseProducts';
+
+// Helper: Map snake_case from Supabase to camelCase Product
+const mapDbProductToProduct = (dbProduct: any): Product => ({
+  id: dbProduct.id,
+  code: dbProduct.code,
+  name: dbProduct.name,
+  brand: dbProduct.brand,
+  type: dbProduct.type,
+  color: dbProduct.color,
+  price: dbProduct.price,
+  stock: dbProduct.stock,
+  image: dbProduct.image || undefined,
+  gstRate: dbProduct.gst_rate,
+  unit: dbProduct.unit,
+  batchNumber: dbProduct.batch_number ?? undefined,
+  expiryDate: dbProduct.expiry_date ?? undefined,
+  description: dbProduct.description ?? undefined,
+});
 
 interface ProductSelectorProps {
   onProductSelect: (product: Product) => void;
@@ -23,7 +41,10 @@ const ProductSelector = ({ onProductSelect, selectedProduct }: ProductSelectorPr
       setFilteredProducts([]);
       return;
     }
-    const filtered = products.filter(product =>
+    // Map DB products to local Product[]
+    const productList: Product[] = products.map(mapDbProductToProduct);
+
+    const filtered = productList.filter(product =>
       product.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.brand?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -94,3 +115,4 @@ const ProductSelector = ({ onProductSelect, selectedProduct }: ProductSelectorPr
 };
 
 export default ProductSelector;
+
