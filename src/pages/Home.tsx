@@ -1,8 +1,9 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Palette, FileText, Shield, Sparkles } from 'lucide-react';
+import { ArrowRight, Palette, FileText, Shield, Sparkles, ShoppingCart, Star } from 'lucide-react';
 import Logo from '../components/Logo';
+import { productsDatabase } from '../data/products';
 
 const Home = () => {
   const services = [
@@ -28,6 +29,9 @@ const Home = () => {
     },
   ];
 
+  // Get featured products (first 8 products for display)
+  const featuredProducts = productsDatabase.slice(0, 8);
+
   return (
     <div className="min-h-screen">
       {/* Enhanced Hero Section */}
@@ -38,7 +42,6 @@ const Home = () => {
           <div className="absolute top-40 right-20 w-24 h-24 bg-green-500 rounded-full opacity-10 animate-pulse delay-1000"></div>
           <div className="absolute bottom-32 left-1/3 w-28 h-28 bg-red-500 rounded-full opacity-10 animate-pulse delay-2000"></div>
           <div className="absolute bottom-20 right-1/4 w-20 h-20 bg-yellow-500 rounded-full opacity-10 animate-pulse delay-3000"></div>
-          {/* New floating elements */}
           <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-blue-400 rounded-full opacity-10 animate-bounce delay-500"></div>
           <div className="absolute top-3/4 right-1/3 w-12 h-12 bg-purple-400 rounded-full opacity-10 animate-bounce delay-1500"></div>
         </div>
@@ -118,8 +121,81 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Enhanced Management Features */}
+      {/* New Featured Products Section */}
       <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 animate-fade-in">
+              Featured Products
+            </h2>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto animate-fade-in delay-200">
+              Discover our premium collection of Dulux and Indigo paints
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            {featuredProducts.map((product, index) => (
+              <div
+                key={product.id}
+                className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-6 border border-slate-100 overflow-hidden animate-fade-in"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <div className="relative overflow-hidden">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute top-4 right-4">
+                    <span className="bg-white px-2 py-1 rounded-full text-xs font-medium text-slate-700">
+                      {product.brand}
+                    </span>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
+                    {product.name}
+                  </h3>
+                  <p className="text-sm text-slate-600 mb-2">{product.type} • {product.color}</p>
+                  <p className="text-xs text-slate-500 mb-4 line-clamp-2">{product.description}</p>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="text-xl font-bold text-slate-900">₹{product.price}</span>
+                      <span className="text-sm text-slate-500 ml-1">/{product.unit}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                      <span className="text-sm text-slate-600 ml-1">4.8</span>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex justify-between items-center">
+                    <span className={`text-sm ${product.stock > 20 ? 'text-green-600' : 'text-red-600'}`}>
+                      {product.stock > 20 ? 'In Stock' : `Only ${product.stock} left`}
+                    </span>
+                    <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors flex items-center">
+                      <ShoppingCart className="h-4 w-4 mr-1" />
+                      Add to Cart
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center">
+            <Link
+              to="/inventory"
+              className="inline-flex items-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105"
+            >
+              View All Products
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced Management Features */}
+      <section className="py-20 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 animate-fade-in">
@@ -204,7 +280,6 @@ const Home = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-4xl mx-auto">
-            {/* Dulux Brand */}
             <div className="group bg-slate-700 p-12 rounded-2xl text-center hover:bg-slate-600 transition-all duration-500 hover:scale-105 border border-slate-600 cursor-pointer animate-fade-in">
               <div className="bg-white p-8 rounded-xl mb-6 mx-auto w-32 h-32 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
                 <span className="text-2xl font-bold text-slate-800">DULUX</span>
@@ -213,7 +288,6 @@ const Home = () => {
               <p className="text-slate-300 group-hover:text-white transition-colors">Premium quality paints with superior finish and durability</p>
             </div>
 
-            {/* Indigo Brand */}
             <div className="group bg-slate-700 p-12 rounded-2xl text-center hover:bg-slate-600 transition-all duration-500 hover:scale-105 border border-slate-600 cursor-pointer animate-fade-in delay-200">
               <div className="bg-white p-8 rounded-xl mb-6 mx-auto w-32 h-32 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
                 <span className="text-2xl font-bold text-indigo-800">INDIGO</span>
@@ -225,7 +299,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Enhanced CTA Section */}
       <section className="py-20 bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 text-white">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-bold mb-6 animate-fade-in">

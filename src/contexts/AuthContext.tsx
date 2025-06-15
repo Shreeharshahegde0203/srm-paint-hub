@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -25,6 +26,7 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check if user was previously logged in
@@ -47,6 +49,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const logout = () => {
     setIsAuthenticated(false);
     localStorage.removeItem('admin_authenticated');
+    navigate('/'); // Redirect to home page after logout
   };
 
   return (
