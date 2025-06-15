@@ -15,6 +15,7 @@ import ConfirmDialog from "../components/ConfirmDialog";
 import CustomerHistoryModal from "../components/CustomerHistoryModal";
 import { Eye as EyeIcon, Download as DownloadIcon } from 'lucide-react';
 import RegularCustomersSection from "../components/RegularCustomersSection";
+import EnhancedProductSelector from "../components/EnhancedProductSelector";
 
 // --- Type definitions for Supabase integration ---
 type Customer = Tables<"customers">;
@@ -119,7 +120,7 @@ const Billing = () => {
     const [discount, setDiscount] = useState(0);
     const [status, setStatus] = useState('pending'); // Paid/Pending/Overdue
 
-    // addItem, updateItem same as before
+    // Add item, update item helpers
     const addItem = () =>
       setItems([...items, { product: undefined, quantity: 1, unitPrice: 0, total: 0 }]);
     const updateItem = (idx: number, field: string, value: any) => {
@@ -133,12 +134,12 @@ const Billing = () => {
       setItems(arr);
     };
 
-    // --- Correctly store raw Supabase product (all fields) in the invoice item
+    // --- Replace legacy ProductSelector with new EnhancedProductSelector ---
     const handleProductSelect = (idx: number, product: any) => {
       const arr = [...items];
       arr[idx] = {
         ...arr[idx],
-        product, // store full Supabase product row, not mapped local Product
+        product, // EnhancedProductSelector returns a mapped Product (from unified)
         unitPrice: product.price,
         total: (arr[idx].quantity || 1) * product.price
       };
@@ -156,9 +157,7 @@ const Billing = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      // Create invoice in supabase
       try {
-        // Create/fetch customer
         let customerId: string | undefined;
         let { data: existingCustomer } = await supabase.from("customers")
           .select("*").eq("name", customerData.name).maybeSingle();
@@ -174,7 +173,7 @@ const Billing = () => {
             }).select("*").single();
           customerId = createdCustomer.id;
         }
-        // Create invoice
+        // --- Create invoice as before ---
         const { data: createdInvoice, error: invErr } = await supabase
           .from("invoices").insert({
             customer_id: customerId,
@@ -182,11 +181,13 @@ const Billing = () => {
             status
           }).select("*").single();
         if (!createdInvoice || invErr) throw new Error(invErr?.message || "Failed to create invoice");
-        // Create items
+
+        // --- Now handle mapping product reference for both inventory and catalog entries ---
         for (let item of items) {
+          const idToUse = item.product?.id;
           await supabase.from("invoice_items").insert({
             invoice_id: createdInvoice.id,
-            product_id: item.product.id,
+            product_id: idToUse,
             price: item.unitPrice,
             quantity: item.quantity
           });
@@ -227,8 +228,8 @@ const Billing = () => {
                   <div key={index} className="bg-white dark:bg-slate-800 p-4 rounded-lg border dark:border-gray-700">
                     <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                       <div className="md:col-span-2">
-                        {/* Pass full Supabase product or undefined */}
-                        <ProductSelector
+                        {/* -- USE ENHANCED PRODUCT SELECTOR: */}
+                        <EnhancedProductSelector
                           onProductSelect={(product) => handleProductSelect(index, product)}
                           selectedProduct={item.product ?? undefined}
                         />
@@ -255,7 +256,7 @@ const Billing = () => {
                 ))}
               </div>
             </div>
-            {/* Status */}
+            {/* Status, Totals, and Save/Cancel Buttons */}
             <div className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg">
               <label className="block text-sm font-medium mb-1">Status</label>
               <select value={status} onChange={e => setStatus(e.target.value)} className="w-44 p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white">
@@ -264,7 +265,6 @@ const Billing = () => {
                 <option value="overdue">Overdue</option>
               </select>
             </div>
-            {/* Totals */}
             <div className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg">
               <h4 className="font-semibold mb-4 text-gray-800 dark:text-gray-100">Invoice Summary</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
