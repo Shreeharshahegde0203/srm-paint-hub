@@ -17,20 +17,20 @@ interface Props {
 export default function RegularCustomerSidebar({ customer, open, onClose }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Only run these hooks when customer?.id is available.
   const { getCustomerProjects } = useCustomerProjects();
   const { getCustomerInvoices } = useCustomerInvoices();
 
-  // These are hooks that must be called unconditionally (React rule).
+  // Always call hooks unconditionally
   const projectsQuery = customer?.id ? getCustomerProjects(customer.id) : { data: [], isLoading: false };
   const invoicesQuery = customer?.id ? getCustomerInvoices(customer.id) : { data: [], isLoading: false };
 
-  const projects = projectsQuery?.data || [];
-  const invoices = invoicesQuery?.data || [];
+  // Defensive: always arrays, never undefined!
+  const projects = Array.isArray(projectsQuery?.data) ? projectsQuery.data : [];
+  const invoices = Array.isArray(invoicesQuery?.data) ? invoicesQuery.data : [];
 
   const { products } = useSupabaseProducts();
 
-  // Stats
+  // Stats, safely treat as arrays
   const totalSpent = invoices.reduce((sum: number, inv: any) => sum + (Number(inv.invoice?.total || 0)), 0);
   const dueAmount = invoices.reduce(
     (sum: number, inv: any) =>
@@ -42,6 +42,7 @@ export default function RegularCustomerSidebar({ customer, open, onClose }: Prop
     setSidebarOpen(open);
   }, [open]);
 
+  // Don't render unless properly loaded and customer exists
   if (!sidebarOpen || !customer) return null;
   return (
     <div className="fixed top-0 right-0 w-full md:w-[540px] max-w-full h-full bg-white dark:bg-slate-900 shadow-2xl z-50 transition-all duration-300 overflow-y-auto">
@@ -54,7 +55,7 @@ export default function RegularCustomerSidebar({ customer, open, onClose }: Prop
       <div className="p-8 py-12">
         <CustomerSummary
           customer={customer}
-          invoiceCount={invoices.length}
+          invoiceCount={Array.isArray(invoices) ? invoices.length : 0}
           totalSpent={totalSpent}
           dueAmount={dueAmount}
         />
