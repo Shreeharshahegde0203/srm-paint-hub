@@ -9,6 +9,7 @@ import { useSupabaseProducts } from "../hooks/useSupabaseProducts";
 import { toast } from "@/components/ui/use-toast";
 import TradeReceivablesDialog from "../components/TradeReceivablesDialog";
 import type { Tables } from "@/integrations/supabase/types";
+import RegularCustomersSection from "../components/RegularCustomersSection";
 
 // --- Type definitions for Supabase integration ---
 type Product = Tables<"products">;
@@ -119,7 +120,7 @@ const Billing = () => {
   // --- Invoices + Products state ---
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'invoices' | 'products'>('invoices');
+  const [activeTab, setActiveTab] = useState<'invoices' | 'products' | 'regular_customers'>('invoices');
 
   // --- Hooked data ---
   const { invoices, loading: invoicesLoading, fetchInvoices, setInvoiceStatus, createInvoice } = useSupabaseInvoices();
@@ -439,6 +440,21 @@ const Billing = () => {
     );
   };
 
+  // --- Regular Customers tab ---
+  const RegularCustomersSection = () => {
+    return (
+      <div>
+        <div className="flex justify-between mb-4">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Regular Customers</h2>
+        </div>
+        {/* Regular Customers list */}
+        <div className="space-y-4">
+          {/* Regular Customers list items */}
+        </div>
+      </div>
+    );
+  };
+
   // --- MAIN RETURN ---
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
@@ -468,11 +484,11 @@ const Billing = () => {
           <div className="flex space-x-4">
             <button onClick={() => setActiveTab('invoices')} className={`px-4 py-2 rounded-lg font-medium ${activeTab === 'invoices' ? 'bg-green-600 text-white' : 'bg-gray-100 dark:bg-slate-900 text-gray-700 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-slate-700'}`}>Invoices</button>
             <button onClick={() => setActiveTab('products')} className={`px-4 py-2 rounded-lg font-medium ${activeTab === 'products' ? 'bg-green-600 text-white' : 'bg-gray-100 dark:bg-slate-900 text-gray-700 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-slate-700'}`}>Manage Products</button>
+            <button onClick={() => setActiveTab('regular_customers')} className={`px-4 py-2 rounded-lg font-medium ${activeTab === 'regular_customers' ? 'bg-green-600 text-white' : 'bg-gray-100 dark:bg-slate-900 text-gray-700 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-slate-700'}`}>Regular Customers</button>
           </div>
         </div>
-        {/* Product Management Tab */}
+        {/* Tabs content */}
         {activeTab === 'products' && <ManageProducts />}
-        {/* Invoices Tab */}
         {activeTab === 'invoices' && (
           <>
             {/* Search */}
@@ -543,6 +559,7 @@ const Billing = () => {
             )}
           </>
         )}
+        {activeTab === 'regular_customers' && <RegularCustomersSection />}
       </div>
       {/* Create Invoice Modal */}
       {showCreateForm && (
