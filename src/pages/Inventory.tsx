@@ -4,8 +4,11 @@ import { Product, productsDatabase } from '../data/products';
 import StockLevelIcon from '../components/StockLevelIcon';
 import ViewModeToggle from '../components/ViewModeToggle';
 
+// Define possible view modes as a type
+type ViewMode = "large" | "medium" | "small" | "list";
+
 const VIEW_MODE_KEY = "inventory_view_mode";
-const DEFAULT_VIEW: "large" | "medium" | "small" | "list" = "large";
+const DEFAULT_VIEW: ViewMode = "large";
 
 const Inventory = () => {
   const [products, setProducts] = useState<Product[]>(productsDatabase);
@@ -14,8 +17,13 @@ const Inventory = () => {
   const [filterType, setFilterType] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [viewMode, setViewMode] = useState<typeof DEFAULT_VIEW>(() => {
-    return (localStorage.getItem(VIEW_MODE_KEY) as typeof DEFAULT_VIEW) || DEFAULT_VIEW;
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    const stored = localStorage.getItem(VIEW_MODE_KEY);
+    // Ensure value is of type ViewMode, fallback to DEFAULT_VIEW if not
+    if (stored === "large" || stored === "medium" || stored === "small" || stored === "list") {
+      return stored;
+    }
+    return DEFAULT_VIEW;
   });
 
   useEffect(() => {
@@ -225,7 +233,7 @@ const Inventory = () => {
         "bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow " +
         (viewMode === "medium" ? "p-2" : viewMode === "small" ? "p-1" : "")
       }>
-        {product.image && viewMode === "large" && (
+        {(product.image && viewMode === "large") && (
           <div className="relative h-48 overflow-hidden">
             <img
               src={product.image}
@@ -359,7 +367,15 @@ const Inventory = () => {
             </select>
             {/* View Mode Toggle */}
             <div className="flex items-center justify-end">
-              <ViewModeToggle value={viewMode} onChange={setViewMode} />
+              <ViewModeToggle
+                value={viewMode}
+                onChange={(val: string) => {
+                  // Accept only ViewMode strings
+                  if (val === "large" || val === "medium" || val === "small" || val === "list") {
+                    setViewMode(val);
+                  }
+                }}
+              />
             </div>
           </div>
           <div className="mt-3 flex items-center text-sm text-gray-600">
