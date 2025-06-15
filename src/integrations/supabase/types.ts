@@ -208,6 +208,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           customer_id: string | null
+          deleted_at: string | null
           id: string
           status: string
           total: number
@@ -216,6 +217,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           customer_id?: string | null
+          deleted_at?: string | null
           id?: string
           status?: string
           total: number
@@ -224,6 +226,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           customer_id?: string | null
+          deleted_at?: string | null
           id?: string
           status?: string
           total?: number

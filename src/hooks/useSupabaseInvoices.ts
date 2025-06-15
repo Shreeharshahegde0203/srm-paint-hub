@@ -1,0 +1,93 @@
+
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
+import { toast } from "@/hooks/use-toast";
+
+// --- Types ---
+export type Product = Tables<"products">;
+export type Customer = Tables<"customers">;
+export type Invoice = Tables<"invoices"> & {
+  customer: Customer | null;
+  items?: InvoiceItem[];
+};
+export type InvoiceItem = Tables<"invoice_items"> & {
+  product?: Product;
+};
+
+// --- Hook ---
+export function useSupabaseInvoices() {
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch invoices + details (excluding deleted)
+  const fetchInvoices = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const { data: invoiceRows, error: invoiceError } = await supabase
+      .from("invoices")
+      .select("*")
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false });
+    if (invoiceError) {
+      setError(invoiceError.message);
+      setLoading(false);
+      return;
+    }
+    const { data: customers } = await supabase.from("customers").select("*");
+    const { data: invoiceItems } = await supabase.from("invoice_items").select("*");
+    const invoicesEnriched: Invoice[] = (invoiceRows ?? []).map((inv) => ({
+      ...inv,
+      customer: customers?.find((c) => c.id === inv.customer_id) ?? null,
+      items: (invoiceItems ?? []).filter((item) => item.invoice_id === inv.id),
+    }));
+    setInvoices(invoicesEnriched);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchInvoices();
+    const channel = supabase.channel("schema-db-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "invoices" }, fetchInvoices)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [fetchInvoices]);
+
+  // Edit invoice (only updates invoice and its items, not customer)
+  const editInvoice = async (id: string, { items, status, discount, total }: { items: any[]; status: string; discount: number; total: number; }) => {
+    // Update invoice fields
+    const { error: invErr } = await supabase
+      .from("invoices").update({ status, total }).eq("id", id);
+    if (invErr) throw new Error(invErr.message);
+
+    // Update/delete/add items: for simplicity, remove all and re-insert (best for UI/logic)
+    await supabase.from("invoice_items").delete().eq("invoice_id", id);
+    for (let item of items) {
+      await supabase.from("invoice_items").insert({
+        invoice_id: id,
+        product_id: item.product.id,
+        price: item.unitPrice,
+        quantity: item.quantity
+      });
+    }
+    await fetchInvoices();
+  };
+
+  // Soft-delete invoice
+  const deleteInvoice = async (id: string) => {
+    const { error } = await supabase.from("invoices").update({ deleted_at: new Date().toISOString() }).eq("id", id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Invoice deleted", description: "The invoice was deleted successfully." });
+      await fetchInvoices();
+    }
+  };
+
+  // All other existing logic (status, create, etc) can be merged here
+  return {
+    invoices, loading, error, fetchInvoices, editInvoice, deleteInvoice
+    // You may want to migrate: setInvoiceStatus, createInvoice, etc, here in your final refactor!
+  };
+}

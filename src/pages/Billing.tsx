@@ -9,113 +9,22 @@ import { useSupabaseProducts } from "../hooks/useSupabaseProducts";
 import { toast } from "@/components/ui/use-toast";
 import TradeReceivablesDialog from "../components/TradeReceivablesDialog";
 import type { Tables } from "@/integrations/supabase/types";
-import RegularCustomersSection from "../components/RegularCustomersSection";
+import { useSupabaseInvoices, Invoice, Product } from "../hooks/useSupabaseInvoices";
+import EditInvoiceForm from "../components/EditInvoiceForm";
+import ConfirmDialog from "../components/ConfirmDialog";
+import CustomerHistoryModal from "../components/CustomerHistoryModal";
+import { Eye as EyeIcon, Download as DownloadIcon } from 'lucide-react';
 
 // --- Type definitions for Supabase integration ---
-type Product = Tables<"products">;
 type Customer = Tables<"customers">;
-type Invoice = Tables<"invoices"> & {
-  customer: Customer | null;
-  items?: InvoiceItem[];
-};
 type InvoiceItem = Tables<"invoice_items"> & {
   product?: Product;
 };
 
 // --- Supabase hooks for invoices ---
-const useSupabaseInvoices = () => {
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+// (moved to useSupabaseInvoices.ts)
 
-  // Fetch invoices + customer + items from Supabase
-  const fetchInvoices = async () => {
-    setLoading(true);
-    setError(null);
-    const { data: invoiceRows, error: invoiceError } = await supabase
-      .from("invoices")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (invoiceError) {
-      setError(invoiceError.message);
-      setLoading(false);
-      return;
-    }
-    // Fetch customers
-    const { data: customers } = await supabase.from("customers").select("*");
-    // Fetch invoice items
-    const { data: invoiceItems } = await supabase.from("invoice_items").select("*");
-    // Attach customer/items to each invoice
-    const invoicesEnriched: Invoice[] = (invoiceRows ?? []).map((inv) => ({
-      ...inv,
-      customer: customers?.find((c) => c.id === inv.customer_id) ?? null,
-      items: (invoiceItems ?? []).filter((item) => item.invoice_id === inv.id),
-    }));
-    setInvoices(invoicesEnriched);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchInvoices();
-    const channel = supabase.channel('schema-db-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'invoices' }, fetchInvoices)
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, []);
-
-  // Update invoice status
-  const setInvoiceStatus = async (id: string, status: string) => {
-    const { error } = await supabase.from("invoices").update({ status }).eq("id", id);
-    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else await fetchInvoices();
-  };
-
-  // Create invoice with items, customer (create customer if needed)
-  const createInvoice = async (
-    newInvoice: { customer: Omit<Customer, "id" | "created_at" | "updated_at">; items: any[]; subtotal: number; discount: number; total: number; status: string; }
-  ) => {
-    // Create/fetch customer
-    let customerId: string | undefined;
-    let { data: existingCustomer } = await supabase.from("customers")
-      .select("*").eq("name", newInvoice.customer.name).maybeSingle();
-    if (existingCustomer?.id) {
-      customerId = existingCustomer.id;
-    } else {
-      const { data: createdCustomer } = await supabase
-        .from("customers").insert({
-          name: newInvoice.customer.name,
-          phone: newInvoice.customer.phone,
-          address: newInvoice.customer.address,
-          email: newInvoice.customer.email,
-        }).select("*").single();
-      customerId = createdCustomer.id;
-    }
-    // Create invoice
-    const { data: createdInvoice, error: invErr } = await supabase
-      .from("invoices").insert({
-        customer_id: customerId,
-        total: newInvoice.total,
-        status: newInvoice.status
-      }).select("*").single();
-    if (!createdInvoice || invErr) throw new Error(invErr?.message || "Failed to create invoice");
-    // Create items
-    for (let item of newInvoice.items) {
-      await supabase.from("invoice_items").insert({
-        invoice_id: createdInvoice.id,
-        product_id: item.product.id,
-        price: item.unitPrice,
-        quantity: item.quantity
-      });
-    }
-    await fetchInvoices();
-    return createdInvoice.id;
-  };
-
-  return {
-    invoices, loading, error, fetchInvoices, setInvoiceStatus, createInvoice
-  };
-};
-
+// --- Billing Component ---
 const Billing = () => {
   // --- Invoices + Products state ---
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -123,7 +32,13 @@ const Billing = () => {
   const [activeTab, setActiveTab] = useState<'invoices' | 'products' | 'regular_customers'>('invoices');
 
   // --- Hooked data ---
-  const { invoices, loading: invoicesLoading, fetchInvoices, setInvoiceStatus, createInvoice } = useSupabaseInvoices();
+  const {
+    invoices,
+    loading: invoicesLoading,
+    fetchInvoices,
+    editInvoice,
+    deleteInvoice,
+  } = useSupabaseInvoices();
   const { products, addProduct, updateProduct, deleteProduct, isLoading: productsLoading } = useSupabaseProducts();
   const { companyInfo } = useCompanyInfo();
 
@@ -242,16 +157,42 @@ const Billing = () => {
       e.preventDefault();
       // Create invoice in supabase
       try {
-        await createInvoice({
-          customer: customerData as any,
-          items,
-          subtotal,
-          discount: discountAmount,
-          total,
-          status
-        });
+        // Create/fetch customer
+        let customerId: string | undefined;
+        let { data: existingCustomer } = await supabase.from("customers")
+          .select("*").eq("name", customerData.name).maybeSingle();
+        if (existingCustomer?.id) {
+          customerId = existingCustomer.id;
+        } else {
+          const { data: createdCustomer } = await supabase
+            .from("customers").insert({
+              name: customerData.name,
+              phone: customerData.phone,
+              address: customerData.address,
+              email: customerData.email,
+            }).select("*").single();
+          customerId = createdCustomer.id;
+        }
+        // Create invoice
+        const { data: createdInvoice, error: invErr } = await supabase
+          .from("invoices").insert({
+            customer_id: customerId,
+            total,
+            status
+          }).select("*").single();
+        if (!createdInvoice || invErr) throw new Error(invErr?.message || "Failed to create invoice");
+        // Create items
+        for (let item of items) {
+          await supabase.from("invoice_items").insert({
+            invoice_id: createdInvoice.id,
+            product_id: item.product.id,
+            price: item.unitPrice,
+            quantity: item.quantity
+          });
+        }
         toast({ title: "Success", description: "Invoice created!" });
         onClose();
+        fetchInvoices();
       } catch (err: any) {
         toast({ title: "Error", description: err.message, variant: "destructive" });
       }
@@ -442,18 +383,42 @@ const Billing = () => {
 
   // --- Regular Customers tab ---
   const RegularCustomersSection = () => {
+    // Use the hook (if needed) or fetch customers for this table
+    const { customers, customersLoading } = require("../hooks/useRegularCustomers").useRegularCustomers();
+    const [customerHistoryId, setCustomerHistoryId] = useState<string | null>(null);
+
     return (
       <div>
         <div className="flex justify-between mb-4">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Regular Customers</h2>
         </div>
-        {/* Regular Customers list */}
-        <div className="space-y-4">
-          {/* Regular Customers list items */}
-        </div>
+        {customersLoading ? (
+          <div>Loading regular customers…</div>
+        ) : (
+          <div className="space-y-2">
+            {customers.map((cust) => (
+              <div
+                key={cust.id}
+                className="p-4 border rounded bg-white dark:bg-slate-900 hover:shadow cursor-pointer"
+                onClick={() => setCustomerHistoryId(cust.id)}
+              >
+                <div className="font-bold">{cust.name}</div>
+                <div className="text-sm text-gray-600">{cust.phone}</div>
+                {cust.address && (
+                  <div className="text-sm text-gray-500">{cust.address}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        <CustomerHistoryModal customerId={customerHistoryId} onClose={() => setCustomerHistoryId(null)} />
       </div>
     );
   };
+
+  // --- New: track editing and deleting invoice state ---
+  const [editingInvoice, setEditingInvoice] = useState<null | Invoice>(null);
+  const [deletingInvoice, setDeletingInvoice] = useState<null | Invoice>(null);
 
   // --- MAIN RETURN ---
   return (
@@ -515,10 +480,25 @@ const Billing = () => {
                         </span>
                         {/* Mark as paid button */}
                         {invoice.status !== 'paid' && (
-                          <button onClick={() => setInvoiceStatus(invoice.id, "paid")} className="ml-2 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 dark:hover:bg-green-800 text-xs">
+                          <button onClick={() => {
+                            editInvoice(invoice.id, { items: invoice.items ?? [], status: "paid", discount: 0, total: invoice.total });
+                          }} className="ml-2 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 dark:hover:bg-green-800 text-xs">
                             Mark as Paid
                           </button>
                         )}
+                        {/* Edit / Delete buttons */}
+                        <button
+                          className="ml-2 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-800 text-xs"
+                          onClick={() => setEditingInvoice(invoice)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="ml-2 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs"
+                          onClick={() => setDeletingInvoice(invoice)}
+                        >
+                          Delete
+                        </button>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-300">
                         <div>
@@ -538,10 +518,10 @@ const Billing = () => {
                       </div>
                       <div className="flex gap-2">
                         <button className="text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900 p-2 rounded-lg">
-                          <Eye className="h-5 w-5" />
+                          <EyeIcon className="h-5 w-5" />
                         </button>
                         <button onClick={() => handleDownloadPDF(invoice)} className="text-green-600 hover:bg-green-50 dark:hover:bg-green-900 p-2 rounded-lg">
-                          <Download className="h-5 w-5" />
+                          <DownloadIcon className="h-5 w-5" />
                         </button>
                       </div>
                     </div>
@@ -565,6 +545,31 @@ const Billing = () => {
       {showCreateForm && (
         <CreateInvoiceForm onClose={() => setShowCreateForm(false)} />
       )}
+      {/* Edit Invoice Modal */}
+      {editingInvoice && (
+        <EditInvoiceForm
+          invoice={editingInvoice}
+          products={products ?? []}
+          onSave={async (newData) => {
+            await editInvoice(editingInvoice.id, newData);
+            setEditingInvoice(null);
+          }}
+          onCancel={() => setEditingInvoice(null)}
+        />
+      )}
+      {/* Delete Confirm Dialog */}
+      <ConfirmDialog
+        open={!!deletingInvoice}
+        title="Delete Invoice"
+        description="Are you sure you want to delete this invoice? This action cannot be undone."
+        onConfirm={async () => {
+          if (deletingInvoice) {
+            await deleteInvoice(deletingInvoice.id);
+            setDeletingInvoice(null);
+          }
+        }}
+        onCancel={() => setDeletingInvoice(null)}
+      />
     </div>
   );
 };
