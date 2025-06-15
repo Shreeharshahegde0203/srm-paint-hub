@@ -17,7 +17,7 @@ export interface Product {
 }
 
 export const productsDatabase: Product[] = [
-  // Dulux Products (10 products)
+  // Dulux Products (10 products) - Updated with authentic paint can images
   {
     id: '1',
     code: 'DLX001',
@@ -29,7 +29,7 @@ export const productsDatabase: Product[] = [
     stock: 45,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1721322800607-8c38375eef04?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1562113530-57ba2cea77b2?w=400&h=400&fit=crop',
     description: 'Premium silk finish emulsion with superior coverage and washable properties'
   },
   {
@@ -43,7 +43,7 @@ export const productsDatabase: Product[] = [
     stock: 32,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&h=400&fit=crop',
     description: 'Advanced weather protection exterior paint with UV resistance and long-lasting finish'
   },
   {
@@ -57,7 +57,7 @@ export const productsDatabase: Product[] = [
     stock: 38,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=400&fit=crop',
     description: 'Easy application interior emulsion paint with excellent coverage and smooth finish'
   },
   {
@@ -71,7 +71,7 @@ export const productsDatabase: Product[] = [
     stock: 28,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1496307653780-42ee777d4833?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=400&h=400&fit=crop',
     description: 'High gloss synthetic enamel paint with superior durability and brilliant finish'
   },
   {
@@ -85,7 +85,7 @@ export const productsDatabase: Product[] = [
     stock: 25,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1459767129954-1b1c1f9b9ace?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1604709177225-055f99402ea3?w=400&h=400&fit=crop',
     description: 'Stain resistant washable interior paint with anti-bacterial properties'
   },
   {
@@ -99,7 +99,7 @@ export const productsDatabase: Product[] = [
     stock: 42,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1449157291145-7efd050a4d0e?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1581783898377-1c85bf937427?w=400&h=400&fit=crop',
     description: 'High-quality wall primer for better paint adhesion and coverage'
   },
   {
@@ -113,7 +113,7 @@ export const productsDatabase: Product[] = [
     stock: 30,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1431576901776-e539bd916ba2?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1606744888344-493238951221?w=400&h=400&fit=crop',
     description: 'All-weather exterior paint with fade resistance and anti-algae protection'
   },
   {
@@ -127,7 +127,7 @@ export const productsDatabase: Product[] = [
     stock: 35,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1606832045412-e8629309ad34?w=400&h=400&fit=crop',
     description: 'Premium interior emulsion with rich color depth and smooth texture'
   },
   {
@@ -141,7 +141,7 @@ export const productsDatabase: Product[] = [
     stock: 20,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1497604401993-f2e922e5cb0a?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop',
     description: 'Premium metallic finish paint for decorative applications'
   },
   {
@@ -155,11 +155,11 @@ export const productsDatabase: Product[] = [
     stock: 25,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1439337153520-7082a56a81f4?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1581783433449-de677645c730?w=400&h=400&fit=crop',
     description: 'Protective wood stain with natural wood enhancement and preservation'
   },
 
-  // Indigo Products (10 products)
+  // Indigo Products (10 products) - Updated with authentic paint can images
   {
     id: '11',
     code: 'IND001',
@@ -171,7 +171,7 @@ export const productsDatabase: Product[] = [
     stock: 40,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1473091534298-04dcbce3278c?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1610557419874-f7e4e6b0d667?w=400&h=400&fit=crop',
     description: 'Luxurious matt finish interior paint with premium texture and coverage'
   },
   {
@@ -185,7 +185,7 @@ export const productsDatabase: Product[] = [
     stock: 35,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1488972685288-c3fd157d7c7a?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop',
     description: 'Ultimate exterior protection with UV resistance and weather-shield technology'
   },
   {
@@ -199,7 +199,7 @@ export const productsDatabase: Product[] = [
     stock: 50,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1524230572899-a752b3835840?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1596227406193-ab8e550b02de?w=400&h=400&fit=crop',
     description: 'Premium acrylic distemper for smooth wall finish with vibrant colors'
   },
   {
@@ -213,7 +213,7 @@ export const productsDatabase: Product[] = [
     stock: 20,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1433832597046-4f10e10ac764?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1609705531581-70c0c4b33afd?w=400&h=400&fit=crop',
     description: 'Premium wood finish with natural look and superior protection'
   },
   {
@@ -227,7 +227,7 @@ export const productsDatabase: Product[] = [
     stock: 30,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1460574283810-2aab119d8511?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1536431311719-398b6704d4cc?w=400&h=400&fit=crop',
     description: 'Luxury interior emulsion with silk finish and superior washability'
   },
   {
@@ -241,7 +241,7 @@ export const productsDatabase: Product[] = [
     stock: 45,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1486718448742-163732cd1544?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1595246140519-d5639d5b3a8f?w=400&h=400&fit=crop',
     description: 'Advanced primer sealer for superior paint adhesion and coverage'
   },
   {
@@ -255,7 +255,7 @@ export const productsDatabase: Product[] = [
     stock: 18,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1493397212122-2b85dda8106b?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1609703466656-96a66e04ddff?w=400&h=400&fit=crop',
     description: 'Decorative texture paint for creating artistic wall finishes'
   },
   {
@@ -269,7 +269,7 @@ export const productsDatabase: Product[] = [
     stock: 25,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1466442929976-97f336a657be?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1609234656388-0ff363063d9d?w=400&h=400&fit=crop',
     description: 'High-gloss enamel paint with excellent durability and color retention'
   },
   {
@@ -283,7 +283,7 @@ export const productsDatabase: Product[] = [
     stock: 28,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1492321936769-b49830bc1d1e?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1609705531570-20bf4f76902d?w=400&h=400&fit=crop',
     description: 'Waterproof exterior paint with anti-fungal and anti-algae properties'
   },
   {
@@ -297,7 +297,7 @@ export const productsDatabase: Product[] = [
     stock: 33,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1551038247-3d9af20df552?w=400&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=400&h=400&fit=crop',
     description: 'Premium interior emulsion with stain-guard technology and easy maintenance'
   }
 ];

@@ -11,8 +11,9 @@ const Inventory = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
-  const brands = ['Asian Paints', 'Berger', 'Dulux', 'Nerolac', 'Jotun'];
-  const types = ['Emulsion', 'Oil', 'Exterior', 'Interior', 'Primer', 'Enamel'];
+  // Updated to match actual product data
+  const brands = ['Dulux', 'Indigo'];
+  const types = ['Emulsion', 'Exterior', 'Primer', 'Enamel', 'Distemper', 'Wood Paint', 'Specialty'];
 
   const filteredProducts = products.filter(product => {
     return (
@@ -46,6 +47,8 @@ const Inventory = () => {
         color: '',
         stock: 0,
         price: 0,
+        gstRate: 18,
+        unit: 'Litre',
       }
     );
 
@@ -58,7 +61,9 @@ const Inventory = () => {
         // Add new product
         const newProduct: Product = {
           ...formData,
-          id: Date.now().toString()
+          id: Date.now().toString(),
+          gstRate: 18,
+          unit: 'Litre'
         } as Product;
         setProducts([...products, newProduct]);
       }
@@ -188,7 +193,7 @@ const Inventory = () => {
                 <Package className="mr-3 h-8 w-8 text-blue-600" />
                 Smart Inventory Management
               </h1>
-              <p className="text-gray-600 mt-1">Manage your paint stock with product codes and smart tracking</p>
+              <p className="text-gray-600 mt-1">Manage your Dulux & Indigo paint stock with product codes and smart tracking</p>
             </div>
             <button
               onClick={() => setShowAddForm(true)}
@@ -263,6 +268,25 @@ const Inventory = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProducts.map((product) => (
             <div key={product.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+              {/* Product Image */}
+              {product.image && (
+                <div className="relative h-48 overflow-hidden">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                  <div className="absolute top-2 right-2">
+                    <span className="bg-white px-2 py-1 rounded-full text-xs font-medium text-gray-700">
+                      {product.brand}
+                    </span>
+                  </div>
+                </div>
+              )}
+              
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div>
