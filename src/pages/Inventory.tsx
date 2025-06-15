@@ -106,7 +106,7 @@ const Inventory = () => {
         color: formData.color,
         stock: formData.stock,
         price: formData.price,
-        gst_rate: formData.gstRate ?? 18, // map
+        gst_rate: formData.gstRate ?? 18, // map camelCase to snake_case
         unit: formData.unit || "Litre",
       };
 
@@ -116,11 +116,11 @@ const Inventory = () => {
       if (formData.image !== undefined) {
         payload.image = formData.image;
       }
-      if (formData.batch_number !== undefined) {
-        payload.batch_number = formData.batch_number;
+      if (formData.batchNumber !== undefined) {
+        payload.batch_number = formData.batchNumber;
       }
-      if (formData.expiry_date !== undefined) {
-        payload.expiry_date = formData.expiry_date;
+      if (formData.expiryDate !== undefined) {
+        payload.expiry_date = formData.expiryDate;
       }
 
       try {
