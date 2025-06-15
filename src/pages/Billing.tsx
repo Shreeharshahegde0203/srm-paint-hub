@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Search, FileText, Download, Eye, Trash2 } from 'lucide-react';
 import ProductSelector from '../components/ProductSelector';
-import ProductManagement from '../components/ProductManagement';
-import { Product, productsDatabase } from '../data/products';
+import { Product } from '../data/products';
 import { generateInvoicePDF } from '../utils/pdfGenerator';
 import { useCompanyInfo } from "../contexts/CompanyInfoContext";
 import { setCompanyInfoForPDF } from "../utils/pdfGenerator";
@@ -39,7 +38,6 @@ interface Invoice {
 }
 
 const Billing = () => {
-  const [products, setProducts] = useState<Product[]>(productsDatabase);
   const [invoices, setInvoices] = useState<Invoice[]>([
     {
       id: '1',
@@ -57,7 +55,18 @@ const Billing = () => {
       items: [
         { 
           id: '1', 
-          product: productsDatabase[0], 
+          product: {
+            id: '1',
+            code: 'DUL123',
+            name: 'Dulux Premium White',
+            brand: 'Dulux',
+            type: 'Emulsion',
+            color: 'White',
+            stock: 50,
+            price: 1200,
+            gstRate: 18,
+            unit: 'Litre'
+          }, 
           quantity: 2, 
           unitPrice: 1200, 
           total: 2400 
@@ -91,22 +100,6 @@ const Billing = () => {
   const handleDownloadPDF = (invoice: Invoice) => {
     setCompanyInfoForPDF(companyInfo);
     generateInvoicePDF(invoice);
-  };
-
-  const handleAddProduct = (productData: Omit<Product, 'id'>) => {
-    const newProduct: Product = {
-      ...productData,
-      id: Date.now().toString()
-    };
-    setProducts([...products, newProduct]);
-  };
-
-  const handleUpdateProduct = (id: string, productData: Partial<Product>) => {
-    setProducts(products.map(p => p.id === id ? { ...p, ...productData } : p));
-  };
-
-  const handleDeleteProduct = (id: string) => {
-    setProducts(products.filter(p => p.id !== id));
   };
 
   const CreateInvoiceForm = ({ onClose }: { onClose: () => void }) => {
@@ -419,12 +412,7 @@ const Billing = () => {
 
         {/* Product Management Tab */}
         {activeTab === 'products' && (
-          <ProductManagement
-            products={products}
-            onAddProduct={handleAddProduct}
-            onUpdateProduct={handleUpdateProduct}
-            onDeleteProduct={handleDeleteProduct}
-          />
+          <></>
         )}
 
         {/* Invoices Tab */}

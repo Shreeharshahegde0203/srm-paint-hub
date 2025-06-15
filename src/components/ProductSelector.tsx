@@ -1,7 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
-import { Product, productsDatabase } from '../data/products';
+// import { Product, productsDatabase } from '../data/products'; // REMOVE: static DB
+import { Product } from '../data/products';
+import { useSupabaseProducts } from '../hooks/useSupabaseProducts';
 
 interface ProductSelectorProps {
   onProductSelect: (product: Product) => void;
@@ -13,14 +15,21 @@ const ProductSelector = ({ onProductSelect, selectedProduct }: ProductSelectorPr
   const [isOpen, setIsOpen] = useState(false);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
+  // Use Supabase products instead of static DB
+  const { products, isLoading, error } = useSupabaseProducts();
+
   useEffect(() => {
-    const filtered = productsDatabase.filter(product =>
-      product.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.brand.toLowerCase().includes(searchTerm.toLowerCase())
+    if (!products) {
+      setFilteredProducts([]);
+      return;
+    }
+    const filtered = products.filter(product =>
+      product.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.brand?.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredProducts(filtered);
-  }, [searchTerm]);
+  }, [searchTerm, products]);
 
   const handleProductSelect = (product: Product) => {
     onProductSelect(product);
@@ -52,10 +61,13 @@ const ProductSelector = ({ onProductSelect, selectedProduct }: ProductSelectorPr
           required
         />
       </div>
-      
       {isOpen && searchTerm && (
         <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
-          {filteredProducts.length > 0 ? (
+          {isLoading ? (
+            <div className="p-3 text-gray-500 text-center">Loading products...</div>
+          ) : error ? (
+            <div className="p-3 text-red-500 text-center">Error loading products</div>
+          ) : filteredProducts.length > 0 ? (
             filteredProducts.map((product) => (
               <div
                 key={product.id}
