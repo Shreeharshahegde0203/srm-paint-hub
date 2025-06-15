@@ -17,28 +17,36 @@ interface Props {
 export default function RegularCustomerSidebar({ customer, open, onClose }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Always call hooks at the top level, never conditionally!
   const { getCustomerProjects } = useCustomerProjects();
   const { getCustomerInvoices } = useCustomerInvoices();
 
-  // Always call hooks unconditionally
-  const projectsQuery = customer?.id ? getCustomerProjects(customer.id) : { data: [], isLoading: false };
-  const invoicesQuery = customer?.id ? getCustomerInvoices(customer.id) : { data: [], isLoading: false };
+  // Call hook regardless, use "enabled" to suppress fetch if no ID
+  const projectsQuery = getCustomerProjects(customer?.id ?? "UNSET_ID");
+  const invoicesQuery = getCustomerInvoices(customer?.id ?? "UNSET_ID");
 
   // Defensive: always arrays, never undefined!
-  // IMPORTANT: explicitly set to [] if not an array
   let projects: any[] = [];
-  if (projectsQuery && Array.isArray(projectsQuery.data)) {
+  if (Array.isArray(projectsQuery.data)) {
     projects = projectsQuery.data;
-  } else if (projectsQuery && projectsQuery.data && typeof projectsQuery.data === "object" && projectsQuery.data !== null && "length" in projectsQuery.data) {
+  } else if (
+    projectsQuery.data &&
+    typeof projectsQuery.data === "object" &&
+    "length" in projectsQuery.data
+  ) {
     projects = projectsQuery.data;
   } else {
     projects = [];
   }
 
   let invoices: any[] = [];
-  if (invoicesQuery && Array.isArray(invoicesQuery.data)) {
+  if (Array.isArray(invoicesQuery.data)) {
     invoices = invoicesQuery.data;
-  } else if (invoicesQuery && invoicesQuery.data && typeof invoicesQuery.data === "object" && invoicesQuery.data !== null && "length" in invoicesQuery.data) {
+  } else if (
+    invoicesQuery.data &&
+    typeof invoicesQuery.data === "object" &&
+    "length" in invoicesQuery.data
+  ) {
     invoices = invoicesQuery.data;
   } else {
     invoices = [];
@@ -74,6 +82,7 @@ export default function RegularCustomerSidebar({ customer, open, onClose }: Prop
 
   // Don't render unless properly loaded and customer exists
   if (!sidebarOpen || !customer) return null;
+
   return (
     <div className="fixed top-0 right-0 w-full md:w-[540px] max-w-full h-full bg-white dark:bg-slate-900 shadow-2xl z-50 transition-all duration-300 overflow-y-auto">
       <button
