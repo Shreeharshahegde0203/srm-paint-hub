@@ -84,6 +84,7 @@ export type Database = {
           created_by: string | null
           customer_id: string | null
           id: string
+          status: string
           total: number
         }
         Insert: {
@@ -91,6 +92,7 @@ export type Database = {
           created_by?: string | null
           customer_id?: string | null
           id?: string
+          status?: string
           total: number
         }
         Update: {
@@ -98,6 +100,7 @@ export type Database = {
           created_by?: string | null
           customer_id?: string | null
           id?: string
+          status?: string
           total?: number
         }
         Relationships: [
