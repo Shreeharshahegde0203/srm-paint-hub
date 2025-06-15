@@ -216,10 +216,15 @@ const Home = () => {
               <h3 className="text-2xl font-bold mb-3 group-hover:text-blue-300 transition-colors">Dulux Paints</h3>
               <p className="text-slate-300 group-hover:text-white transition-colors">Premium quality paints with superior finish and durability</p>
             </div>
-            {/* Indigo Card unchanged */}
+            {/* Indigo Card with uploaded logo */}
             <div className="group bg-slate-700 p-12 rounded-2xl text-center hover:bg-slate-600 transition-all duration-500 hover:scale-105 border border-slate-600 cursor-pointer animate-fade-in delay-200 relative overflow-hidden">
               <div className="bg-white p-8 rounded-xl mb-6 mx-auto w-32 h-32 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <img src={indigoLogo} alt="Indigo Logo" className="h-20 w-28 object-contain" draggable={false} />
+                <img
+                  src="/lovable-uploads/ff131b2b-764d-4f4e-be84-86ccf5e338b0.png"
+                  alt="Indigo Logo"
+                  className="h-20 w-28 object-contain"
+                  draggable={false}
+                />
               </div>
               <h3 className="text-2xl font-bold mb-3 group-hover:text-indigo-300 transition-colors">Indigo Paints</h3>
               <p className="text-slate-300 group-hover:text-white transition-colors">Innovative paint solutions with exceptional color range</p>
