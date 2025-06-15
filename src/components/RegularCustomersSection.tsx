@@ -3,7 +3,8 @@ import React, { useState } from "react";
 import { useRegularCustomers } from "@/hooks/useRegularCustomers";
 import { useSupabaseProducts } from "@/hooks/useSupabaseProducts";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, Eye } from "lucide-react";
+import CustomerDetailModal from "./CustomerDetailModal";
 
 const RegularCustomersSection = () => {
   const {
@@ -19,9 +20,10 @@ const RegularCustomersSection = () => {
 
   const [showForm, setShowForm] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<any>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
 
   // Add or edit customer form
-  const [form, setForm] = useState({ name: "", phone: "", address: "", notes: "" });
+  const [form, setForm] = useState({ name: "", phone: "", address: "", notes: "", customer_type: "Regular" });
   const [addMode, setAddMode] = useState(true);
 
   // Modal for attaching products to customer
@@ -41,6 +43,7 @@ const RegularCustomersSection = () => {
           phone: form.phone,
           address: form.address,
           notes: form.notes,
+          customer_type: form.customer_type,
         });
         toast({ title: "Regular Customer Added" });
       } else if (editingCustomer) {
@@ -49,7 +52,7 @@ const RegularCustomersSection = () => {
       }
       setShowForm(false);
       setEditingCustomer(null);
-      setForm({ name: "", phone: "", address: "", notes: "" });
+      setForm({ name: "", phone: "", address: "", notes: "", customer_type: "Regular" });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
@@ -104,7 +107,7 @@ const RegularCustomersSection = () => {
           className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-green-700"
           onClick={() => {
             setAddMode(true);
-            setForm({ name: "", phone: "", address: "", notes: "" });
+            setForm({ name: "", phone: "", address: "", notes: "", customer_type: "Regular" });
             setEditingCustomer(null);
             setShowForm(true);
           }}>
@@ -140,6 +143,16 @@ const RegularCustomersSection = () => {
                 placeholder="Address"
                 className="w-full p-2 border rounded-lg dark:bg-slate-900 dark:text-white"
               />
+              <select
+                value={form.customer_type}
+                onChange={e => setForm(f => ({ ...f, customer_type: e.target.value }))}
+                className="w-full p-2 border rounded-lg dark:bg-slate-900 dark:text-white"
+              >
+                <option value="Regular">Regular</option>
+                <option value="Dealer">Dealer</option>
+                <option value="New">New</option>
+                <option value="Contractor">Contractor</option>
+              </select>
               <textarea
                 value={form.notes}
                 onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
@@ -177,10 +190,19 @@ const RegularCustomersSection = () => {
                 <div className="text-xs text-gray-600 dark:text-gray-300">
                   {c.phone} | {c.address}
                 </div>
-                <div className="text-xs text-gray-400">{c.notes}</div>
+                <div className="text-xs text-gray-400">
+                  Type: {c.customer_type} | {c.notes}
+                </div>
               </div>
               <div className="flex gap-2 items-center">
-                <button className="text-blue-600" onClick={() => {
+                <button 
+                  className="text-blue-600 hover:text-blue-800" 
+                  onClick={() => setSelectedCustomer(c)}
+                  title="View Details"
+                >
+                  <Eye className="h-4 w-4" />
+                </button>
+                <button className="text-gray-600 hover:text-gray-800" onClick={() => {
                   setEditingCustomer(c);
                   setAddMode(false);
                   setForm({
@@ -188,12 +210,13 @@ const RegularCustomersSection = () => {
                     phone: c.phone || "",
                     address: c.address || "",
                     notes: c.notes || "",
+                    customer_type: c.customer_type || "Regular",
                   });
                   setShowForm(true);
                 }}>
                   <Edit className="h-4 w-4" />
                 </button>
-                <button className="text-green-600" onClick={() => openProductModal(c.id)}>
+                <button className="text-green-600 hover:text-green-800" onClick={() => openProductModal(c.id)}>
                   <Plus className="h-4 w-4" /> Products
                 </button>
               </div>
@@ -268,6 +291,15 @@ const RegularCustomersSection = () => {
             )}
           </div>
         </div>
+      )}
+
+      {/* Customer Detail Modal */}
+      {selectedCustomer && (
+        <CustomerDetailModal
+          customer={selectedCustomer}
+          isOpen={!!selectedCustomer}
+          onClose={() => setSelectedCustomer(null)}
+        />
       )}
     </div>
   );

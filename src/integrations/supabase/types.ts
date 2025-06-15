@@ -484,6 +484,100 @@ export type Database = {
           },
         ]
       }
+      regular_customer_invoices: {
+        Row: {
+          created_at: string | null
+          id: string
+          invoice_id: string
+          project_id: string | null
+          regular_customer_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          invoice_id: string
+          project_id?: string | null
+          regular_customer_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          invoice_id?: string
+          project_id?: string | null
+          regular_customer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "regular_customer_invoices_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "regular_customer_invoices_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "regular_customer_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "regular_customer_invoices_regular_customer_id_fkey"
+            columns: ["regular_customer_id"]
+            isOneToOne: false
+            referencedRelation: "regular_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      regular_customer_payments: {
+        Row: {
+          created_at: string | null
+          id: string
+          invoice_id: string | null
+          notes: string | null
+          paid_amount: number
+          payment_date: string
+          payment_method: string | null
+          regular_customer_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          paid_amount: number
+          payment_date: string
+          payment_method?: string | null
+          regular_customer_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          paid_amount?: number
+          payment_date?: string
+          payment_method?: string | null
+          regular_customer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "regular_customer_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "regular_customer_payments_regular_customer_id_fkey"
+            columns: ["regular_customer_id"]
+            isOneToOne: false
+            referencedRelation: "regular_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       regular_customer_products: {
         Row: {
           added_at: string | null
@@ -523,10 +617,52 @@ export type Database = {
           },
         ]
       }
+      regular_customer_projects: {
+        Row: {
+          completion_date: string | null
+          created_at: string | null
+          estimated_quantity: number | null
+          id: string
+          project_name: string
+          regular_customer_id: string
+          site_address: string | null
+          status: string
+        }
+        Insert: {
+          completion_date?: string | null
+          created_at?: string | null
+          estimated_quantity?: number | null
+          id?: string
+          project_name: string
+          regular_customer_id: string
+          site_address?: string | null
+          status?: string
+        }
+        Update: {
+          completion_date?: string | null
+          created_at?: string | null
+          estimated_quantity?: number | null
+          id?: string
+          project_name?: string
+          regular_customer_id?: string
+          site_address?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "regular_customer_projects_regular_customer_id_fkey"
+            columns: ["regular_customer_id"]
+            isOneToOne: false
+            referencedRelation: "regular_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       regular_customers: {
         Row: {
           address: string | null
           created_at: string | null
+          customer_type: string
           id: string
           name: string
           notes: string | null
@@ -535,6 +671,7 @@ export type Database = {
         Insert: {
           address?: string | null
           created_at?: string | null
+          customer_type?: string
           id?: string
           name: string
           notes?: string | null
@@ -543,6 +680,7 @@ export type Database = {
         Update: {
           address?: string | null
           created_at?: string | null
+          customer_type?: string
           id?: string
           name?: string
           notes?: string | null
