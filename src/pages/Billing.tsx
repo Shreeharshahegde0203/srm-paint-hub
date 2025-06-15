@@ -169,7 +169,7 @@ const Billing = () => {
       name: '', phone: '', address: '', email: ''
     });
 
-    // Always use the Supabase Product type for product
+    // Always use Supabase Product type, and include all required invoice item fields!
     const [items, setItems] = useState<Array<{
       product?: Product;
       quantity: number;
@@ -178,6 +178,7 @@ const Billing = () => {
     }>>([
       { product: undefined, quantity: 1, unitPrice: 0, total: 0 }
     ]);
+
     const [discount, setDiscount] = useState(0);
     const [status, setStatus] = useState('pending');
 
@@ -187,7 +188,7 @@ const Billing = () => {
         { product: undefined, quantity: 1, unitPrice: 0, total: 0 }
       ]);
 
-    // Update any field, keep all fields
+    // Maintain all required keys in item!
     const updateItem = (idx: number, field: string, value: any) => {
       const arr = [...items];
       arr[idx] = { ...arr[idx], [field]: value };
@@ -199,7 +200,7 @@ const Billing = () => {
       setItems(arr);
     };
 
-    // ProductSelector expects Supabase Product type (snake_case)
+    // Keep using Supabase Product ONLY (full shape returned from DB)
     const handleProductSelect = (idx: number, product: Product) => {
       const arr = [...items];
       arr[idx] = {
@@ -225,8 +226,9 @@ const Billing = () => {
       try {
         await createInvoice({
           customer: customerData as any,
+          // Ensure these are the fields Supabase expects (includes 'product', 'quantity', 'unitPrice', 'total')
           items: items.map(item => ({
-            product: item.product,
+            product: item.product, // Full Supabase Product (with gst_rate, etc.)
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             total: item.total,
@@ -271,7 +273,7 @@ const Billing = () => {
                   <div key={index} className="bg-white dark:bg-slate-800 p-4 rounded-lg border dark:border-gray-700">
                     <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                       <div className="md:col-span-2">
-                        {/* Pass product as is, selectedProduct can be undefined or Product (Supabase) */}
+                        {/* Always pass product as is (Supabase Product shape) */}
                         <ProductSelector
                           onProductSelect={(product) => handleProductSelect(index, product)}
                           selectedProduct={item.product}
