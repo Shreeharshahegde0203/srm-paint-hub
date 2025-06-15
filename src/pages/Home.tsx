@@ -6,6 +6,7 @@ import { productsDatabase } from '../data/products';
 import FeaturedProductImage from "../components/FeaturedProductImage";
 import duluxLogo from "../assets/dulux-logo.svg";
 import indigoLogo from "../assets/indigo-logo.svg";
+import ProductShowcaseCard from "../components/ProductShowcaseCard";
 
 const Home = () => {
   const services = [
