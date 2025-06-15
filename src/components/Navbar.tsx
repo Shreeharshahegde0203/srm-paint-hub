@@ -1,17 +1,15 @@
 
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, LogOut, Shield } from 'lucide-react';
-// Remove: import { useAuth } from '../contexts/AuthContext';
+import { Menu, X, LogOut, Shield, Info } from 'lucide-react';
 import Logo from './Logo';
 import { ThemeToggle } from "./ThemeToggle";
 import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
-import AdminInfoDialog from './AdminInfoDialog'; // <-- Add this import
+import AdminInfoDialog from './AdminInfoDialog';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  // Use Supabase Auth instead of useAuth
   const { user, signOut } = useSupabaseAuth();
 
   // Consider admin user as the email admin@admin.com (replace as needed)
@@ -30,11 +28,8 @@ const Navbar = () => {
     { name: 'Reports', path: '/reports' },
   ];
 
-  // Always show Admin Dashboard for admin, even if not on admin pages
   const navItems = isAuthenticated
-    ? (isAdmin ? [
-          ...adminNavItems,
-        ] : adminNavItems)
+    ? (isAdmin ? [...adminNavItems] : adminNavItems)
     : publicNavItems;
 
   const isActive = (path: string) => location.pathname === path;
@@ -85,9 +80,20 @@ const Navbar = () => {
                     {item.name}
                   </Link>
                 )))}
-            {/* Admin InfoDialog button for admin users only */}
-            {isAdmin && (
-              <AdminInfoDialog />
+            {/* Info button ALWAYS visible if authenticated */}
+            {isAuthenticated && (
+              <span className="ml-2">
+                <AdminInfoDialog
+                  trigger={
+                    <button
+                      aria-label="App Info"
+                      className="inline-flex items-center px-2 py-2 rounded-full bg-blue-50 hover:bg-blue-200 dark:bg-blue-950 dark:hover:bg-blue-800 transition-colors"
+                    >
+                      <Info className="w-5 h-5 text-blue-700 dark:text-blue-400" />
+                    </button>
+                  }
+                />
+              </span>
             )}
             {!isAuthenticated ? (
               <Link to="/admin-login" className="bg-blue-900 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-800 transition-colors dark:bg-blue-700 dark:hover:bg-blue-600">
@@ -150,10 +156,19 @@ const Navbar = () => {
                     </Link>
                   ))
               )}
-              {/* Admin InfoDialog button for mobile admin users */}
-              {isAdmin && (
+              {/* Info button on mobile - always if authenticated */}
+              {isAuthenticated && (
                 <div className="px-3 py-2">
-                  <AdminInfoDialog />
+                  <AdminInfoDialog
+                    trigger={
+                      <button
+                        aria-label="App Info"
+                        className="inline-flex items-center px-2 py-2 rounded-full bg-blue-50 hover:bg-blue-200 dark:bg-blue-950 dark:hover:bg-blue-800 transition-colors"
+                      >
+                        <Info className="w-5 h-5 text-blue-700 dark:text-blue-400" />
+                      </button>
+                    }
+                  />
                 </div>
               )}
               {!isAuthenticated ? (
@@ -179,4 +194,5 @@ const Navbar = () => {
     </nav>
   );
 };
+
 export default Navbar;
