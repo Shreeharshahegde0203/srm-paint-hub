@@ -156,9 +156,13 @@ const Billing = () => {
     generateInvoicePDF({
       ...invoice,
       customer,
-      items: items?.map((item) => ({
+      items: (items ?? []).map((item) => ({
         ...item,
-        product: products?.find((p) => p.id === item.product_id)
+        product: products?.find(
+          (p) => p.id === item.product_id
+        ),
+        unitPrice: item.price,
+        total: item.price * item.quantity,
       })),
     });
   };
@@ -200,14 +204,28 @@ const Billing = () => {
       setItems(arr);
     };
 
-    // Keep using Supabase Product ONLY (full shape returned from DB)
-    const handleProductSelect = (idx: number, product: Product) => {
+    // When a product is selected, map demo product fields to Supabase product schema if needed.
+    const handleProductSelect = (idx: number, product: any) => {
+      // Check if product is missing snake_case fields, map if necessary
+      let supabaseProduct: any = product;
+      if ('gstRate' in product) {
+        // Convert Product (camelCase) to Supabase Product (snake_case)
+        supabaseProduct = {
+          ...product,
+          gst_rate: product.gstRate,
+          batch_number: product.batchNumber,
+          expiry_date: product.expiryDate,
+        };
+        delete supabaseProduct.gstRate;
+        delete supabaseProduct.batchNumber;
+        delete supabaseProduct.expiryDate;
+      }
       const arr = [...items];
       arr[idx] = {
         ...arr[idx],
-        product,
-        unitPrice: Number(product.price) || 0,
-        total: (arr[idx].quantity || 1) * (Number(product.price) || 0)
+        product: supabaseProduct,
+        unitPrice: Number(supabaseProduct.price) || 0,
+        total: (arr[idx].quantity || 1) * (Number(supabaseProduct.price) || 0)
       };
       setItems(arr);
     };
@@ -226,9 +244,9 @@ const Billing = () => {
       try {
         await createInvoice({
           customer: customerData as any,
-          // Ensure these are the fields Supabase expects (includes 'product', 'quantity', 'unitPrice', 'total')
+          // Map items to ensure the correct fields go into Supabase
           items: items.map(item => ({
-            product: item.product, // Full Supabase Product (with gst_rate, etc.)
+            product: item.product, // must be a Supabase Product shape (snake_case)
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             total: item.total,
