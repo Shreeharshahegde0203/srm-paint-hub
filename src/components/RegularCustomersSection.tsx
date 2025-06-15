@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useRegularCustomers } from "@/hooks/useRegularCustomers";
 import { useSupabaseProducts } from "@/hooks/useSupabaseProducts";
@@ -8,6 +7,7 @@ import CustomerDetailModal from "./CustomerDetailModal";
 import CustomerForm from "./CustomerForm";
 import CustomerListItem from "./CustomerListItem";
 import ProductModal from "./ProductModal";
+import CustomerHistoryModal from "./CustomerHistoryModal";
 
 const RegularCustomersSection = () => {
   const {
@@ -36,6 +36,9 @@ const RegularCustomersSection = () => {
   const [productLoading, setProductLoading] = useState(false);
   const [newProductId, setNewProductId] = useState<string>("");
   const [newProductRate, setNewProductRate] = useState<number>(0);
+
+  // State for customer invoice history modal
+  const [historyCustomerId, setHistoryCustomerId] = useState<string | null>(null);
 
   const handleAddOrEditCustomer = async (formData: any, isAddMode: boolean, customer: any) => {
     if (isAddMode) {
@@ -141,6 +144,7 @@ const RegularCustomersSection = () => {
               onEdit={handleEditCustomer}
               onViewDetails={setSelectedCustomer}
               onOpenProductModal={openProductModal}
+              onNameClick={() => setHistoryCustomerId(customer.id)}
             />
           ))}
         </div>
@@ -167,6 +171,14 @@ const RegularCustomersSection = () => {
           customer={selectedCustomer}
           isOpen={!!selectedCustomer}
           onClose={() => setSelectedCustomer(null)}
+        />
+      )}
+
+      {/* Invoice history modal */}
+      {historyCustomerId && (
+        <CustomerHistoryModal
+          customerId={historyCustomerId}
+          onClose={() => setHistoryCustomerId(null)}
         />
       )}
     </div>
