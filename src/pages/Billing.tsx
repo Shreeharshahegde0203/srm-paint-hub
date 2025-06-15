@@ -152,15 +152,34 @@ const Billing = () => {
       .from("invoice_items").select("*").eq("invoice_id", invoice.id);
     const { data: customer } = await supabase
       .from("customers").select("*").eq("id", invoice.customer_id).maybeSingle();
-    // Compose PDF input using fetched data:
+
+    // Helper to map Supabase product to local Product (camelCase)
+    const mapDbProductToProduct = (dbProduct: any): import("../data/products").Product => ({
+      id: dbProduct.id,
+      code: dbProduct.code,
+      name: dbProduct.name,
+      brand: dbProduct.brand,
+      type: dbProduct.type,
+      color: dbProduct.color,
+      price: dbProduct.price,
+      stock: dbProduct.stock,
+      image: dbProduct.image || undefined,
+      gstRate: dbProduct.gst_rate,
+      unit: dbProduct.unit,
+      batchNumber: dbProduct.batch_number ?? undefined,
+      expiryDate: dbProduct.expiry_date ?? undefined,
+      description: dbProduct.description ?? undefined,
+    });
+
+    // Compose PDF input using mapped Product type:
     generateInvoicePDF({
       ...invoice,
       customer,
       items: (items ?? []).map((item) => ({
         ...item,
-        product: products?.find(
-          (p) => p.id === item.product_id
-        ),
+        product: products
+          ? mapDbProductToProduct(products.find((p) => p.id === item.product_id))
+          : undefined,
         unitPrice: item.price,
         total: item.price * item.quantity,
       })),
@@ -206,10 +225,10 @@ const Billing = () => {
 
     // When a product is selected, map demo product fields to Supabase product schema if needed.
     const handleProductSelect = (idx: number, product: any) => {
-      // Check if product is missing snake_case fields, map if necessary
+      // Accept both local Product (camelCase) and DB Product (snake_case)
       let supabaseProduct: any = product;
       if ('gstRate' in product) {
-        // Convert Product (camelCase) to Supabase Product (snake_case)
+        // Map local Product (camelCase) to Supabase Product (snake_case)
         supabaseProduct = {
           ...product,
           gst_rate: product.gstRate,
@@ -244,9 +263,9 @@ const Billing = () => {
       try {
         await createInvoice({
           customer: customerData as any,
-          // Map items to ensure the correct fields go into Supabase
+          // Ensure the items array contains camelCase product for PDF, snake_case for Supabase
           items: items.map(item => ({
-            product: item.product, // must be a Supabase Product shape (snake_case)
+            product: item.product, // NOTE: Still snake_case for storage.
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             total: item.total,
