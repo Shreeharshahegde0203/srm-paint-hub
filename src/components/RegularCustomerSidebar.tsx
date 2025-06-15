@@ -13,42 +13,42 @@ interface Props {
   open: boolean;
   onClose: () => void;
 }
+
 export default function RegularCustomerSidebar({ customer, open, onClose }: Props) {
-  const [projects, setProjects] = useState<any[]>([]);
-  const [invoices, setInvoices] = useState<any[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Only run these hooks when customer?.id is available.
   const { getCustomerProjects } = useCustomerProjects();
   const { getCustomerInvoices } = useCustomerInvoices();
+
+  // These are hooks that must be called unconditionally (React rule).
+  const projectsQuery = customer?.id ? getCustomerProjects(customer.id) : { data: [], isLoading: false };
+  const invoicesQuery = customer?.id ? getCustomerInvoices(customer.id) : { data: [], isLoading: false };
+
+  const projects = projectsQuery?.data || [];
+  const invoices = invoicesQuery?.data || [];
+
   const { products } = useSupabaseProducts();
 
   // Stats
-  const totalSpent = invoices.reduce((sum, inv) => sum + (Number(inv.invoice?.total || 0)), 0);
-  const dueAmount = invoices.reduce((sum, inv) => sum + (inv.invoice?.status === "paid" ? 0 : Number(inv.invoice?.total || 0)), 0);
+  const totalSpent = invoices.reduce((sum: number, inv: any) => sum + (Number(inv.invoice?.total || 0)), 0);
+  const dueAmount = invoices.reduce(
+    (sum: number, inv: any) =>
+      sum + (inv.invoice?.status === "paid" ? 0 : Number(inv.invoice?.total || 0)),
+    0
+  );
 
   useEffect(() => {
     setSidebarOpen(open);
-    if (open && customer?.id) {
-      getCustomerProjects(customer.id).refetch && getCustomerProjects(customer.id).refetch();
-      getCustomerInvoices(customer.id).refetch && getCustomerInvoices(customer.id).refetch();
-    }
-  }, [open, customer?.id]);
-
-  // Fetch projects and invoices
-  useEffect(() => {
-    if (!customer?.id) return;
-    getCustomerProjects(customer.id).refetch().then((res: any) => {
-      setProjects(res.data || []);
-    });
-    getCustomerInvoices(customer.id).refetch().then((res: any) => {
-      setInvoices(res.data || []);
-    });
-  }, [customer?.id, getCustomerProjects, getCustomerInvoices]);
+  }, [open]);
 
   if (!sidebarOpen || !customer) return null;
   return (
     <div className="fixed top-0 right-0 w-full md:w-[540px] max-w-full h-full bg-white dark:bg-slate-900 shadow-2xl z-50 transition-all duration-300 overflow-y-auto">
-      <button onClick={onClose} className="absolute top-4 right-6 text-gray-500 hover:text-gray-900 z-10">
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-6 text-gray-500 hover:text-gray-900 z-10"
+      >
         <X className="h-6 w-6" />
       </button>
       <div className="p-8 py-12">
@@ -58,14 +58,12 @@ export default function RegularCustomerSidebar({ customer, open, onClose }: Prop
           totalSpent={totalSpent}
           dueAmount={dueAmount}
         />
-
         <InvoiceHistorySection
           invoices={invoices}
           onEdit={(inv) => {/* show edit dialog, not implemented here */}}
           onView={(inv) => {/* show view dialog, not implemented here */}}
           onPrint={(inv) => window.print()}
         />
-
         <ProjectsSection
           projects={projects}
           onEditProject={(proj) => {/* open project edit modal */}}
