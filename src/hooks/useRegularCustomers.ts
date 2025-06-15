@@ -6,17 +6,19 @@ import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase
 export function useRegularCustomers() {
   const queryClient = useQueryClient();
 
-  // 1. Fetch regular customers
+  // 1. Fetch regular customers with caching
   const customersQuery = useQuery({
     queryKey: ["regular_customers"],
     queryFn: async () => {
       const { data, error } = await supabase.from("regular_customers").select("*").order("created_at", { ascending: false });
       if (error) throw error;
       return data as Tables<"regular_customers">[];
-    }
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 
-  // 2. Fetch product mappings per customer
+  // 2. Fetch product mappings per customer with caching
   const getCustomerProducts = async (customerId: string) => {
     const { data, error } = await supabase
       .from("regular_customer_products")
@@ -33,7 +35,9 @@ export function useRegularCustomers() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["regular_customers"] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["regular_customers"] });
+    }
   });
 
   const updateCustomer = useMutation({
@@ -42,7 +46,9 @@ export function useRegularCustomers() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["regular_customers"] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["regular_customers"] });
+    }
   });
 
   // 4. Assign product to customer with rate
