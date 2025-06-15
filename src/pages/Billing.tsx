@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import { Plus, Search, FileText, Download, Eye, Trash2 } from 'lucide-react';
 import ProductSelector from '../components/ProductSelector';
 import { Product, productsDatabase } from '../data/products';
+import { generateInvoicePDF } from '../utils/pdfGenerator';
 
 interface Customer {
   id: string;
@@ -10,6 +10,7 @@ interface Customer {
   phone: string;
   address: string;
   email?: string;
+  gstin?: string;
 }
 
 interface InvoiceItem {
@@ -46,7 +47,8 @@ const Billing = () => {
         name: 'Rajesh Kumar',
         phone: '+91 98765 43210',
         address: '123 Main Street, Mumbai',
-        email: 'rajesh@email.com'
+        email: 'rajesh@email.com',
+        gstin: '27AABCU9603R1ZM'
       },
       items: [
         { 
@@ -79,12 +81,17 @@ const Billing = () => {
     return `SRM-${year}-${number}`;
   };
 
+  const handleDownloadPDF = (invoice: Invoice) => {
+    generateInvoicePDF(invoice);
+  };
+
   const CreateInvoiceForm = ({ onClose }: { onClose: () => void }) => {
     const [customerData, setCustomerData] = useState<Partial<Customer>>({
       name: '',
       phone: '',
       address: '',
-      email: ''
+      email: '',
+      gstin: ''
     });
 
     const [items, setItems] = useState<Partial<InvoiceItem>[]>([
@@ -193,16 +200,23 @@ const Billing = () => {
                 />
                 <input
                   type="text"
+                  placeholder="GSTIN (Optional)"
+                  value={customerData.gstin}
+                  onChange={(e) => setCustomerData({ ...customerData, gstin: e.target.value })}
+                  className="w-full p-2 border rounded-lg"
+                />
+                <input
+                  type="text"
                   placeholder="Address"
                   value={customerData.address}
                   onChange={(e) => setCustomerData({ ...customerData, address: e.target.value })}
-                  className="w-full p-2 border rounded-lg"
+                  className="w-full p-2 border rounded-lg md:col-span-2"
                   required
                 />
               </div>
             </div>
 
-            {/* Items */}
+            {/* Items Section */}
             <div className="bg-gray-50 p-4 rounded-lg">
               <div className="flex justify-between items-center mb-4">
                 <h4 className="font-semibold">Invoice Items</h4>
@@ -298,7 +312,7 @@ const Billing = () => {
                     <span>-₹{discountAmount.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Tax (18%):</span>
+                    <span>GST (18%):</span>
                     <span>₹{tax.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between font-bold text-lg border-t pt-2">
@@ -339,9 +353,9 @@ const Billing = () => {
             <div>
               <h1 className="text-3xl font-bold text-gray-900 flex items-center">
                 <FileText className="mr-3 h-8 w-8 text-green-600" />
-                Billing & Invoices
+                Professional Billing System
               </h1>
-              <p className="text-gray-600 mt-1">Create and manage customer invoices with smart product lookup</p>
+              <p className="text-gray-600 mt-1">Create GST compliant invoices with smart product lookup and professional PDF generation</p>
             </div>
             <button
               onClick={() => setShowCreateForm(true)}
@@ -387,6 +401,7 @@ const Billing = () => {
                     <div>
                       <p><strong>Customer:</strong> {invoice.customer.name}</p>
                       <p><strong>Phone:</strong> {invoice.customer.phone}</p>
+                      {invoice.customer.gstin && <p><strong>GSTIN:</strong> {invoice.customer.gstin}</p>}
                     </div>
                     <div>
                       <p><strong>Date:</strong> {invoice.date} at {invoice.time}</p>
@@ -405,7 +420,10 @@ const Billing = () => {
                     <button className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg">
                       <Eye className="h-5 w-5" />
                     </button>
-                    <button className="text-green-600 hover:bg-green-50 p-2 rounded-lg">
+                    <button 
+                      onClick={() => handleDownloadPDF(invoice)}
+                      className="text-green-600 hover:bg-green-50 p-2 rounded-lg"
+                    >
                       <Download className="h-5 w-5" />
                     </button>
                   </div>
@@ -415,6 +433,7 @@ const Billing = () => {
           ))}
         </div>
 
+        {/* Empty state */}
         {filteredInvoices.length === 0 && (
           <div className="text-center py-12">
             <FileText className="mx-auto h-16 w-16 text-gray-300 mb-4" />
