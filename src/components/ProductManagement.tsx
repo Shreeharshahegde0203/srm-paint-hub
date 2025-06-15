@@ -54,92 +54,92 @@ const ProductManagement = ({ products, onAddProduct, onUpdateProduct, onDeletePr
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-xl p-6 w-full max-w-md max-h-screen overflow-y-auto">
-          <h3 className="text-xl font-bold mb-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-md max-h-screen overflow-y-auto transition-colors">
+          <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
             {product ? 'Edit Product' : 'Add New Product'}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Product Code</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Product Code</label>
               <input
                 type="text"
                 value={formData.code}
                 onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                className="w-full p-2 border rounded-lg"
+                className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 transition-colors"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Product Name</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Product Name</label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full p-2 border rounded-lg"
+                className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 transition-colors"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Brand</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Brand</label>
               <input
                 type="text"
                 value={formData.brand}
                 onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                className="w-full p-2 border rounded-lg"
+                className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 transition-colors"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Type</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Type</label>
               <input
                 type="text"
                 value={formData.type}
                 onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                className="w-full p-2 border rounded-lg"
+                className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 transition-colors"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Color</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Color</label>
               <input
                 type="text"
                 value={formData.color}
                 onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                className="w-full p-2 border rounded-lg"
+                className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 transition-colors"
                 required
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Price (₹)</label>
+                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Price (₹)</label>
                 <input
                   type="number"
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                  className="w-full p-2 border rounded-lg"
+                  className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 transition-colors"
                   min="0"
                   step="0.01"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Stock</label>
+                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Stock</label>
                 <input
                   type="number"
                   value={formData.stock}
                   onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
-                  className="w-full p-2 border rounded-lg"
+                  className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 transition-colors"
                   min="0"
                   required
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Description</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Description</label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full p-2 border rounded-lg"
+                className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 transition-colors"
                 rows={3}
               />
             </div>
@@ -153,7 +153,7 @@ const ProductManagement = ({ products, onAddProduct, onUpdateProduct, onDeletePr
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400"
+                className="flex-1 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-100 py-2 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600"
               >
                 Cancel
               </button>
@@ -165,9 +165,9 @@ const ProductManagement = ({ products, onAddProduct, onUpdateProduct, onDeletePr
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-6 transition-colors">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-gray-900">Product Database</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Product Database</h2>
         <button
           onClick={() => setShowForm(true)}
           className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center"
@@ -185,21 +185,21 @@ const ProductManagement = ({ products, onAddProduct, onUpdateProduct, onDeletePr
           placeholder="Search products..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+          className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 transition-colors"
         />
       </div>
 
       {/* Products List */}
       <div className="space-y-2 max-h-64 overflow-y-auto">
         {filteredProducts.map((product) => (
-          <div key={product.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+          <div key={product.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 bg-white dark:bg-slate-900 border-gray-200 dark:border-gray-700 transition-colors">
             <div className="flex-1">
               <div className="flex items-center gap-4">
                 <span className="font-medium text-blue-600">{product.code}</span>
-                <span className="font-medium">{product.name}</span>
-                <span className="text-sm text-gray-600">{product.brand}</span>
-                <span className="text-sm text-gray-600">₹{product.price}</span>
-                <span className="text-sm text-gray-600">Stock: {product.stock}</span>
+                <span className="font-medium text-gray-900 dark:text-white">{product.name}</span>
+                <span className="text-sm text-gray-600 dark:text-gray-300">{product.brand}</span>
+                <span className="text-sm text-gray-600 dark:text-gray-300">₹{product.price}</span>
+                <span className="text-sm text-gray-600 dark:text-gray-300">Stock: {product.stock}</span>
               </div>
             </div>
             <div className="flex gap-2">
@@ -208,13 +208,13 @@ const ProductManagement = ({ products, onAddProduct, onUpdateProduct, onDeletePr
                   setEditingProduct(product);
                   setShowForm(true);
                 }}
-                className="text-blue-600 hover:bg-blue-50 p-1 rounded"
+                className="text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950 p-1 rounded"
               >
                 <Edit className="h-4 w-4" />
               </button>
               <button
                 onClick={() => onDeleteProduct(product.id)}
-                className="text-red-600 hover:bg-red-50 p-1 rounded"
+                className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900 p-1 rounded"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -224,7 +224,7 @@ const ProductManagement = ({ products, onAddProduct, onUpdateProduct, onDeletePr
       </div>
 
       {filteredProducts.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           No products found. Add your first product to get started.
         </div>
       )}
