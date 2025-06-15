@@ -1,7 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
-// import { Product, productsDatabase } from '../data/products';
 import { Product } from '../data/products';
 import { useSupabaseProducts } from '../hooks/useSupabaseProducts';
 
@@ -115,4 +113,3 @@ const ProductSelector = ({ onProductSelect, selectedProduct }: ProductSelectorPr
 };
 
 export default ProductSelector;
-
