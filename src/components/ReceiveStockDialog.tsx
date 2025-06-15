@@ -59,11 +59,23 @@ const ReceiveStockDialog: React.FC<ReceiveStockDialogProps> = ({ products, onRec
 
       if (recErr) throw recErr;
 
-      // Update product's stock and last_received_date
+      // 1. Fetch the current stock for the product
+      const { data: currentProduct, error: fetchStockError } = await supabase
+        .from("products")
+        .select("stock")
+        .eq("id", selectedProductId)
+        .maybeSingle();
+
+      if (fetchStockError) throw fetchStockError;
+
+      const prevStock = currentProduct?.stock || 0;
+      const newStock = prevStock + quantity;
+
+      // 2. Update product's stock and last_received_date
       await supabase
         .from("products")
         .update({
-          stock: supabase.from("products").select("stock").eq("id", selectedProductId),
+          stock: newStock,
           last_received_date: receivingDate || new Date().toISOString().substring(0, 10),
           cost_price: costPrice,
           supplier_id: selectedSupplierId,
@@ -79,7 +91,6 @@ const ReceiveStockDialog: React.FC<ReceiveStockDialogProps> = ({ products, onRec
         related_receipt_id: receipt.id,
       });
 
-      // Bill upload
       if (billFile) {
         const filename = `${receipt.id}_${billFile.name}`;
         const { data: uploadData, error: uploadErr } = await supabase.storage
@@ -87,7 +98,6 @@ const ReceiveStockDialog: React.FC<ReceiveStockDialogProps> = ({ products, onRec
           .upload(filename, billFile);
 
         if (uploadErr) throw uploadErr;
-        // Store file_url in bill_attachments
         await supabase.from("bill_attachments").insert({
           receipt_id: receipt.id,
           file_url: uploadData.path,
@@ -172,4 +182,3 @@ const ReceiveStockDialog: React.FC<ReceiveStockDialogProps> = ({ products, onRec
 };
 
 export default ReceiveStockDialog;
-
