@@ -1,22 +1,34 @@
 
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, LogOut } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import Logo from './Logo';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { isAuthenticated, logout } = useAuth();
 
-  const navItems = [
+  const publicNavItems = [
     { name: 'Home', path: '/' },
-    { name: 'Inventory', path: '/inventory' },
-    { name: 'Billing', path: '/billing' },
-    { name: 'Reports', path: '/reports' },
     { name: 'Contact', path: '/contact' },
   ];
 
+  const adminNavItems = [
+    { name: 'Dashboard', path: '/admin' },
+    { name: 'Inventory', path: '/inventory' },
+    { name: 'Billing', path: '/billing' },
+    { name: 'Reports', path: '/reports' },
+  ];
+
+  const navItems = isAuthenticated ? adminNavItems : publicNavItems;
   const isActive = (path: string) => location.pathname === path;
+
+  const handleLogout = () => {
+    logout();
+    setIsOpen(false);
+  };
 
   return (
     <nav className="bg-white shadow-lg border-b-4 border-red-600">
@@ -46,12 +58,23 @@ const Navbar = () => {
                 {item.name}
               </Link>
             ))}
-            <Link
-              to="/admin"
-              className="bg-blue-900 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-800 transition-colors"
-            >
-              Admin
-            </Link>
+            
+            {!isAuthenticated ? (
+              <Link
+                to="/admin-login"
+                className="bg-blue-900 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-800 transition-colors"
+              >
+                Admin Login
+              </Link>
+            ) : (
+              <button
+                onClick={handleLogout}
+                className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-colors flex items-center"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </button>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -83,13 +106,23 @@ const Navbar = () => {
                   {item.name}
                 </Link>
               ))}
-              <Link
-                to="/admin"
-                className="block bg-blue-900 text-white px-3 py-2 rounded-md text-base font-medium hover:bg-blue-800"
-                onClick={() => setIsOpen(false)}
-              >
-                Admin Login
-              </Link>
+              
+              {!isAuthenticated ? (
+                <Link
+                  to="/admin-login"
+                  className="block bg-blue-900 text-white px-3 py-2 rounded-md text-base font-medium hover:bg-blue-800"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Admin Login
+                </Link>
+              ) : (
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left bg-red-600 text-white px-3 py-2 rounded-md text-base font-medium hover:bg-red-700"
+                >
+                  Logout
+                </button>
+              )}
             </div>
           </div>
         )}
