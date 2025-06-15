@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, FileText, Download, Eye, Trash2, Edit } from 'lucide-react';
 import ProductSelector from '../components/ProductSelector';
@@ -165,11 +164,21 @@ const Billing = () => {
     const [customerData, setCustomerData] = useState<Partial<Customer>>({
       name: '', phone: '', address: '', email: ''
     });
-    const [items, setItems] = useState<any[]>([{ product: undefined, quantity: 1, unitPrice: 0, total: 0 }]);
+    const [items, setItems] = useState<Array<{
+      product?: Product;
+      quantity: number;
+      unitPrice: number;
+      total: number;
+    }>>([{ product: undefined, quantity: 1, unitPrice: 0, total: 0 }]);
     const [discount, setDiscount] = useState(0);
     const [status, setStatus] = useState('pending'); // Paid/Pending/Overdue
 
-    const addItem = () => setItems([...items, { product: undefined, quantity: 1, unitPrice: 0, total: 0 }]);
+    const addItem = () =>
+      setItems([
+        ...items,
+        { product: undefined, quantity: 1, unitPrice: 0, total: 0 }
+      ]);
+
     const updateItem = (idx: number, field: string, value: any) => {
       const arr = [...items];
       arr[idx] = { ...arr[idx], [field]: value };
@@ -186,8 +195,8 @@ const Billing = () => {
       arr[idx] = {
         ...arr[idx],
         product,
-        unitPrice: product.price,
-        total: (arr[idx].quantity || 1) * product.price
+        unitPrice: Number(product.price) || 0,
+        total: (arr[idx].quantity || 1) * (Number(product.price) || 0)
       };
       setItems(arr);
     };
@@ -207,7 +216,12 @@ const Billing = () => {
       try {
         await createInvoice({
           customer: customerData as any,
-          items,
+          items: items.map(item => ({
+            product: item.product,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            total: item.total,
+          })),
           subtotal,
           discount: discountAmount,
           total,
@@ -509,4 +523,3 @@ const Billing = () => {
 };
 
 export default Billing;
-
