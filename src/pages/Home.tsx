@@ -66,13 +66,6 @@ const Home = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in delay-700">
               <Link
-                to="/inventory"
-                className="group bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105"
-              >
-                Explore Products 
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link
                 to="/contact"
                 className="group bg-transparent border-2 border-white hover:bg-white hover:text-slate-900 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105"
               >
@@ -122,51 +115,6 @@ const Home = () => {
             ))}
           </div>
         </div>
-      </section>
-
-      {/* --- NEW PRODUCT SHOWCASE SECTION (replaces old Featured Products/Explore Products) --- */}
-      <section className="relative py-24 bg-gradient-to-tl from-white via-slate-50 to-blue-50 overflow-hidden">
-        {/* Sparkle Animation BG */}
-        <div className="pointer-events-none absolute inset-0 z-0">
-          <div className="absolute left-1/3 top-10 animate-float w-40 h-40 rounded-full bg-orange-300/30 blur-3xl"></div>
-          <div className="absolute right-1/2 top-1/2 animate-float delay-700 w-24 h-24 rounded-full bg-indigo-300/20 blur-2xl"></div>
-          <div className="absolute left-40 bottom-10 animate-float delay-100 w-32 h-32 rounded-full bg-pink-300/30 blur-2xl"></div>
-        </div>
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-blue-900 mb-4 animate-fade-in">
-              Product Showcase
-            </h2>
-            <p className="text-lg text-blue-600 max-w-2xl mx-auto animate-fade-in delay-100">
-              Experience our select collection of Dulux & Indigo paints – interactive, colorful, and ready to inspire your next project!
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8">
-            {featuredProducts.map((product, idx) => (
-              <div key={product.id} className="relative group">
-                {/* Animated reveal using staggered delay */}
-                <div className="transition-transform duration-300 hover:-translate-y-2 focus:-translate-y-2">
-                  <React.Suspense fallback={
-                    <div className="w-full h-56 bg-gradient-to-r from-blue-300/30 to-blue-100/20 rounded-2xl animate-pulse"></div>
-                  }>
-                    {/* Animated Product Card */}
-                    <ProductShowcaseCard product={product} index={idx} />
-                  </React.Suspense>
-                </div>
-              </div>
-            ))}
-          </div>
-          {/* Micro-interaction: fun sparkle accent */}
-          <div className="flex justify-center mt-10">
-            <span className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-100 via-blue-100 to-pink-100 px-6 py-3 rounded-xl font-semibold text-blue-900/80 shadow animate-fade-in duration-300 border border-blue-100">
-              <Sparkles className="h-5 w-5 text-yellow-400 animate-pulse" />
-              Vibrant colors, Ultra-Smooth Finish!
-              <Sparkles className="h-5 w-5 text-indigo-300 animate-pulse delay-200" />
-            </span>
-          </div>
-        </div>
-        {/* Subtle reveal glow */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white to-transparent"></div>
       </section>
 
       {/* Enhanced Management Features */}
