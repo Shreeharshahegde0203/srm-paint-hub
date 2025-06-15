@@ -37,8 +37,8 @@ const Navbar = () => {
     setIsOpen(false);
   };
   return <nav className="bg-white shadow-lg border-b-4 border-red-600">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-slate-950">
-        <div className="flex justify-between h-16 bg-slate-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-slate-300">
+        <div className="flex justify-between h-16 bg-slate-200">
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2">
               <Logo className="h-10" />
