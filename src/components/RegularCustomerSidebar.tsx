@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { CustomerSummary } from "./CustomerSummary";
@@ -31,12 +30,16 @@ export default function RegularCustomerSidebar({ customer, open, onClose }: Prop
   const { products } = useSupabaseProducts();
 
   // Stats, safely treat as arrays
-  const totalSpent = invoices.reduce((sum: number, inv: any) => sum + (Number(inv.invoice?.total || 0)), 0);
-  const dueAmount = invoices.reduce(
-    (sum: number, inv: any) =>
-      sum + (inv.invoice?.status === "paid" ? 0 : Number(inv.invoice?.total || 0)),
-    0
-  );
+  const totalSpent = Array.isArray(invoices)
+    ? invoices.reduce((sum: number, inv: any) => sum + (Number(inv?.invoice?.total || 0)), 0)
+    : 0;
+  const dueAmount = Array.isArray(invoices)
+    ? invoices.reduce(
+        (sum: number, inv: any) =>
+          sum + (inv?.invoice?.status === "paid" ? 0 : Number(inv?.invoice?.total || 0)),
+        0
+      )
+    : 0;
 
   useEffect(() => {
     setSidebarOpen(open);
@@ -60,13 +63,13 @@ export default function RegularCustomerSidebar({ customer, open, onClose }: Prop
           dueAmount={dueAmount}
         />
         <InvoiceHistorySection
-          invoices={invoices}
+          invoices={Array.isArray(invoices) ? invoices : []}
           onEdit={(inv) => {/* show edit dialog, not implemented here */}}
           onView={(inv) => {/* show view dialog, not implemented here */}}
           onPrint={(inv) => window.print()}
         />
         <ProjectsSection
-          projects={projects}
+          projects={Array.isArray(projects) ? projects : []}
           onEditProject={(proj) => {/* open project edit modal */}}
           onAddProject={() => {/* open add project modal */}}
           onEditProduct={(projId, prod) => {/* open product edit modal */}}
