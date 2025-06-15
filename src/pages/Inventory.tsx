@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
-import { Plus, Search, Filter, Edit, Trash2, Package, AlertTriangle, Upload } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Search, Filter, Edit, Trash2, Package, AlertTriangle } from 'lucide-react';
 import { Product, productsDatabase } from '../data/products';
 import StockLevelIcon from '../components/StockLevelIcon';
+import ViewModeToggle from '../components/ViewModeToggle';
+
+const VIEW_MODE_KEY = "inventory_view_mode";
+const DEFAULT_VIEW: "large" | "medium" | "small" | "list" = "large";
 
 const Inventory = () => {
   const [products, setProducts] = useState<Product[]>(productsDatabase);
@@ -10,8 +14,14 @@ const Inventory = () => {
   const [filterType, setFilterType] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [viewMode, setViewMode] = useState<typeof DEFAULT_VIEW>(() => {
+    return (localStorage.getItem(VIEW_MODE_KEY) as typeof DEFAULT_VIEW) || DEFAULT_VIEW;
+  });
 
-  // Updated to match actual product data
+  useEffect(() => {
+    localStorage.setItem(VIEW_MODE_KEY, viewMode);
+  }, [viewMode]);
+
   const brands = ['Dulux', 'Indigo'];
   const types = ['Emulsion', 'Exterior', 'Primer', 'Enamel', 'Distemper', 'Wood Paint', 'Specialty'];
 
@@ -182,6 +192,96 @@ const Inventory = () => {
     );
   };
 
+  // Helper: grid classes per view mode
+  const gridClass = 
+    viewMode === "large" ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3" :
+    viewMode === "medium" ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" :
+    viewMode === "small" ? "grid-cols-3 md:grid-cols-4 lg:grid-cols-6" :
+    "grid-cols-1";
+
+  // Card inner size per view mode
+  function renderProductCard(product: Product) {
+    if (viewMode === "list") {
+      return (
+        <div key={product.id} className="flex flex-col sm:flex-row items-center gap-3 sm:gap-0 p-3 border-b border-gray-100 bg-white hover:bg-blue-50/40 transition rounded-lg">
+          <div className="flex-1 flex flex-col md:flex-row md:items-center gap-2 min-w-0">
+            <span className="text-xs text-gray-400 font-mono min-w-12 w-16">{product.code}</span>
+            <span className="font-semibold text-gray-900 truncate">{product.name}</span>
+            <span className="text-sm text-gray-700 px-2">{product.brand}</span>
+            <span className="text-xs text-gray-500">{product.type} • {product.color}</span>
+          </div>
+          <div className="flex items-center gap-3 ml-auto">
+            <StockLevelIcon stock={product.stock} />
+            <span className="font-semibold text-blue-700 text-xs">₹{product.price}</span>
+            <button onClick={() => setEditingProduct(product)} className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg"><Edit className="h-4 w-4"/></button>
+            <button onClick={() => handleDelete(product.id)} className="text-red-600 hover:bg-red-50 p-2 rounded-lg"><Trash2 className="h-4 w-4"/></button>
+          </div>
+        </div>
+      );
+    }
+    // Grid cards (large/medium/small)
+    return (
+      <div key={product.id} className={
+        "bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow " +
+        (viewMode === "medium" ? "p-2" : viewMode === "small" ? "p-1" : "")
+      }>
+        {product.image && viewMode === "large" && (
+          <div className="relative h-48 overflow-hidden">
+            <img
+              src={product.image}
+              alt={product.name}
+              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              onError={e => { e.currentTarget.style.display='none'; }}
+            />
+            <div className="absolute top-2 right-2">
+              <span className="bg-white px-2 py-1 rounded-full text-xs font-medium text-gray-700">{product.brand}</span>
+            </div>
+          </div>
+        )}
+        <div className={`p-${viewMode === "small" ? 2 : 6}`}>
+          <div className="flex justify-between items-start mb-2">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">{product.code}</h3>
+              <p className="text-sm font-medium text-blue-600 line-clamp-1">{product.name}</p>
+              {viewMode !== "small" && (
+                <p className="text-sm text-gray-600">{product.brand} • {product.type}</p>
+              )}
+            </div>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setEditingProduct(product)}
+                className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg"
+              ><Edit className="h-4 w-4" /></button>
+              <button
+                onClick={() => handleDelete(product.id)}
+                className="text-red-600 hover:bg-red-50 p-2 rounded-lg"
+              ><Trash2 className="h-4 w-4" /></button>
+            </div>
+          </div>
+          <div className="space-y-1">
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-gray-600">Color:</span>
+              <span className="font-medium">{product.color}</span>
+            </div>
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-gray-600">Stock:</span>
+              <StockLevelIcon stock={product.stock} />
+            </div>
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-gray-600">Price:</span>
+              <span className="font-medium text-blue-600">₹{product.price}</span>
+            </div>
+          </div>
+          {product.stock < 20 && viewMode === "large" && (
+            <div className="mt-4 p-2 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600 font-medium">⚠️ Low Stock Alert</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-7xl mx-auto">
@@ -224,10 +324,10 @@ const Inventory = () => {
           </div>
         )}
 
-        {/* Filters */}
+        {/* Filters + View Mode Toggle */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
+            <div className="relative col-span-2">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <input
                 type="text"
@@ -257,83 +357,29 @@ const Inventory = () => {
                 <option key={type} value={type}>{type}</option>
               ))}
             </select>
-            <div className="flex items-center text-sm text-gray-600">
-              <Filter className="mr-2 h-4 w-4" />
-              {filteredProducts.length} products found
+            {/* View Mode Toggle */}
+            <div className="flex items-center justify-end">
+              <ViewModeToggle value={viewMode} onChange={setViewMode} />
             </div>
+          </div>
+          <div className="mt-3 flex items-center text-sm text-gray-600">
+            <Filter className="mr-2 h-4 w-4" />
+            {filteredProducts.length} products found
           </div>
         </div>
 
-        {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProducts.map((product) => (
-            <div key={product.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-              {/* Product Image */}
-              {product.image && (
-                <div className="relative h-48 overflow-hidden">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                  <div className="absolute top-2 right-2">
-                    <span className="bg-white px-2 py-1 rounded-full text-xs font-medium text-gray-700">
-                      {product.brand}
-                    </span>
-                  </div>
-                </div>
-              )}
-              
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{product.code}</h3>
-                    <p className="text-sm font-medium text-blue-600">{product.name}</p>
-                    <p className="text-sm text-gray-600">{product.brand} • {product.type}</p>
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => setEditingProduct(product)}
-                      className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(product.id)}
-                      className="text-red-600 hover:bg-red-50 p-2 rounded-lg"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Color:</span>
-                    <span className="font-medium">{product.color}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Stock:</span>
-                    <StockLevelIcon stock={product.stock} />
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Price:</span>
-                    <span className="font-medium text-blue-600">₹{product.price}</span>
-                  </div>
-                </div>
-                
-                {product.stock < 20 && (
-                  <div className="mt-4 p-2 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-sm text-red-600 font-medium">⚠️ Low Stock Alert</p>
-                  </div>
-                )}
-              </div>
+        {/* Products */}
+        {viewMode === "list" ? (
+          <div className="bg-white rounded-xl shadow overflow-x-auto">
+            <div className="divide-y divide-gray-200">
+              {filteredProducts.map(product => renderProductCard(product))}
             </div>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <div className={`grid ${gridClass} gap-6`}>
+            {filteredProducts.map(product => renderProductCard(product))}
+          </div>
+        )}
 
         {filteredProducts.length === 0 && (
           <div className="text-center py-12">
@@ -343,7 +389,6 @@ const Inventory = () => {
           </div>
         )}
       </div>
-
       {/* Add/Edit Form Modal */}
       {showAddForm && (
         <ProductForm onClose={() => setShowAddForm(false)} />
