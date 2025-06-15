@@ -54,6 +54,11 @@ export default function AdminInfoDialog() {
   const [previewKey, setPreviewKey] = useState(Date.now());
   const [errors, setErrors] = useState<{ [k: string]: string }>({});
 
+  // Log dialog open changes for debugging
+  React.useEffect(() => {
+    console.log("[AdminInfoDialog] Dialog open state changed:", open);
+  }, [open]);
+
   const handleChange = (field: string, value: any) => {
     setEdit((prev: any) => ({ ...prev, [field]: value }));
   };
@@ -102,12 +107,29 @@ export default function AdminInfoDialog() {
     setPreviewKey(Date.now());
   };
 
+  // Handler for Info button, prevents native navigation just in case
+  const handleTriggerClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("[AdminInfoDialog] Info button clicked");
+    setOpen(true);
+  };
+
   return (
     <TooltipProvider>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" className="ml-3 flex items-center gap-2" title="Edit Company Info">
-            <Info className="mr-1 h-4 w-4" /> Info
+          <Button
+            variant="outline"
+            className="ml-3 flex items-center gap-2"
+            title="Edit Company Info"
+            // NOTE: Must use button; do NOT use <a> or <Link>
+            type="button"
+            tabIndex={0}
+            onClick={handleTriggerClick}
+          >
+            <Info className="mr-1 h-4 w-4" />
+            Info
           </Button>
         </DialogTrigger>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
