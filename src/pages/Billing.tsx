@@ -10,14 +10,22 @@ import { toast } from "@/components/ui/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 
 // --- Type definitions for Supabase integration ---
+// Fix: Use the Supabase type exactly, for all Product usage.
+import type { Tables } from "@/integrations/supabase/types";
+
+// Use the Supabase type throughout for accuracy:
 type Product = Tables<"products">;
 type Customer = Tables<"customers">;
 type Invoice = Tables<"invoices"> & {
   customer: Customer | null;
   items?: InvoiceItem[];
 };
+
+// Fix: InvoiceItem needs to include product? (for UI), plus unitPrice and total used in form
 type InvoiceItem = Tables<"invoice_items"> & {
   product?: Product;
+  unitPrice?: number;
+  total?: number;
 };
 
 // --- Supabase hooks for invoices ---
@@ -164,6 +172,8 @@ const Billing = () => {
     const [customerData, setCustomerData] = useState<Partial<Customer>>({
       name: '', phone: '', address: '', email: ''
     });
+
+    // Fix: strongly type items to include all fields
     const [items, setItems] = useState<Array<{
       product?: Product;
       quantity: number;
@@ -212,7 +222,7 @@ const Billing = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      // Create invoice in supabase
+      // Fix: for API, map to expected structure
       try {
         await createInvoice({
           customer: customerData as any,
