@@ -1,3 +1,4 @@
+
 export interface Product {
   id: string;
   code: string;
@@ -16,7 +17,7 @@ export interface Product {
 }
 
 export const productsDatabase: Product[] = [
-  // Dulux Products (10 products) - Updated with authentic paint can images
+  // Dulux Products (10 products) - Updated with authentic paint can images from official website
   {
     id: '1',
     code: 'DLX001',
@@ -28,8 +29,8 @@ export const productsDatabase: Product[] = [
     stock: 45,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1562113530-57ba2cea77b2?w=400&h=400&fit=crop',
-    description: 'Premium silk finish emulsion with superior coverage and washable properties'
+    image: 'https://www.dulux.in/content/dam/akzonobel-flourish/dulux/in/en/products/dulux-velvet-touch-pearl-glo/dulux-velvet-touch-pearl-glo-1.png',
+    description: 'The exotic, silk-gloved feel of the Velvet Touch family of paints.'
   },
   {
     id: '2',
@@ -42,8 +43,8 @@ export const productsDatabase: Product[] = [
     stock: 32,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&h=400&fit=crop',
-    description: 'Advanced weather protection exterior paint with UV resistance and long-lasting finish'
+    image: 'https://www.dulux.in/content/dam/akzonobel-flourish/dulux/in/en/products/dulux-weathershield-max/wmax_packshot.png',
+    description: 'A revolutionary exterior paint that keeps your home looking beautiful for years.'
   },
   {
     id: '3',
@@ -56,13 +57,13 @@ export const productsDatabase: Product[] = [
     stock: 38,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=400&fit=crop',
-    description: 'Easy application interior emulsion paint with excellent coverage and smooth finish'
+    image: 'https://www.dulux.in/content/dam/akzonobel-flourish/dulux/in/en/products/dulux-promise-interior/promise-in-packshot.png',
+    description: 'A good quality, durable emulsion with a smooth finish and ChromaBrite technology.'
   },
   {
     id: '4',
     code: 'DLX004',
-    name: 'Dulux Superlac',
+    name: 'Dulux Superlac Gloss',
     brand: 'Dulux',
     type: 'Enamel',
     color: 'Royal Blue',
@@ -70,13 +71,13 @@ export const productsDatabase: Product[] = [
     stock: 28,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=400&h=400&fit=crop',
-    description: 'High gloss synthetic enamel paint with superior durability and brilliant finish'
+    image: 'https://www.dulux.in/content/dam/akzonobel-flourish/dulux/in/en/products/dulux-superlac-gloss/superlac-gloss-packshot.png',
+    description: 'High gloss, durable enamel paint for wood and metal surfaces.'
   },
   {
     id: '5',
     code: 'DLX005',
-    name: 'Dulux EasyClean',
+    name: 'Dulux SuperClean',
     brand: 'Dulux',
     type: 'Emulsion',
     color: 'Mint Green',
@@ -84,13 +85,13 @@ export const productsDatabase: Product[] = [
     stock: 25,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1604709177225-055f99402ea3?w=400&h=400&fit=crop',
-    description: 'Stain resistant washable interior paint with anti-bacterial properties'
+    image: 'https://www.dulux.in/content/dam/akzonobel-flourish/dulux/in/en/products/dulux-superclean/superclean-packshot.png',
+    description: 'A premium interior emulsion with superior stain resistance and washability.'
   },
   {
     id: '6',
     code: 'DLX006',
-    name: 'Dulux Primer',
+    name: 'Dulux Promise Primer',
     brand: 'Dulux',
     type: 'Primer',
     color: 'White',
@@ -98,13 +99,13 @@ export const productsDatabase: Product[] = [
     stock: 42,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1581783898377-1c85bf937427?w=400&h=400&fit=crop',
-    description: 'High-quality wall primer for better paint adhesion and coverage'
+    image: 'https://www.dulux.in/content/dam/akzonobel-flourish/dulux/in/en/products/dulux-promise-primer/promise-primer-packshot.png',
+    description: 'A high-quality water-based primer for interior and exterior surfaces.'
   },
   {
     id: '7',
     code: 'DLX007',
-    name: 'Dulux Weatherguard',
+    name: 'Dulux WeatherShield Powerflexx',
     brand: 'Dulux',
     type: 'Exterior',
     color: 'Terracotta',
@@ -112,13 +113,13 @@ export const productsDatabase: Product[] = [
     stock: 30,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1606744888344-493238951221?w=400&h=400&fit=crop',
-    description: 'All-weather exterior paint with fade resistance and anti-algae protection'
+    image: 'https://www.dulux.in/content/dam/akzonobel-flourish/dulux/in/en/products/dulux-weathershield-powerflexx/powerflexx-packshot.png',
+    description: 'Advanced protection against cracks, fungus, and fading for exterior walls.'
   },
   {
     id: '8',
     code: 'DLX008',
-    name: 'Dulux Apex',
+    name: 'Dulux Ambiance',
     brand: 'Dulux',
     type: 'Emulsion',
     color: 'Sunset Orange',
@@ -126,13 +127,13 @@ export const productsDatabase: Product[] = [
     stock: 35,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1606832045412-e8629309ad34?w=400&h=400&fit=crop',
-    description: 'Premium interior emulsion with rich color depth and smooth texture'
+    image: 'https://www.dulux.in/content/dam/akzonobel-flourish/dulux/in/en/products/dulux-ambiance/new-ambiance-velvet-touch-packshot.png',
+    description: 'A super premium interior paint that gives a rich, velvety finish to your walls.'
   },
   {
     id: '9',
     code: 'DLX009',
-    name: 'Dulux Metallic',
+    name: 'Dulux Weathershield Flash',
     brand: 'Dulux',
     type: 'Specialty',
     color: 'Silver',
@@ -140,29 +141,29 @@ export const productsDatabase: Product[] = [
     stock: 20,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop',
-    description: 'Premium metallic finish paint for decorative applications'
+    image: 'https://www.dulux.in/content/dam/akzonobel-flourish/dulux/in/en/products/dulux-weathershield-flash/flash-packshot.png',
+    description: 'A premium, water-based paint for roofs that offers a beautiful sheen finish.'
   },
   {
     id: '10',
     code: 'DLX010',
-    name: 'Dulux Wood Stain',
+    name: 'Dulux Aquatech',
     brand: 'Dulux',
     type: 'Wood Paint',
-    color: 'Walnut',
+    color: 'Clear',
     price: 1600,
     stock: 25,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1581783433449-de677645c730?w=400&h=400&fit=crop',
-    description: 'Protective wood stain with natural wood enhancement and preservation'
+    image: 'https://www.dulux.in/content/dam/akzonobel-flourish/dulux/in/en/products/dulux-aquatech/aquatech-interior-packshot.png',
+    description: 'A range of advanced waterproofing solutions for your home.'
   },
 
-  // Indigo Products (10 products) - Updated with authentic paint can images
+  // Indigo Products (10 products) - Updated with authentic paint can images from official website
   {
     id: '11',
     code: 'IND001',
-    name: 'Indigo Royale',
+    name: 'Indigo Luxury Interior Emulsion',
     brand: 'Indigo',
     type: 'Emulsion',
     color: 'Cream',
@@ -170,13 +171,13 @@ export const productsDatabase: Product[] = [
     stock: 40,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1610557419874-f7e4e6b0d667?w=400&h=400&fit=crop',
-    description: 'Luxurious matt finish interior paint with premium texture and coverage'
+    image: 'https://indigopaints.com/wp-content/uploads/2023/11/Luxury-Interior-Emulsion.png',
+    description: 'A high-end emulsion that gives a rich, smooth finish to interior walls.'
   },
   {
     id: '12',
     code: 'IND002',
-    name: 'Indigo Shield Pro',
+    name: 'Indigo Exterior Laminate',
     brand: 'Indigo',
     type: 'Exterior',
     color: 'Sandstone',
@@ -184,8 +185,8 @@ export const productsDatabase: Product[] = [
     stock: 35,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop',
-    description: 'Ultimate exterior protection with UV resistance and weather-shield technology'
+    image: 'https://indigopaints.com/wp-content/uploads/2023/11/Exterior-Laminate.png',
+    description: 'A premium exterior paint that provides excellent weather resistance and durability.'
   },
   {
     id: '13',
@@ -198,13 +199,13 @@ export const productsDatabase: Product[] = [
     stock: 50,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1596227406193-ab8e550b02de?w=400&h=400&fit=crop',
-    description: 'Premium acrylic distemper for smooth wall finish with vibrant colors'
+    image: 'https://indigopaints.com/wp-content/uploads/2023/11/Acrylic-Distemper.png',
+    description: 'An affordable and high-quality distemper for a smooth matte finish.'
   },
   {
     id: '14',
     code: 'IND004',
-    name: 'Indigo Wood Finish',
+    name: 'Indigo PU Super Gloss Enamel',
     brand: 'Indigo',
     type: 'Wood Paint',
     color: 'Mahogany',
@@ -212,13 +213,13 @@ export const productsDatabase: Product[] = [
     stock: 20,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1609705531581-70c0c4b33afd?w=400&h=400&fit=crop',
-    description: 'Premium wood finish with natural look and superior protection'
+    image: 'https://indigopaints.com/wp-content/uploads/2023/11/PU-Super-Gloss-Enamel.png',
+    description: 'A polyurethane-based enamel for a superior high-gloss finish on wood and metal.'
   },
   {
     id: '15',
     code: 'IND005',
-    name: 'Indigo Platinum',
+    name: 'Indigo Platinum Series Paint',
     brand: 'Indigo',
     type: 'Emulsion',
     color: 'Lavender',
@@ -226,13 +227,13 @@ export const productsDatabase: Product[] = [
     stock: 30,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1536431311719-398b6704d4cc?w=400&h=400&fit=crop',
-    description: 'Luxury interior emulsion with silk finish and superior washability'
+    image: 'https://indigopaints.com/wp-content/uploads/2023/11/Platinum-Series-Paint.png',
+    description: 'A premium interior paint with a bright, clean, and ultra-smooth finish.'
   },
   {
     id: '16',
     code: 'IND006',
-    name: 'Indigo Primer Sealer',
+    name: 'Indigo Exterior Wall Primer',
     brand: 'Indigo',
     type: 'Primer',
     color: 'White',
@@ -240,13 +241,13 @@ export const productsDatabase: Product[] = [
     stock: 45,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1595246140519-d5639d5b3a8f?w=400&h=400&fit=crop',
-    description: 'Advanced primer sealer for superior paint adhesion and coverage'
+    image: 'https://indigopaints.com/wp-content/uploads/2023/11/Exterior-Wall-Primer.png',
+    description: 'A water-based primer that provides excellent adhesion for exterior topcoats.'
   },
   {
     id: '17',
     code: 'IND007',
-    name: 'Indigo Texture Paint',
+    name: 'Indigo Fine-Tex Texture Paint',
     brand: 'Indigo',
     type: 'Specialty',
     color: 'Granite Grey',
@@ -254,13 +255,13 @@ export const productsDatabase: Product[] = [
     stock: 18,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1609703466656-96a66e04ddff?w=400&h=400&fit=crop',
-    description: 'Decorative texture paint for creating artistic wall finishes'
+    image: 'https://indigopaints.com/wp-content/uploads/2023/11/Fine-Tex-Texture-Paint.png',
+    description: 'A textured finish paint to create unique and beautiful patterns on walls.'
   },
   {
     id: '18',
     code: 'IND008',
-    name: 'Indigo Enamel',
+    name: 'Indigo Super Gloss Enamel',
     brand: 'Indigo',
     type: 'Enamel',
     color: 'Forest Green',
@@ -268,27 +269,27 @@ export const productsDatabase: Product[] = [
     stock: 25,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1609234656388-0ff363063d9d?w=400&h=400&fit=crop',
-    description: 'High-gloss enamel paint with excellent durability and color retention'
+    image: 'https://indigopaints.com/wp-content/uploads/2023/11/Super-Gloss-Enamel.png',
+    description: 'A high-gloss, solvent-based enamel for a durable and shiny finish.'
   },
   {
     id: '19',
     code: 'IND009',
-    name: 'Indigo Aqua Guard',
+    name: 'Indigo Polymer Putty',
     brand: 'Indigo',
-    type: 'Exterior',
-    color: 'Ocean Blue',
-    price: 2250,
-    stock: 28,
+    type: 'Putty',
+    color: 'White',
+    price: 900,
+    stock: 60,
     gstRate: 18,
-    unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1609705531570-20bf4f76902d?w=400&h=400&fit=crop',
-    description: 'Waterproof exterior paint with anti-fungal and anti-algae properties'
+    unit: 'Kg',
+    image: 'https://indigopaints.com/wp-content/uploads/2023/11/Polymer-Putty.png',
+    description: 'A white cement-based putty that provides a smooth base for painting.'
   },
   {
     id: '20',
     code: 'IND010',
-    name: 'Indigo Interior Plus',
+    name: 'Indigo Interior Sheen Emulsion',
     brand: 'Indigo',
     type: 'Emulsion',
     color: 'Rose Pink',
@@ -296,7 +297,7 @@ export const productsDatabase: Product[] = [
     stock: 33,
     gstRate: 18,
     unit: 'Litre',
-    image: 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=400&h=400&fit=crop',
-    description: 'Premium interior emulsion with stain-guard technology and easy maintenance'
+    image: 'https://indigopaints.com/wp-content/uploads/2023/11/Interior-Sheen-Emulsion.png',
+    description: 'A premium interior emulsion that gives a soft sheen finish to walls.'
   }
 ];
