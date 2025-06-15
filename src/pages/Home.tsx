@@ -4,7 +4,6 @@ import { ArrowRight, Palette, FileText, Shield, Sparkles } from 'lucide-react';
 import Logo from '../components/Logo';
 import { productsDatabase } from '../data/products';
 import FeaturedProductImage from "../components/FeaturedProductImage";
-import duluxLogo from "../assets/dulux-logo.svg";
 import indigoLogo from "../assets/indigo-logo.svg";
 import ProductShowcaseCard from "../components/ProductShowcaseCard";
 
@@ -203,14 +202,21 @@ const Home = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-4xl mx-auto">
+            {/* Dulux Card with uploaded marketing image */}
             <div className="group bg-slate-700 p-12 rounded-2xl text-center hover:bg-slate-600 transition-all duration-500 hover:scale-105 border border-slate-600 cursor-pointer animate-fade-in relative overflow-hidden">
-              <div className="bg-white p-8 rounded-xl mb-6 mx-auto w-32 h-32 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <img src={duluxLogo} alt="Dulux Logo" className="h-20 w-28 object-contain" draggable={false} />
+              <div className="bg-white p-3 rounded-xl mb-6 mx-auto w-60 h-36 flex items-center justify-center transform group-hover:scale-105 transition-transform duration-300 shadow-lg overflow-hidden">
+                <img
+                  src="/lovable-uploads/d7d318f5-963c-4ba4-9a1b-fa0bea2b1cc1.png"
+                  alt="Dulux Branding"
+                  className="object-contain w-full h-full"
+                  draggable={false}
+                  style={{ maxWidth: '100%', maxHeight: '100%' }}
+                />
               </div>
               <h3 className="text-2xl font-bold mb-3 group-hover:text-blue-300 transition-colors">Dulux Paints</h3>
               <p className="text-slate-300 group-hover:text-white transition-colors">Premium quality paints with superior finish and durability</p>
             </div>
-
+            {/* Indigo Card unchanged */}
             <div className="group bg-slate-700 p-12 rounded-2xl text-center hover:bg-slate-600 transition-all duration-500 hover:scale-105 border border-slate-600 cursor-pointer animate-fade-in delay-200 relative overflow-hidden">
               <div className="bg-white p-8 rounded-xl mb-6 mx-auto w-32 h-32 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300 shadow-lg">
                 <img src={indigoLogo} alt="Indigo Logo" className="h-20 w-28 object-contain" draggable={false} />
@@ -222,6 +228,7 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Enhanced Call to Action Section */}
       <section className="py-20 bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 text-white">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-bold mb-6 animate-fade-in">
