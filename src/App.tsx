@@ -11,6 +11,9 @@ import Home from "./pages/Home";
 import Contact from "./pages/Contact";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
+import Billing from "./pages/Billing";
+import Inventory from "./pages/Inventory";
+import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,17 +37,17 @@ const App = () => (
               } />
               <Route path="/inventory" element={
                 <ProtectedRoute>
-                  <Admin />
+                  <Inventory />
                 </ProtectedRoute>
               } />
               <Route path="/billing" element={
                 <ProtectedRoute>
-                  <Admin />
+                  <Billing />
                 </ProtectedRoute>
               } />
               <Route path="/reports" element={
                 <ProtectedRoute>
-                  <Admin />
+                  <Reports />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
