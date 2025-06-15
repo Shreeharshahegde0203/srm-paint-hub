@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, FileText, Download, Eye, Trash2, Edit } from 'lucide-react';
 import ProductSelector from '../components/ProductSelector';
@@ -149,14 +148,29 @@ const Billing = () => {
       .from("invoice_items").select("*").eq("invoice_id", invoice.id);
     const { data: customer } = await supabase
       .from("customers").select("*").eq("id", invoice.customer_id).maybeSingle();
-    // Compose PDF input using fetched data:
+
+    // Compose PDF input using fetched data. 
+    // Map product to the format: { name, code, gstRate }
     generateInvoicePDF({
       ...invoice,
       customer,
-      items: items?.map((item) => ({
-        ...item,
-        product: products?.find((p) => p.id === item.product_id)
-      })),
+      items: (items ?? []).map((item) => {
+        const prod = products?.find((p) => p.id === item.product_id);
+        return {
+          product: {
+            name: prod?.name ?? "",
+            code: prod?.code ?? "",
+            gstRate: prod?.gst_rate ?? 18, // fallback to 18 if not found
+          },
+          quantity: item.quantity,
+          unitPrice: item.price,
+          total: item.quantity * item.price,
+        };
+      }),
+      subtotal: (items ?? []).reduce((sum, i) => sum + i.quantity * i.price, 0),
+      discount: 0, // not available in current data structure
+      tax: ((items ?? []).reduce((sum, i) => sum + i.quantity * i.price, 0)) * 0.18,
+      total: (items ?? []).reduce((sum, i) => sum + i.quantity * i.price, 0) * 1.18,
     });
   };
 
@@ -509,4 +523,3 @@ const Billing = () => {
 };
 
 export default Billing;
-
