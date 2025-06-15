@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
 
 // Add businessHours and location/map fields to interface
@@ -22,6 +21,9 @@ interface CompanyInfo {
     accent: string;
     text: string;
   };
+  hsnTemplate?: string;
+  showWatermark?: boolean; // New: watermark toggle
+  invoiceColorPreset?: "light" | "classic" | "dark" | "custom"; // New: color preset
 }
 
 const defaultCompanyInfo: CompanyInfo = {
@@ -44,6 +46,9 @@ const defaultCompanyInfo: CompanyInfo = {
     accent: "#dc2626", // red
     text: "#333",
   },
+  hsnTemplate: "HSN/SAC: [Insert your standard codes here]",
+  showWatermark: false,
+  invoiceColorPreset: "classic",
 };
 
 interface CompanyInfoContextType {

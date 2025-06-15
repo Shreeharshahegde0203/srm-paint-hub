@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useCompanyInfo } from "../contexts/CompanyInfoContext";
 
@@ -33,39 +32,47 @@ export default function InvoiceTemplatePreview() {
 
   return (
     <div className="border rounded bg-white p-4 overflow-x-auto max-w-full shadow-inner">
-      <div style={{ color: companyInfo.invoiceColors.text }}>
-        <div
-          className="header"
+      <div style={{ color: companyInfo.invoiceColors.text, position: "relative" }}>
+        {/* Watermark */}
+        {companyInfo.showWatermark && (
+          <div style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            opacity: 0.13,
+            fontSize: 76,
+            fontWeight: 700,
+            pointerEvents: "none",
+            zIndex: 5,
+            color: companyInfo.invoiceColors.primary
+          }}>{companyInfo.name}</div>
+        )}
+        <div className="header"
           style={{
             textAlign: "center",
             borderBottom: `2px solid ${companyInfo.invoiceColors.accent}`,
             paddingBottom: "16px",
             marginBottom: "18px"
-          }}
-        >
-          <div
-            className="logo"
+          }}>
+          <div className="logo"
             style={{
               fontSize: "24px",
               fontWeight: "bold",
               color: companyInfo.invoiceColors.primary,
               marginBottom: "5px"
-            }}
-          >
+            }}>
             {companyInfo.logoUrl ? (
               <img src={companyInfo.logoUrl} alt="logo" className="inline-block max-h-12" />
             ) : (
               "SRM"
             )}
           </div>
-          <div
-            className="company-name"
-            style={{
-              fontSize: "20px",
-              fontWeight: "bold",
-              color: companyInfo.invoiceColors.accent
-            }}
-          >
+          <div className="company-name" style={{
+            fontSize: "20px",
+            fontWeight: "bold",
+            color: companyInfo.invoiceColors.accent
+          }}>
             {companyInfo.name}
           </div>
           <div className="company-details" style={{ color: "#666", fontSize: "13px" }}>
@@ -76,6 +83,12 @@ export default function InvoiceTemplatePreview() {
             Phone: {companyInfo.phone} | Email: {companyInfo.email}
             <br />
             GSTIN: {companyInfo.gstin}
+            {companyInfo.hsnTemplate && (
+              <>
+                <br />
+                {companyInfo.hsnTemplate}
+              </>
+            )}
           </div>
         </div>
         <div
@@ -208,3 +221,5 @@ export default function InvoiceTemplatePreview() {
     </div>
   );
 }
+
+// NOTE: This file is now getting long (~211+ lines). Please ask to refactor for long-term maintainability.
