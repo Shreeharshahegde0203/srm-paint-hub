@@ -20,15 +20,15 @@ const Contact = () => {
   const directions = companyInfo.directions || "";
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-6 transition-colors">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
             <Mail className="mr-3 h-8 w-8 text-blue-600" />
             Contact {companyInfo.name || "Shreeram Marketing"}
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-600 dark:text-gray-300 mt-1">
             {companyInfo.tagline || "Get in touch with us for all your paint needs"}
           </p>
         </div>
@@ -36,47 +36,51 @@ const Contact = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Contact Information */}
           <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Contact Information</h2>
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 transition-colors">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Contact Information</h2>
               
               <div className="space-y-4">
+                {/* Phone */}
                 <div className="flex items-center space-x-4">
-                  <div className="bg-blue-100 p-3 rounded-lg">
+                  <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded-lg">
                     <Phone className="h-6 w-6 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">Phone</h3>
-                    <p className="text-gray-600">{companyInfo.phone || "+91 98765 43210"}</p>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Phone</h3>
+                    <p className="text-gray-600 dark:text-gray-300">{companyInfo.phone || "+91 98765 43210"}</p>
                   </div>
                 </div>
 
+                {/* Email */}
                 <div className="flex items-center space-x-4">
-                  <div className="bg-green-100 p-3 rounded-lg">
+                  <div className="bg-green-100 dark:bg-green-900 p-3 rounded-lg">
                     <Mail className="h-6 w-6 text-green-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">Email</h3>
-                    <p className="text-gray-600">{companyInfo.email || "info@shreerammarketing.com"}</p>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Email</h3>
+                    <p className="text-gray-600 dark:text-gray-300">{companyInfo.email || "info@shreerammarketing.com"}</p>
                   </div>
                 </div>
 
+                {/* Address */}
                 <div className="flex items-center space-x-4">
-                  <div className="bg-red-100 p-3 rounded-lg">
+                  <div className="bg-red-100 dark:bg-red-900 p-3 rounded-lg">
                     <MapPin className="h-6 w-6 text-red-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">Address</h3>
-                    <p className="text-gray-600" dangerouslySetInnerHTML={{ __html: multilineAddress }} />
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Address</h3>
+                    <p className="text-gray-600 dark:text-gray-300" dangerouslySetInnerHTML={{ __html: multilineAddress }} />
                   </div>
                 </div>
 
+                {/* Business Hours */}
                 <div className="flex items-center space-x-4">
-                  <div className="bg-purple-100 p-3 rounded-lg">
+                  <div className="bg-purple-100 dark:bg-purple-900 p-3 rounded-lg">
                     <Clock className="h-6 w-6 text-purple-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">Business Hours</h3>
-                    <p className="text-gray-600">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Business Hours</h3>
+                    <p className="text-gray-600 dark:text-gray-300">
                       {businessHours.map((line, idx) => (
                         <span key={idx}>
                           {line}
@@ -90,24 +94,24 @@ const Contact = () => {
             </div>
 
             {/* Services */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Our Services</h2>
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 transition-colors">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Our Services</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center space-x-3">
                   <Package className="h-5 w-5 text-blue-600" />
-                  <span className="text-gray-700">Premium Paint Collection</span>
+                  <span className="text-gray-700 dark:text-gray-200">Premium Paint Collection</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Package className="h-5 w-5 text-green-600" />
-                  <span className="text-gray-700">Color Consultation</span>
+                  <span className="text-gray-700 dark:text-gray-200">Color Consultation</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Package className="h-5 w-5 text-red-600" />
-                  <span className="text-gray-700">Bulk Orders</span>
+                  <span className="text-gray-700 dark:text-gray-200">Bulk Orders</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Package className="h-5 w-5 text-purple-600" />
-                  <span className="text-gray-700">Expert Advice</span>
+                  <span className="text-gray-700 dark:text-gray-200">Expert Advice</span>
                 </div>
               </div>
             </div>
@@ -116,8 +120,8 @@ const Contact = () => {
           {/* Map and Contact Form */}
           <div className="space-y-6">
             {/* Google Maps or Location Info */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Find Us</h2>
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 transition-colors">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Find Us</h2>
               {mapEmbedUrl ? (
                 <div className="mb-4">
                   <iframe
@@ -132,54 +136,54 @@ const Contact = () => {
                   ></iframe>
                 </div>
               ) : (
-                <div className="bg-gray-200 h-64 rounded-lg flex items-center justify-center mb-4">
+                <div className="bg-gray-200 dark:bg-slate-700 h-64 rounded-lg flex items-center justify-center mb-4">
                   <div className="text-center">
                     <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-600">{mapDisplayText}</p>
-                    <p className="text-sm text-gray-500">{locationDescription}</p>
+                    <p className="text-gray-600 dark:text-gray-300">{mapDisplayText}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-300">{locationDescription}</p>
                   </div>
                 </div>
               )}
               <div className="mt-1">
-                <p className="text-gray-700 text-sm whitespace-pre-line">{locationDescription}</p>
+                <p className="text-gray-700 dark:text-gray-200 text-sm whitespace-pre-line">{locationDescription}</p>
                 {directions && (
-                  <div className="mt-1 text-gray-600 text-xs whitespace-pre-line">
+                  <div className="mt-1 text-gray-600 dark:text-gray-300 text-xs whitespace-pre-line">
                     <span className="font-semibold">How to reach:</span> {directions}
                   </div>
                 )}
               </div>
             </div>
             {/* Quick Contact Form */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Quick Inquiry</h2>
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 transition-colors">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Quick Inquiry</h2>
               <form className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Name</label>
                   <input
                     type="text"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
                     placeholder="Your full name"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Phone</label>
                   <input
                     type="tel"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
                     placeholder="Your phone number"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Message</label>
                   <textarea
                     rows={4}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100"
                     placeholder="How can we help you?"
                   ></textarea>
                 </div>
                 <button
                   type="submit"
-                  className="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition-colors"
+                  className="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 dark:hover:bg-red-800 transition-colors"
                 >
                   Send Message
                 </button>
