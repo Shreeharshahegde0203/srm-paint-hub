@@ -7,6 +7,7 @@ import { setCompanyInfoForPDF } from "../utils/pdfGenerator";
 import { supabase } from "@/integrations/supabase/client";
 import { useSupabaseProducts } from "../hooks/useSupabaseProducts";
 import { toast } from "@/components/ui/use-toast";
+import TradeReceivablesDialog from "../components/TradeReceivablesDialog";
 import type { Tables } from "@/integrations/supabase/types";
 
 // --- Type definitions for Supabase integration ---
@@ -452,10 +453,14 @@ const Billing = () => {
               </h1>
               <p className="text-gray-600 dark:text-gray-300 mt-1">Create GST compliant invoices with smart product lookup and professional PDF generation</p>
             </div>
-            <button onClick={() => setShowCreateForm(true)} className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 dark:hover:bg-green-800 flex items-center">
-              <Plus className="mr-2 h-5 w-5" />
-              Create Invoice
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button onClick={() => setShowCreateForm(true)} className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 dark:hover:bg-green-800 flex items-center">
+                <Plus className="mr-2 h-5 w-5" />
+                Create Invoice
+              </button>
+              {/* Add Trade Receivables button here */}
+              <TradeReceivablesDialog />
+            </div>
           </div>
         </div>
         {/* Tabs */}
