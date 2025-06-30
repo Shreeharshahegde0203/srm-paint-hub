@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Search, FileUp, AlertTriangle, Upload, Image } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
@@ -44,9 +43,22 @@ const ProductManagement = ({
   const [categoryFilter, setCategoryFilter] = useState('');
   const [brandFilter, setBrandFilter] = useState('');
 
-  const categories = ['Paint', 'Primer', 'Thinner', 'Brush', 'Roller', 'Tools', 'Accessories'];
-  const brands = ['Asian Paints', 'Dulux', 'Berger', 'Nerolac', 'Indigo'];
-  const unitTypes = ['Litre', 'Kg', 'Piece', 'Box', 'Sqft', 'Meter'];
+  // Updated categories with paint-specific types
+  const categories = [
+    'Gloss Paint', 'Exterior Paint', 'Interior Paint', 'Distemper', 
+    'Primer', 'Thinner', 'Brush', 'Roller', 'Tools', 'Accessories', 'Other'
+  ];
+  
+  // Only Dulux and Indigo brands
+  const brands = ['Dulux', 'Indigo'];
+  
+  // Dynamic unit types based on category
+  const getUnitTypes = (category: string) => {
+    if (['Other', 'Accessories', 'Roller'].includes(category)) {
+      return ['1 Inch', '2 Inch', '3 Inch', '4 Inch', '5 Inch', '6 Inch', '7 Inch', '8 Inch', '9 Inch', '10 Inch'];
+    }
+    return ['Litre', 'Kg', 'Piece', 'Box', 'Sqft', 'Meter'];
+  };
 
   const filteredProducts = products
     .filter(product => {
@@ -146,6 +158,8 @@ const ProductManagement = ({
       }
     };
 
+    const availableUnitTypes = getUnitTypes(formData.type || '');
+
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-2xl max-h-screen overflow-y-auto transition-colors">
@@ -172,7 +186,7 @@ const ProductManagement = ({
                   value={formData.name || ''}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
                   className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
-                  placeholder="e.g., Asian Paints Apex White"
+                  placeholder="e.g., Dulux Velvet Touch White"
                   required
                 />
               </div>
@@ -197,7 +211,13 @@ const ProductManagement = ({
                 <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Category</label>
                 <select
                   value={formData.type || ''}
-                  onChange={e => setFormData({ ...formData, type: e.target.value })}
+                  onChange={e => {
+                    setFormData({ 
+                      ...formData, 
+                      type: e.target.value,
+                      unit_type: getUnitTypes(e.target.value)[0] // Reset unit type when category changes
+                    });
+                  }}
                   className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                   required
                 >
@@ -226,12 +246,12 @@ const ProductManagement = ({
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Unit Type</label>
                 <select
-                  value={formData.unit_type || 'Litre'}
+                  value={formData.unit_type || availableUnitTypes[0]}
                   onChange={e => setFormData({ ...formData, unit_type: e.target.value })}
                   className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                   required
                 >
-                  {unitTypes.map(unit => (
+                  {availableUnitTypes.map(unit => (
                     <option key={unit} value={unit}>{unit}</option>
                   ))}
                 </select>
@@ -290,7 +310,7 @@ const ProductManagement = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Product Photo (optional)</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Product Photo</label>
               <input
                 type="file"
                 accept="image/*"
@@ -303,6 +323,10 @@ const ProductManagement = ({
                     src={imageFile ? URL.createObjectURL(imageFile) : formData.image} 
                     alt="Product preview" 
                     className="w-20 h-20 object-cover rounded border"
+                    onError={(e) => {
+                      console.log('Image failed to load:', formData.image);
+                      e.currentTarget.style.display = 'none';
+                    }}
                   />
                 </div>
               )}
@@ -395,9 +419,10 @@ const ProductManagement = ({
           <thead className="bg-gray-50 dark:bg-slate-700">
             <tr>
               <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Image</th>
-              <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Product ID</th>
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Product Code</th>
               <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Item Name</th>
               <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Brand</th>
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Category</th>
               <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Unit</th>
               <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">GST %</th>
               <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Rate/Unit (₹)</th>
@@ -418,17 +443,18 @@ const ProductManagement = ({
                       onError={(e) => {
                         console.log('Image failed to load:', product.image);
                         e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling.style.display = 'flex';
                       }}
                     />
-                  ) : (
-                    <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded border flex items-center justify-center">
-                      <Image className="h-6 w-6 text-gray-400" />
-                    </div>
-                  )}
+                  ) : null}
+                  <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded border flex items-center justify-center" style={{ display: product.image ? 'none' : 'flex' }}>
+                    <Image className="h-6 w-6 text-gray-400" />
+                  </div>
                 </td>
                 <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 font-mono text-sm text-blue-600 dark:text-blue-400">{product.code}</td>
                 <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 font-medium text-gray-900 dark:text-white">{product.name}</td>
                 <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-gray-600 dark:text-gray-300">{product.brand}</td>
+                <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-gray-600 dark:text-gray-300">{product.type}</td>
                 <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-gray-600 dark:text-gray-300">{product.unit}</td>
                 <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-center">{product.gstRate}%</td>
                 <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 font-semibold text-green-600">₹{product.price.toFixed(2)}</td>

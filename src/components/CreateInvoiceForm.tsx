@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2, Search, Calendar } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +15,7 @@ interface Customer {
 
 interface InvoiceItem {
   id: string;
+  productCode: string;
   itemName: string;
   perUnit: number;
   units: string;
@@ -40,13 +40,16 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
   const [customerName, setCustomerName] = useState('');
   const [customerGstin, setCustomerGstin] = useState('');
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [invoiceStatus, setInvoiceStatus] = useState('pending');
   
   // Add Items Form
+  const [productCode, setProductCode] = useState('');
   const [itemName, setItemName] = useState('');
   const [perUnit, setPerUnit] = useState(1);
   const [units, setUnits] = useState('liter');
   const [gstPercent, setGstPercent] = useState(18);
   const [amountPerUnit, setAmountPerUnit] = useState(0);
+  const [quantity, setQuantity] = useState(1);
   
   // Invoice Items
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
@@ -55,20 +58,30 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
   const [showProductDropdown, setShowProductDropdown] = useState(false);
 
   const filteredProducts = products?.filter(product =>
-    product.name?.toLowerCase().includes(itemName.toLowerCase())
+    product.name?.toLowerCase().includes(itemName.toLowerCase()) ||
+    product.code?.toLowerCase().includes(productCode.toLowerCase())
   ) || [];
 
+  const handleProductSelect = (product: any) => {
+    setProductCode(product.code);
+    setItemName(product.name);
+    setAmountPerUnit(product.price);
+    setGstPercent(product.gst_rate || 18);
+    setUnits(product.unit || 'liter');
+    setShowProductDropdown(false);
+  };
+
   const handleAddItem = () => {
-    if (!itemName || perUnit <= 0 || amountPerUnit <= 0) {
+    if (!productCode || !itemName || perUnit <= 0 || amountPerUnit <= 0 || quantity <= 0) {
       toast({ title: "Error", description: "Please fill all required fields", variant: "destructive" });
       return;
     }
 
-    const quantity = perUnit;
     const total = quantity * amountPerUnit;
 
     const newItem: InvoiceItem = {
       id: Date.now().toString(),
+      productCode,
       itemName,
       perUnit,
       units,
@@ -81,11 +94,13 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
     setInvoiceItems(prev => [...prev, newItem]);
     
     // Reset form
+    setProductCode('');
     setItemName('');
     setPerUnit(1);
     setUnits('liter');
     setGstPercent(18);
     setAmountPerUnit(0);
+    setQuantity(1);
   };
 
   const removeItem = (itemId: string) => {
@@ -125,7 +140,7 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
         .insert({
           customer_id: newCustomer.id,
           total: grandTotal,
-          status: 'pending',
+          status: invoiceStatus,
           billing_mode: 'with_gst',
         })
         .select('*')
@@ -133,19 +148,22 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
         
       if (invoiceError) throw invoiceError;
 
-      // Create invoice items (simplified - you may need to create products first)
-      const invoiceItemsData = invoiceItems.map(item => ({
-        invoice_id: invoice.id,
-        product_id: null, // You'll need to handle product creation/selection
-        quantity: item.quantity,
-        price: item.amountPerUnit,
-      }));
-
-      const { error: itemsError } = await supabase
-        .from('invoice_items')
-        .insert(invoiceItemsData);
-        
-      if (itemsError) throw itemsError;
+      // Create invoice items
+      for (const item of invoiceItems) {
+        const product = products?.find(p => p.code === item.productCode);
+        if (product) {
+          const { error: itemsError } = await supabase
+            .from('invoice_items')
+            .insert({
+              invoice_id: invoice.id,
+              product_id: product.id,
+              quantity: item.quantity,
+              price: item.amountPerUnit,
+            });
+            
+          if (itemsError) throw itemsError;
+        }
+      }
 
       toast({ title: "Invoice Created Successfully!" });
       onSuccess();
@@ -170,7 +188,7 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
 
           {/* Customer Details Section */}
           <div className="bg-gray-50 dark:bg-slate-700 p-6 rounded-lg mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">Customer Name</label>
                 <input
@@ -204,6 +222,18 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
                   <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
                 </div>
               </div>
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">Status</label>
+                <select
+                  value={invoiceStatus}
+                  onChange={(e) => setInvoiceStatus(e.target.value)}
+                  className="w-full p-3 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="paid">Paid</option>
+                  <option value="overdue">Overdue</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -211,46 +241,73 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
           <div className="bg-gray-50 dark:bg-slate-700 p-6 rounded-lg mb-6">
             <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Add Items</h3>
             
-            {/* Item Name Field */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
-                Item Name <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={itemName}
-                  onChange={(e) => {
-                    setItemName(e.target.value);
-                    setShowProductDropdown(e.target.value.length > 0);
-                  }}
-                  className="w-full p-3 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
-                  placeholder="Search or enter name"
-                />
-                {showProductDropdown && filteredProducts.length > 0 && (
-                  <div className="absolute z-10 w-full mt-1 bg-white dark:bg-slate-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                    {filteredProducts.map(product => (
-                      <div
-                        key={product.id}
-                        onClick={() => {
-                          setItemName(product.name);
-                          setAmountPerUnit(product.price);
-                          setGstPercent(product.gst_rate || 18);
-                          setShowProductDropdown(false);
-                        }}
-                        className="p-3 hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer border-b last:border-b-0 border-gray-200 dark:border-gray-600"
-                      >
-                        <div className="font-medium text-gray-900 dark:text-white">{product.name}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">{product.brand} - ₹{product.price}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+            {/* Product Code and Name Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
+                  Product Code <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={productCode}
+                    onChange={(e) => {
+                      setProductCode(e.target.value);
+                      setShowProductDropdown(e.target.value.length > 0);
+                    }}
+                    className="w-full p-3 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+                    placeholder="Search or enter product code"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
+                  Item Name <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={itemName}
+                    onChange={(e) => {
+                      setItemName(e.target.value);
+                      setShowProductDropdown(e.target.value.length > 0);
+                    }}
+                    className="w-full p-3 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+                    placeholder="Search or enter name"
+                  />
+                  {showProductDropdown && filteredProducts.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white dark:bg-slate-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                      {filteredProducts.map(product => (
+                        <div
+                          key={product.id}
+                          onClick={() => handleProductSelect(product)}
+                          className="p-3 hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer border-b last:border-b-0 border-gray-200 dark:border-gray-600"
+                        >
+                          <div className="font-medium text-gray-900 dark:text-white">{product.code} - {product.name}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">{product.brand} - ₹{product.price}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Per Unit, Units, GST %, Amount Per Unit Fields */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            {/* Quantity, Per Unit, Units, GST %, Amount Per Unit Fields */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
+                  Quantity <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={quantity}
+                  onChange={(e) => setQuantity(parseFloat(e.target.value) || 1)}
+                  className="w-full p-3 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+                  min="0.1"
+                  step="0.1"
+                />
+              </div>
               <div>
                 <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                   Per Unit <span className="text-red-500">*</span>
@@ -321,6 +378,7 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
                 <table className="w-full border-collapse border border-gray-200 dark:border-gray-700">
                   <thead className="bg-gray-50 dark:bg-slate-700">
                     <tr>
+                      <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-gray-700 dark:text-gray-300">Product Code</th>
                       <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-gray-700 dark:text-gray-300">Description</th>
                       <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-gray-700 dark:text-gray-300">Quantity</th>
                       <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-gray-700 dark:text-gray-300">GST %</th>
@@ -332,9 +390,10 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
                   <tbody>
                     {invoiceItems.map((item) => (
                       <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-slate-700">
+                        <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-gray-900 dark:text-white font-mono">{item.productCode}</td>
                         <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-gray-900 dark:text-white">{item.itemName}</td>
                         <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-gray-900 dark:text-white">
-                          {item.perUnit} {item.units} × {item.quantity}
+                          {item.quantity} × {item.perUnit} {item.units}
                         </td>
                         <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-gray-900 dark:text-white">{item.gstPercent}%</td>
                         <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-gray-900 dark:text-white">₹{item.amountPerUnit.toFixed(2)}</td>
