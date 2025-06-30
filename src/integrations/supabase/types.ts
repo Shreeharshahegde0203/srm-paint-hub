@@ -240,29 +240,35 @@ export type Database = {
       }
       invoices: {
         Row: {
+          billing_mode: string | null
           created_at: string | null
           created_by: string | null
           customer_id: string | null
           deleted_at: string | null
           id: string
+          project_reference: string | null
           status: string
           total: number
         }
         Insert: {
+          billing_mode?: string | null
           created_at?: string | null
           created_by?: string | null
           customer_id?: string | null
           deleted_at?: string | null
           id?: string
+          project_reference?: string | null
           status?: string
           total: number
         }
         Update: {
+          billing_mode?: string | null
           created_at?: string | null
           created_by?: string | null
           customer_id?: string | null
           deleted_at?: string | null
           id?: string
+          project_reference?: string | null
           status?: string
           total?: number
         }
@@ -410,6 +416,58 @@ export type Database = {
         }
         Relationships: []
       }
+      project_product_usage: {
+        Row: {
+          created_at: string | null
+          id: string
+          invoice_id: string | null
+          product_id: string
+          project_id: string
+          quantity_used: number
+          used_date: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          invoice_id?: string | null
+          product_id: string
+          project_id: string
+          quantity_used?: number
+          used_date?: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          invoice_id?: string | null
+          product_id?: string
+          project_id?: string
+          quantity_used?: number
+          used_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_product_usage_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_product_usage_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_product_usage_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "regular_customer_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       purchase_order_items: {
         Row: {
           cost_price: number | null
@@ -487,24 +545,30 @@ export type Database = {
       regular_customer_invoices: {
         Row: {
           created_at: string | null
+          gst_amount: number | null
           id: string
           invoice_id: string
           project_id: string | null
           regular_customer_id: string
+          without_gst: boolean | null
         }
         Insert: {
           created_at?: string | null
+          gst_amount?: number | null
           id?: string
           invoice_id: string
           project_id?: string | null
           regular_customer_id: string
+          without_gst?: boolean | null
         }
         Update: {
           created_at?: string | null
+          gst_amount?: number | null
           id?: string
           invoice_id?: string
           project_id?: string | null
           regular_customer_id?: string
+          without_gst?: boolean | null
         }
         Relationships: [
           {
@@ -623,9 +687,11 @@ export type Database = {
           created_at: string | null
           estimated_quantity: number | null
           id: string
+          notes: string | null
           project_name: string
           regular_customer_id: string
           site_address: string | null
+          start_date: string | null
           status: string
         }
         Insert: {
@@ -633,9 +699,11 @@ export type Database = {
           created_at?: string | null
           estimated_quantity?: number | null
           id?: string
+          notes?: string | null
           project_name: string
           regular_customer_id: string
           site_address?: string | null
+          start_date?: string | null
           status?: string
         }
         Update: {
@@ -643,9 +711,11 @@ export type Database = {
           created_at?: string | null
           estimated_quantity?: number | null
           id?: string
+          notes?: string | null
           project_name?: string
           regular_customer_id?: string
           site_address?: string | null
+          start_date?: string | null
           status?: string
         }
         Relationships: [
@@ -663,6 +733,8 @@ export type Database = {
           address: string | null
           created_at: string | null
           customer_type: string
+          email: string | null
+          gstin: string | null
           id: string
           name: string
           notes: string | null
@@ -672,6 +744,8 @@ export type Database = {
           address?: string | null
           created_at?: string | null
           customer_type?: string
+          email?: string | null
+          gstin?: string | null
           id?: string
           name: string
           notes?: string | null
@@ -681,6 +755,8 @@ export type Database = {
           address?: string | null
           created_at?: string | null
           customer_type?: string
+          email?: string | null
+          gstin?: string | null
           id?: string
           name?: string
           notes?: string | null

@@ -1,96 +1,146 @@
 
 import React from "react";
-import { toast } from "@/hooks/use-toast";
 
 interface CustomerFormProps {
   form: {
     name: string;
     phone: string;
+    email: string;
     address: string;
     notes: string;
     customer_type: string;
+    gstin: string;
   };
-  setForm: React.Dispatch<React.SetStateAction<{
-    name: string;
-    phone: string;
-    address: string;
-    notes: string;
-    customer_type: string;
-  }>>;
+  setForm: (form: any) => void;
   addMode: boolean;
-  onSubmit: (form: any, addMode: boolean, editingCustomer: any) => Promise<void>;
+  onSubmit: (formData: any, isAddMode: boolean, customer: any) => void;
   onCancel: () => void;
   editingCustomer: any;
 }
 
-const CustomerForm = ({ form, setForm, addMode, onSubmit, onCancel, editingCustomer }: CustomerFormProps) => {
-  const handleSubmit = async (e: React.FormEvent) => {
+const CustomerForm: React.FC<CustomerFormProps> = ({
+  form,
+  setForm,
+  addMode,
+  onSubmit,
+  onCancel,
+  editingCustomer,
+}) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      await onSubmit(form, addMode, editingCustomer);
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
-    }
+    onSubmit(form, addMode, editingCustomer);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-md transition-colors">
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg mb-4">
+      <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
+        {addMode ? "Add New Customer" : "Edit Customer"}
+      </h3>
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Customer Name *
+          </label>
           <input
             type="text"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-600 dark:border-slate-500 dark:text-white"
             value={form.name}
-            onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-            placeholder="Customer Name"
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
             required
-            className="w-full p-2 border rounded-lg dark:bg-slate-900 dark:text-white"
           />
-          <input
-            type="text"
-            value={form.phone}
-            onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
-            placeholder="Phone"
-            className="w-full p-2 border rounded-lg dark:bg-slate-900 dark:text-white"
-          />
-          <input
-            type="text"
-            value={form.address}
-            onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
-            placeholder="Address"
-            className="w-full p-2 border rounded-lg dark:bg-slate-900 dark:text-white"
-          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Customer Type
+          </label>
           <select
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-600 dark:border-slate-500 dark:text-white"
             value={form.customer_type}
-            onChange={e => setForm(f => ({ ...f, customer_type: e.target.value }))}
-            className="w-full p-2 border rounded-lg dark:bg-slate-900 dark:text-white"
+            onChange={(e) => setForm({ ...form, customer_type: e.target.value })}
           >
             <option value="Regular">Regular</option>
-            <option value="Dealer">Dealer</option>
-            <option value="New">New</option>
-            <option value="Contractor">Contractor</option>
+            <option value="Walk-in">Walk-in</option>
           </select>
-          <textarea
-            value={form.notes}
-            onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
-            placeholder="Notes"
-            className="w-full p-2 border rounded-lg dark:bg-slate-900 dark:text-white"
-            rows={2}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Mobile Number
+          </label>
+          <input
+            type="text"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-600 dark:border-slate-500 dark:text-white"
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
           />
-          <div className="flex gap-2 pt-4">
-            <button
-              type="submit"
-              className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
-            >
-              {addMode ? "Add Customer" : "Update Customer"}
-            </button>
-            <button
-              type="button"
-              className="flex-1 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-100 py-2 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600"
-              onClick={onCancel}
-            >Cancel</button>
-          </div>
-        </form>
-      </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Email
+          </label>
+          <input
+            type="email"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-600 dark:border-slate-500 dark:text-white"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            GSTIN {form.customer_type === 'Regular' && "(optional for regular)"}
+          </label>
+          <input
+            type="text"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-600 dark:border-slate-500 dark:text-white"
+            value={form.gstin}
+            onChange={(e) => setForm({ ...form, gstin: e.target.value })}
+            placeholder="29ABCDE1234F1Z2"
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Address
+          </label>
+          <textarea
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-600 dark:border-slate-500 dark:text-white"
+            rows={2}
+            value={form.address}
+            onChange={(e) => setForm({ ...form, address: e.target.value })}
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Notes
+          </label>
+          <textarea
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-600 dark:border-slate-500 dark:text-white"
+            rows={2}
+            value={form.notes}
+            onChange={(e) => setForm({ ...form, notes: e.target.value })}
+          />
+        </div>
+
+        <div className="md:col-span-2 flex gap-2">
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          >
+            {addMode ? "Add Customer" : "Update Customer"}
+          </button>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

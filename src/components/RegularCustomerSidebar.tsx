@@ -4,9 +4,11 @@ import { X } from "lucide-react";
 import { CustomerSummary } from "./CustomerSummary";
 import { InvoiceHistorySection } from "./InvoiceHistorySection";
 import { ProjectsSection } from "./ProjectsSection";
+import AddProjectDialog from "./AddProjectDialog";
 import { useCustomerProjects } from "@/hooks/useCustomerProjects";
 import { useCustomerInvoices } from "@/hooks/useCustomerInvoices";
 import { useSupabaseProducts } from "@/hooks/useSupabaseProducts";
+import { toast } from "@/hooks/use-toast";
 
 interface Props {
   customer: any | null;
@@ -16,9 +18,10 @@ interface Props {
 
 export default function RegularCustomerSidebar({ customer, open, onClose }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
 
   // Always call hooks at the top level, never conditionally!
-  const { getCustomerProjects } = useCustomerProjects();
+  const { getCustomerProjects, addProject } = useCustomerProjects();
   const { getCustomerInvoices } = useCustomerInvoices();
 
   // Call hook regardless, use "enabled" to suppress fetch if no ID
@@ -29,37 +32,11 @@ export default function RegularCustomerSidebar({ customer, open, onClose }: Prop
   let projects: any[] = [];
   if (Array.isArray(projectsQuery.data)) {
     projects = projectsQuery.data;
-  } else if (
-    projectsQuery.data &&
-    typeof projectsQuery.data === "object" &&
-    "length" in projectsQuery.data
-  ) {
-    projects = projectsQuery.data;
-  } else {
-    projects = [];
   }
 
   let invoices: any[] = [];
   if (Array.isArray(invoicesQuery.data)) {
     invoices = invoicesQuery.data;
-  } else if (
-    invoicesQuery.data &&
-    typeof invoicesQuery.data === "object" &&
-    "length" in invoicesQuery.data
-  ) {
-    invoices = invoicesQuery.data;
-  } else {
-    invoices = [];
-  }
-
-  // DEBUG LOGGING to catch edge cases
-  if (process.env.NODE_ENV !== "production") {
-    if (!Array.isArray(projects)) {
-      console.warn("projects variable is not an array", projectsQuery, projectsQuery?.data);
-    }
-    if (!Array.isArray(invoices)) {
-      console.warn("invoices variable is not an array", invoicesQuery, invoicesQuery?.data);
-    }
   }
 
   const { products } = useSupabaseProducts();
@@ -80,38 +57,62 @@ export default function RegularCustomerSidebar({ customer, open, onClose }: Prop
     setSidebarOpen(open);
   }, [open]);
 
+  const handleAddProject = async (projectData: any) => {
+    try {
+      await addProject(projectData);
+      toast({ title: "Project Added", description: "New project has been created successfully." });
+      setShowAddProjectDialog(false);
+    } catch (error) {
+      toast({ 
+        title: "Error", 
+        description: "Failed to add project. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Don't render unless properly loaded and customer exists
   if (!sidebarOpen || !customer) return null;
 
   return (
-    <div className="fixed top-0 right-0 w-full md:w-[540px] max-w-full h-full bg-white dark:bg-slate-900 shadow-2xl z-50 transition-all duration-300 overflow-y-auto">
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-6 text-gray-500 hover:text-gray-900 z-10"
-      >
-        <X className="h-6 w-6" />
-      </button>
-      <div className="p-8 py-12">
-        <CustomerSummary
-          customer={customer}
-          invoiceCount={Array.isArray(invoices) ? invoices.length : 0}
-          totalSpent={totalSpent}
-          dueAmount={dueAmount}
-        />
-        <InvoiceHistorySection
-          invoices={invoices}
-          onEdit={(inv) => {/* show edit dialog, not implemented here */}}
-          onView={(inv) => {/* show view dialog, not implemented here */}}
-          onPrint={(inv) => window.print()}
-        />
-        <ProjectsSection
-          projects={projects}
-          onEditProject={(proj) => {/* open project edit modal */}}
-          onAddProject={() => {/* open add project modal */}}
-          onEditProduct={(projId, prod) => {/* open product edit modal */}}
-          onAddProduct={(projId) => {/* open add product modal */}}
-        />
+    <>
+      <div className="fixed top-0 right-0 w-full md:w-[540px] max-w-full h-full bg-white dark:bg-slate-900 shadow-2xl z-50 transition-all duration-300 overflow-y-auto">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-6 text-gray-500 hover:text-gray-900 z-10"
+        >
+          <X className="h-6 w-6" />
+        </button>
+        <div className="p-8 py-12">
+          <CustomerSummary
+            customer={customer}
+            invoiceCount={Array.isArray(invoices) ? invoices.length : 0}
+            totalSpent={totalSpent}
+            dueAmount={dueAmount}
+          />
+          <InvoiceHistorySection
+            invoices={invoices}
+            onEdit={(inv) => {/* show edit dialog, not implemented here */}}
+            onView={(inv) => {/* show view dialog, not implemented here */}}
+            onPrint={(inv) => window.print()}
+          />
+          <ProjectsSection
+            projects={projects}
+            onEditProject={(proj) => {/* open project edit modal */}}
+            onAddProject={() => setShowAddProjectDialog(true)}
+            onEditProduct={(projId, prod) => {/* open product edit modal */}}
+            onAddProduct={(projId) => {/* open add product modal */}}
+          />
+        </div>
       </div>
-    </div>
+
+      {/* Add Project Dialog */}
+      <AddProjectDialog
+        isOpen={showAddProjectDialog}
+        onClose={() => setShowAddProjectDialog(false)}
+        customerId={customer?.id || ""}
+        onAddProject={handleAddProject}
+      />
+    </>
   );
 }

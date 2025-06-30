@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useRegularCustomers } from "@/hooks/useRegularCustomers";
 import { useSupabaseProducts } from "@/hooks/useSupabaseProducts";
@@ -26,8 +27,16 @@ const RegularCustomersSection = () => {
   const [editingCustomer, setEditingCustomer] = useState<any>(null);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
 
-  // Add or edit customer form
-  const [form, setForm] = useState({ name: "", phone: "", address: "", notes: "", customer_type: "Regular" });
+  // Enhanced form with new fields
+  const [form, setForm] = useState({ 
+    name: "", 
+    phone: "", 
+    email: "",
+    address: "", 
+    notes: "", 
+    customer_type: "Regular",
+    gstin: ""
+  });
   const [addMode, setAddMode] = useState(true);
 
   // Modal for attaching products to customer
@@ -49,9 +58,11 @@ const RegularCustomersSection = () => {
       await addCustomer({
         name: formData.name,
         phone: formData.phone,
+        email: formData.email,
         address: formData.address,
         notes: formData.notes,
         customer_type: formData.customer_type,
+        gstin: formData.gstin,
       });
       toast({ title: "Regular Customer Added" });
     } else if (customer) {
@@ -60,7 +71,15 @@ const RegularCustomersSection = () => {
     }
     setShowForm(false);
     setEditingCustomer(null);
-    setForm({ name: "", phone: "", address: "", notes: "", customer_type: "Regular" });
+    setForm({ 
+      name: "", 
+      phone: "", 
+      email: "",
+      address: "", 
+      notes: "", 
+      customer_type: "Regular",
+      gstin: ""
+    });
   };
 
   const handleEditCustomer = (customer: any) => {
@@ -69,9 +88,11 @@ const RegularCustomersSection = () => {
     setForm({
       name: customer.name || "",
       phone: customer.phone || "",
+      email: customer.email || "",
       address: customer.address || "",
       notes: customer.notes || "",
       customer_type: customer.customer_type || "Regular",
+      gstin: customer.gstin || "",
     });
     setShowForm(true);
   };
@@ -115,7 +136,15 @@ const RegularCustomersSection = () => {
           className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-green-700"
           onClick={() => {
             setAddMode(true);
-            setForm({ name: "", phone: "", address: "", notes: "", customer_type: "Regular" });
+            setForm({ 
+              name: "", 
+              phone: "", 
+              email: "",
+              address: "", 
+              notes: "", 
+              customer_type: "Regular",
+              gstin: ""
+            });
             setEditingCustomer(null);
             setShowForm(true);
           }}>
