@@ -21,8 +21,8 @@ export interface Product {
   cost_price?: number;
   supplier_id?: string;
   image?: string;
-  unit_quantity?: number; // e.g., 5 for "5 Litre"
-  unit_type?: string; // e.g., "Litre", "Kg", "Piece"
+  unit_quantity?: number;
+  unit_type?: string;
 }
 
 interface ProductManagementProps {
@@ -125,7 +125,6 @@ const ProductManagement = ({
           imageUrl = await handleImageUpload(imageFile);
         }
 
-        let newProductId = product?.id;
         const productData = {
           ...formData,
           image: imageUrl,
@@ -133,47 +132,12 @@ const ProductManagement = ({
         };
 
         if (!isEdit) {
-          // Add new product
-          const { data: inserted, error: insErr } = await supabase
-            .from("products")
-            .insert({
-              code: productData.code,
-              name: productData.name,
-              brand: productData.brand,
-              type: productData.type,
-              color: productData.color,
-              price: productData.price,
-              gst_rate: productData.gstRate ?? 18,
-              unit: productData.unit,
-              description: productData.description,
-              stock: productData.stock || 0,
-              image: productData.image,
-            })
-            .select("*")
-            .single();
-
-          if (insErr) throw insErr;
-          toast({ title: "Product Added Successfully!" });
+          await onAddProduct(productData as Omit<Product, 'id'>);
         } else {
-          // Update existing product
-          await supabase
-            .from("products")
-            .update({
-              name: productData.name,
-              brand: productData.brand,
-              type: productData.type,
-              color: productData.color,
-              price: productData.price,
-              gst_rate: productData.gstRate ?? 18,
-              unit: productData.unit,
-              description: productData.description,
-              image: productData.image,
-            })
-            .eq("id", product.id);
-
-          toast({ title: "Product Updated Successfully!" });
+          await onUpdateProduct(product.id, productData);
         }
         
+        toast({ title: isEdit ? "Product Updated Successfully!" : "Product Added Successfully!" });
         setLoading(false);
         onClose();
       } catch (err: any) {
@@ -194,7 +158,7 @@ const ProductManagement = ({
                 <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Product Code</label>
                 <input
                   type="text"
-                  value={formData.code}
+                  value={formData.code || ''}
                   onChange={e => setFormData({ ...formData, code: e.target.value })}
                   className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                   required
@@ -205,7 +169,7 @@ const ProductManagement = ({
                 <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Item Name</label>
                 <input
                   type="text"
-                  value={formData.name}
+                  value={formData.name || ''}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
                   className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                   placeholder="e.g., Asian Paints Apex White"
@@ -218,7 +182,7 @@ const ProductManagement = ({
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Brand Name</label>
                 <select
-                  value={formData.brand}
+                  value={formData.brand || ''}
                   onChange={e => setFormData({ ...formData, brand: e.target.value })}
                   className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                   required
@@ -232,7 +196,7 @@ const ProductManagement = ({
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Category</label>
                 <select
-                  value={formData.type}
+                  value={formData.type || ''}
                   onChange={e => setFormData({ ...formData, type: e.target.value })}
                   className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                   required
@@ -250,7 +214,7 @@ const ProductManagement = ({
                 <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Unit Quantity</label>
                 <input
                   type="number"
-                  value={formData.unit_quantity}
+                  value={formData.unit_quantity || 1}
                   onChange={e => setFormData({ ...formData, unit_quantity: parseFloat(e.target.value) || 1 })}
                   className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                   min="0.1"
@@ -262,7 +226,7 @@ const ProductManagement = ({
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Unit Type</label>
                 <select
-                  value={formData.unit_type}
+                  value={formData.unit_type || 'Litre'}
                   onChange={e => setFormData({ ...formData, unit_type: e.target.value })}
                   className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                   required
@@ -274,16 +238,16 @@ const ProductManagement = ({
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">GST (%)</label>
-                <select
-                  value={formData.gstRate}
-                  onChange={e => setFormData({ ...formData, gstRate: parseInt(e.target.value) })}
+                <input
+                  type="number"
+                  value={formData.gstRate || 18}
+                  onChange={e => setFormData({ ...formData, gstRate: parseFloat(e.target.value) || 18 })}
                   className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
-                >
-                  <option value={5}>5%</option>
-                  <option value={12}>12%</option>
-                  <option value={18}>18%</option>
-                  <option value={28}>28%</option>
-                </select>
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  placeholder="18"
+                />
               </div>
             </div>
 
@@ -292,7 +256,7 @@ const ProductManagement = ({
                 <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Price per Unit (Excl. GST) (₹)</label>
                 <input
                   type="number"
-                  value={formData.price}
+                  value={formData.price || 0}
                   onChange={e => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
                   className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                   min="0"
@@ -304,7 +268,7 @@ const ProductManagement = ({
                 <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Available Stock</label>
                 <input
                   type="number"
-                  value={formData.stock}
+                  value={formData.stock || 0}
                   onChange={e => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
                   className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                   min="0"
@@ -317,7 +281,7 @@ const ProductManagement = ({
               <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Color</label>
               <input
                 type="text"
-                value={formData.color}
+                value={formData.color || ''}
                 onChange={e => setFormData({ ...formData, color: e.target.value })}
                 className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                 placeholder="e.g., White, Blue, etc."
@@ -347,7 +311,7 @@ const ProductManagement = ({
             <div>
               <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Description (optional)</label>
               <textarea
-                value={formData.description}
+                value={formData.description || ''}
                 onChange={e => setFormData({ ...formData, description: e.target.value })}
                 className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                 rows={2}
@@ -447,7 +411,15 @@ const ProductManagement = ({
               <tr key={product.id} className={`hover:bg-gray-50 dark:hover:bg-slate-700 ${product.stock === 0 ? 'bg-red-50 dark:bg-red-900/20' : product.stock < 20 ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''}`}>
                 <td className="border border-gray-200 dark:border-gray-700 px-4 py-2">
                   {product.image ? (
-                    <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded border" />
+                    <img 
+                      src={product.image} 
+                      alt={product.name} 
+                      className="w-12 h-12 object-cover rounded border"
+                      onError={(e) => {
+                        console.log('Image failed to load:', product.image);
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
                   ) : (
                     <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded border flex items-center justify-center">
                       <Image className="h-6 w-6 text-gray-400" />
@@ -459,7 +431,7 @@ const ProductManagement = ({
                 <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-gray-600 dark:text-gray-300">{product.brand}</td>
                 <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-gray-600 dark:text-gray-300">{product.unit}</td>
                 <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-center">{product.gstRate}%</td>
-                <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 font-semibold text-green-600">₹{product.price}</td>
+                <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 font-semibold text-green-600">₹{product.price.toFixed(2)}</td>
                 <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-center font-medium">{product.stock}</td>
                 <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-center">
                   {product.stock === 0 ? (
