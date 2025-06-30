@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Search, FileUp, AlertTriangle } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, FileUp, AlertTriangle, Upload, Image } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import SupplierSelector from './SupplierSelector';
 import { toast } from "@/hooks/use-toast";
@@ -20,6 +20,9 @@ export interface Product {
   description?: string;
   cost_price?: number;
   supplier_id?: string;
+  image?: string;
+  unit_quantity?: number; // e.g., 5 for "5 Litre"
+  unit_type?: string; // e.g., "Litre", "Kg", "Piece"
 }
 
 interface ProductManagementProps {
@@ -38,27 +41,30 @@ const ProductManagement = ({
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [brandFilter, setBrandFilter] = useState('');
 
-  // For receive stock workflow integration
-  const [quantity, setQuantity] = useState(1);
-  const [supplierId, setSupplierId] = useState('');
-  const [costPrice, setCostPrice] = useState<number>(0);
-  const [billFile, setBillFile] = useState<File | null>(null);
+  const categories = ['Paint', 'Primer', 'Thinner', 'Brush', 'Roller', 'Tools', 'Accessories'];
+  const brands = ['Asian Paints', 'Dulux', 'Berger', 'Nerolac', 'Indigo'];
+  const unitTypes = ['Litre', 'Kg', 'Piece', 'Box', 'Sqft', 'Meter'];
 
   const filteredProducts = products
-    .filter(product =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.brand.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .sort((a, b) => (b.stock || 0) - (a.stock || 0)); // Highest stock first
+    .filter(product => {
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           product.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           product.brand.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = categoryFilter === '' || product.type === categoryFilter;
+      const matchesBrand = brandFilter === '' || product.brand === brandFilter;
+      
+      return matchesSearch && matchesCategory && matchesBrand;
+    })
+    .sort((a, b) => (b.stock || 0) - (a.stock || 0));
 
   const generateProductCode = () => {
     const number = (products.length + 1).toString().padStart(3, '0');
     return `SRM${number}`;
   };
 
-  // Unified Add Product / Receive Stock
   const ProductForm = ({
     product,
     onClose,
@@ -79,109 +85,97 @@ const ProductManagement = ({
         gstRate: 18,
         unit: 'Litre',
         description: '',
+        unit_quantity: 1,
+        unit_type: 'Litre',
       }
     );
-    const [localCostPrice, setLocalCostPrice] = useState<number>(product?.cost_price ?? 0);
-    const [localQuantity, setLocalQuantity] = useState<number>(isEdit ? 0 : 1);
-    const [localSupplierId, setLocalSupplierId] = useState<string>(product?.supplier_id ?? '');
-    const [localBillFile, setLocalBillFile] = useState<File | null>(null);
+    const [imageFile, setImageFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
+
+    const handleImageUpload = async (file: File): Promise<string | null> => {
+      try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${formData.code}_${Date.now()}.${fileExt}`;
+        
+        const { data, error } = await supabase.storage
+          .from('product-images')
+          .upload(fileName, file);
+
+        if (error) throw error;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(fileName);
+
+        return publicUrl;
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        return null;
+      }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       setLoading(true);
 
       try {
+        let imageUrl = formData.image;
+        
+        if (imageFile) {
+          imageUrl = await handleImageUpload(imageFile);
+        }
+
         let newProductId = product?.id;
+        const productData = {
+          ...formData,
+          image: imageUrl,
+          unit: `${formData.unit_quantity} ${formData.unit_type}`,
+        };
+
         if (!isEdit) {
-          // Insert product first, then inventory receipt
+          // Add new product
           const { data: inserted, error: insErr } = await supabase
             .from("products")
             .insert({
-              code: formData.code,
-              name: formData.name,
-              brand: formData.brand,
-              type: formData.type,
-              color: formData.color,
-              price: formData.price,
-              gst_rate: formData.gstRate ?? 18,
-              unit: formData.unit,
-              description: formData.description,
-              supplier_id: localSupplierId || null,
-              cost_price: localCostPrice,
-              stock: localQuantity,
+              code: productData.code,
+              name: productData.name,
+              brand: productData.brand,
+              type: productData.type,
+              color: productData.color,
+              price: productData.price,
+              gst_rate: productData.gstRate ?? 18,
+              unit: productData.unit,
+              description: productData.description,
+              stock: productData.stock || 0,
+              image: productData.image,
             })
             .select("*")
             .single();
 
-          if (insErr) {
-            toast({ title: "Error", variant: "destructive", description: insErr.message });
-            setLoading(false);
-            return;
-          }
-          newProductId = inserted.id;
-
-          // Insert opening inventory receipt if initial quantity > 0
-          if (localQuantity > 0) {
-            const { data: receipt, error: recErr } = await supabase
-              .from("inventory_receipts")
-              .insert({
-                product_id: newProductId,
-                supplier_id: localSupplierId || null,
-                quantity: localQuantity,
-                cost_price: localCostPrice,
-                receiving_date: new Date().toISOString().substring(0, 10),
-              })
-              .select("*")
-              .single();
-            if (recErr) throw recErr;
-
-            // Stock movement log
-            await supabase.from("inventory_movements").insert({
-              product_id: newProductId,
-              movement_type: "in",
-              quantity: localQuantity,
-              reason: "Opening stock",
-              related_receipt_id: receipt.id,
-            });
-
-            // Bill upload (if any)
-            if (localBillFile) {
-              const filename = `${receipt.id}_${localBillFile.name}`;
-              const { data: uploadData, error: uploadErr } = await supabase.storage
-                .from("bill-uploads")
-                .upload(filename, localBillFile);
-              if (uploadErr) throw uploadErr;
-              await supabase.from("bill_attachments").insert({
-                receipt_id: receipt.id,
-                file_url: uploadData.path,
-              });
-            }
-          }
+          if (insErr) throw insErr;
+          toast({ title: "Product Added Successfully!" });
         } else {
-          // Update product
+          // Update existing product
           await supabase
             .from("products")
             .update({
-              code: formData.code,
-              name: formData.name,
-              brand: formData.brand,
-              type: formData.type,
-              color: formData.color,
-              price: formData.price,
-              gst_rate: formData.gstRate ?? 18,
-              unit: formData.unit,
-              description: formData.description,
-              supplier_id: localSupplierId || null,
-              cost_price: localCostPrice,
+              name: productData.name,
+              brand: productData.brand,
+              type: productData.type,
+              color: productData.color,
+              price: productData.price,
+              gst_rate: productData.gstRate ?? 18,
+              unit: productData.unit,
+              description: productData.description,
+              image: productData.image,
             })
             .eq("id", product.id);
 
-          toast({ title: "Product updated!" });
+          toast({ title: "Product Updated Successfully!" });
         }
+        
         setLoading(false);
         onClose();
-        toast({ title: isEdit ? "Product Updated" : "Product Added" });
       } catch (err: any) {
         setLoading(false);
         toast({ title: "Error", variant: "destructive", description: err.message });
@@ -190,142 +184,184 @@ const ProductManagement = ({
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-md max-h-screen overflow-y-auto transition-colors">
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-2xl max-h-screen overflow-y-auto transition-colors">
           <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
             {isEdit ? 'Edit Product' : 'Add New Product'}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Product Code</label>
-              <input
-                type="text"
-                value={formData.code}
-                onChange={e => setFormData({ ...formData, code: e.target.value })}
-                className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 transition-colors"
-                required
-                readOnly={isEdit}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Product Name</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={e => setFormData({ ...formData, name: e.target.value })}
-                className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 transition-colors"
-                required
-              />
-            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Brand</label>
+                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Product Code</label>
                 <input
                   type="text"
-                  value={formData.brand}
-                  onChange={e => setFormData({ ...formData, brand: e.target.value })}
-                  className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 transition-colors"
+                  value={formData.code}
+                  onChange={e => setFormData({ ...formData, code: e.target.value })}
+                  className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                   required
+                  readOnly={isEdit}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Type</label>
+                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Item Name</label>
                 <input
                   type="text"
-                  value={formData.type}
-                  onChange={e => setFormData({ ...formData, type: e.target.value })}
-                  className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 transition-colors"
+                  value={formData.name}
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+                  placeholder="e.g., Asian Paints Apex White"
                   required
                 />
               </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Brand Name</label>
+                <select
+                  value={formData.brand}
+                  onChange={e => setFormData({ ...formData, brand: e.target.value })}
+                  className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+                  required
+                >
+                  <option value="">Select Brand</option>
+                  {brands.map(brand => (
+                    <option key={brand} value={brand}>{brand}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Category</label>
+                <select
+                  value={formData.type}
+                  onChange={e => setFormData({ ...formData, type: e.target.value })}
+                  className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+                  required
+                >
+                  <option value="">Select Category</option>
+                  {categories.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Unit Quantity</label>
+                <input
+                  type="number"
+                  value={formData.unit_quantity}
+                  onChange={e => setFormData({ ...formData, unit_quantity: parseFloat(e.target.value) || 1 })}
+                  className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+                  min="0.1"
+                  step="0.1"
+                  placeholder="e.g., 5"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Unit Type</label>
+                <select
+                  value={formData.unit_type}
+                  onChange={e => setFormData({ ...formData, unit_type: e.target.value })}
+                  className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+                  required
+                >
+                  {unitTypes.map(unit => (
+                    <option key={unit} value={unit}>{unit}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">GST (%)</label>
+                <select
+                  value={formData.gstRate}
+                  onChange={e => setFormData({ ...formData, gstRate: parseInt(e.target.value) })}
+                  className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+                >
+                  <option value={5}>5%</option>
+                  <option value={12}>12%</option>
+                  <option value={18}>18%</option>
+                  <option value={28}>28%</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Price per Unit (Excl. GST) (₹)</label>
+                <input
+                  type="number"
+                  value={formData.price}
+                  onChange={e => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                  className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+                  min="0"
+                  step="0.01"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Available Stock</label>
+                <input
+                  type="number"
+                  value={formData.stock}
+                  onChange={e => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
+                  className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+                  min="0"
+                  required
+                />
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Color</label>
               <input
                 type="text"
                 value={formData.color}
                 onChange={e => setFormData({ ...formData, color: e.target.value })}
-                className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 transition-colors"
+                className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+                placeholder="e.g., White, Blue, etc."
                 required
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Price (₹)</label>
-                <input
-                  type="number"
-                  value={formData.price}
-                  onChange={e => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                  className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 transition-colors"
-                  min="0"
-                  step="0.01"
-                  required
-                />
-              </div>
-              {/* Only for Add (not Edit) */}
-              {!isEdit && (
-                <div>
-                  <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Initial Quantity</label>
-                  <input
-                    type="number"
-                    value={localQuantity}
-                    onChange={e => setLocalQuantity(parseInt(e.target.value) || 0)}
-                    className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 transition-colors"
-                    min="0"
-                    required
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Product Photo (optional)</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={e => setImageFile(e.target.files?.[0] || null)}
+                className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+              />
+              {(formData.image || imageFile) && (
+                <div className="mt-2">
+                  <img 
+                    src={imageFile ? URL.createObjectURL(imageFile) : formData.image} 
+                    alt="Product preview" 
+                    className="w-20 h-20 object-cover rounded border"
                   />
                 </div>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              {/* Only for Add (not Edit) */}
-              {!isEdit && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Cost Price (Confidential)</label>
-                    <input
-                      type="number"
-                      value={localCostPrice}
-                      onChange={e => setLocalCostPrice(Number(e.target.value))}
-                      className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 transition-colors"
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Supplier</label>
-                    <SupplierSelector value={localSupplierId} onChange={setLocalSupplierId} />
-                  </div>
-                </>
-              )}
-            </div>
-            {/* Only for Add (not Edit) */}
-            {!isEdit && (
-              <div>
-                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Upload Bill (optional)</label>
-                <input
-                  type="file"
-                  accept="application/pdf,image/*"
-                  onChange={e => setLocalBillFile(e.target.files?.[0] || null)}
-                  className="w-full border rounded p-2"
-                />
-              </div>
-            )}
+
             <div>
-              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Description</label>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Description (optional)</label>
               <textarea
                 value={formData.description}
                 onChange={e => setFormData({ ...formData, description: e.target.value })}
-                className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 transition-colors"
+                className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                 rows={2}
+                placeholder="e.g., For exterior use, weather resistant"
               />
             </div>
+
             <div className="flex gap-2 pt-4">
               <button
                 type="submit"
-                className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
+                className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 flex items-center justify-center"
                 disabled={loading}
               >
-                {isEdit ? 'Update' : 'Add'} Product
+                {loading ? 'Processing...' : (isEdit ? 'Update Product' : 'Add Product')}
               </button>
               <button
                 type="button"
@@ -345,71 +381,120 @@ const ProductManagement = ({
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-6 transition-colors">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Product Database</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Paint Inventory Management</h2>
         <button
           onClick={() => setShowForm(true)}
           className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center"
         >
           <Plus className="mr-2 h-4 w-4" />
-          Add / Receive Product
+          Add New Product
         </button>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-        <input
-          type="text"
-          placeholder="Search products..."
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 transition-colors"
-        />
+      {/* Enhanced Search and Filters */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div className="relative col-span-2">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+          <input
+            type="text"
+            placeholder="Search by name, code, or brand..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+          />
+        </div>
+        <select
+          value={categoryFilter}
+          onChange={e => setCategoryFilter(e.target.value)}
+          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+        >
+          <option value="">All Categories</option>
+          {categories.map(category => (
+            <option key={category} value={category}>{category}</option>
+          ))}
+        </select>
+        <select
+          value={brandFilter}
+          onChange={e => setBrandFilter(e.target.value)}
+          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+        >
+          <option value="">All Brands</option>
+          {brands.map(brand => (
+            <option key={brand} value={brand}>{brand}</option>
+          ))}
+        </select>
       </div>
 
-      {/* Products List */}
-      <div className="space-y-2 max-h-64 overflow-y-auto">
-        {filteredProducts.map((product) => (
-          <div key={product.id} className={`flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 ${product.stock === 0 ? 'bg-gray-100 dark:bg-slate-950 opacity-60' : 'bg-white dark:bg-slate-900'} border-gray-200 dark:border-gray-700 transition-colors`}>
-            <div className="flex-1">
-              <div className="flex items-center gap-3">
-                <span className="font-medium text-blue-600">{product.code}</span>
-                <span className="font-medium text-gray-900 dark:text-white">{product.name}</span>
-                <span className="text-sm text-gray-600 dark:text-gray-300">{product.brand}</span>
-                <span className="text-sm text-gray-600 dark:text-gray-300">₹{product.price}</span>
-                {/* Stock status badge */}
-                <span className={`ml-2 px-2 py-0.5 rounded text-xs font-bold
-                  ${product.stock === 0
-                    ? 'bg-red-200 text-red-700 dark:bg-red-900 dark:text-red-200'
-                    : product.stock < 20
-                    ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                    : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                  }
-                `}>
-                  {product.stock === 0 ? "Out of Stock" : product.stock < 20 ? "Low Stock" : "In Stock"}
-                </span>
-                <span className="text-sm text-gray-600 dark:text-gray-300">Stock: {product.stock}</span>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  setEditingProduct(product);
-                  setShowForm(true);
-                }}
-                className="text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950 p-1 rounded"
-              >
-                <Edit className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => onDeleteProduct(product.id)}
-                className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900 p-1 rounded"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        ))}
+      {/* Enhanced Products Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse border border-gray-200 dark:border-gray-700">
+          <thead className="bg-gray-50 dark:bg-slate-700">
+            <tr>
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Image</th>
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Product ID</th>
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Item Name</th>
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Brand</th>
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Unit</th>
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">GST %</th>
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Rate/Unit (₹)</th>
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Stock</th>
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Alert</th>
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700">
+            {filteredProducts.map((product) => (
+              <tr key={product.id} className={`hover:bg-gray-50 dark:hover:bg-slate-700 ${product.stock === 0 ? 'bg-red-50 dark:bg-red-900/20' : product.stock < 20 ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''}`}>
+                <td className="border border-gray-200 dark:border-gray-700 px-4 py-2">
+                  {product.image ? (
+                    <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded border" />
+                  ) : (
+                    <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded border flex items-center justify-center">
+                      <Image className="h-6 w-6 text-gray-400" />
+                    </div>
+                  )}
+                </td>
+                <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 font-mono text-sm text-blue-600 dark:text-blue-400">{product.code}</td>
+                <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 font-medium text-gray-900 dark:text-white">{product.name}</td>
+                <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-gray-600 dark:text-gray-300">{product.brand}</td>
+                <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-gray-600 dark:text-gray-300">{product.unit}</td>
+                <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-center">{product.gstRate}%</td>
+                <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 font-semibold text-green-600">₹{product.price}</td>
+                <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-center font-medium">{product.stock}</td>
+                <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-center">
+                  {product.stock === 0 ? (
+                    <span className="text-red-600 font-bold">OUT OF STOCK</span>
+                  ) : product.stock < 20 ? (
+                    <AlertTriangle className="h-5 w-5 text-yellow-500 mx-auto" />
+                  ) : (
+                    <span className="text-green-600">✓</span>
+                  )}
+                </td>
+                <td className="border border-gray-200 dark:border-gray-700 px-4 py-2">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setEditingProduct(product);
+                        setShowForm(true);
+                      }}
+                      className="text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950 p-1 rounded"
+                      title="Edit Product"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => onDeleteProduct(product.id)}
+                      className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900 p-1 rounded"
+                      title="Delete Product"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {filteredProducts.length === 0 && (
@@ -417,6 +502,26 @@ const ProductManagement = ({
           No products found. Add your first product to get started.
         </div>
       )}
+
+      {/* Summary Stats */}
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+          <h3 className="font-semibold text-blue-900 dark:text-blue-200">Total Products</h3>
+          <p className="text-2xl font-bold text-blue-600">{products.length}</p>
+        </div>
+        <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
+          <h3 className="font-semibold text-green-900 dark:text-green-200">In Stock</h3>
+          <p className="text-2xl font-bold text-green-600">{products.filter(p => p.stock > 0).length}</p>
+        </div>
+        <div className="bg-yellow-50 dark:bg-yellow-900/30 p-4 rounded-lg">
+          <h3 className="font-semibold text-yellow-900 dark:text-yellow-200">Low Stock</h3>
+          <p className="text-2xl font-bold text-yellow-600">{products.filter(p => p.stock > 0 && p.stock < 20).length}</p>
+        </div>
+        <div className="bg-red-50 dark:bg-red-900/30 p-4 rounded-lg">
+          <h3 className="font-semibold text-red-900 dark:text-red-200">Out of Stock</h3>
+          <p className="text-2xl font-bold text-red-600">{products.filter(p => p.stock === 0).length}</p>
+        </div>
+      </div>
 
       {/* Form Modal */}
       {showForm && (
@@ -433,4 +538,3 @@ const ProductManagement = ({
 };
 
 export default ProductManagement;
-
