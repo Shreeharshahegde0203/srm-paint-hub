@@ -28,7 +28,6 @@ interface InvoiceData {
   total: number;
 }
 
-// Plain JS access to company info (since context not available in pure JS file)
 let _companyInfo: any;
 export function setCompanyInfoForPDF(companyInfo: any) {
   _companyInfo = companyInfo;
@@ -38,30 +37,27 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
   const company = _companyInfo || {
     name: "SHREERAM MARKETING",
     tagline: "Premium Paints & Coatings Dealer",
-    address: "[Your Address Here]",
+    address: "Shreeram, Nadigalli, Sira-561401",
     phone: "[Your Phone]",
     email: "[Your Email]",
-    gstin: "[Your GSTIN Number]",
+    gstin: "GAGDTEK5585196",
     logoUrl: "",
     footer: "Thank you for your business!\\nVisit us again for all your paint needs.",
     terms: "This is a computer generated invoice and does not require signature.\\nTerms & Conditions: Payment due within 30 days. All disputes subject to local jurisdiction.",
     invoiceColors: { primary: "#1e3a8a", accent: "#dc2626", text: "#333" }
   };
 
-  // Create new window for invoice
   const printWindow = window.open('', '_blank', 'width=800,height=600');
   if (!printWindow) {
     alert('Please allow popups to download the invoice');
     return;
   }
 
-  // escapeHTML helper for user content
   const escapeHTML = (str: string = "") =>
     str.replace(/[&<>"']/g, m =>
       ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m] || m)
     );
 
-  // Format logo HTML
   const logoHTML = company.logoUrl
     ? `<img src="${company.logoUrl}" alt="Logo" style="max-height:48px;" />`
     : `<span style="font-size:28px;font-weight:bold;color:${company.invoiceColors.primary};">SRM</span>`;
@@ -72,23 +68,24 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
     <head>
       <title>Invoice ${invoice.invoiceNumber}</title>
       <style>
-        body { font-family: Arial, sans-serif; margin: 20px; color: ${company.invoiceColors.text}; }
-        .header { text-align: center; border-bottom: 2px solid ${company.invoiceColors.accent}; padding-bottom: 20px; margin-bottom: 20px; }
-        .logo { margin-bottom: 5px; }
-        .company-name { font-size: 24px; font-weight: bold; color: ${company.invoiceColors.accent}; margin-bottom: 5px; }
+        body { font-family: Arial, sans-serif; margin: 20px; color: ${company.invoiceColors.text}; line-height: 1.4; }
+        .header { text-align: center; border-bottom: 3px solid ${company.invoiceColors.accent}; padding-bottom: 20px; margin-bottom: 30px; }
+        .logo { margin-bottom: 10px; }
+        .company-name { font-size: 28px; font-weight: bold; color: ${company.invoiceColors.accent}; margin-bottom: 8px; }
         .company-details { font-size: 14px; color: #666; }
-        .invoice-info { display: flex; justify-content: space-between; margin-bottom: 20px; }
-        .customer-info { margin-bottom: 20px; }
-        .info-box { border: 1px solid #ddd; padding: 15px; border-radius: 5px; }
-        .table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        .table th, .table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        .table th { background-color: #f8f9fa; font-weight: bold; }
+        .invoice-info { display: flex; justify-content: space-between; margin-bottom: 30px; }
+        .info-box { border: 2px solid #ddd; padding: 20px; border-radius: 8px; width: 45%; }
+        .info-box h3 { margin: 0 0 10px 0; color: ${company.invoiceColors.primary}; font-size: 16px; }
+        .table { width: 100%; border-collapse: collapse; margin: 30px 0; }
+        .table th, .table td { border: 1px solid #ddd; padding: 12px 8px; text-align: left; }
+        .table th { background-color: #f8f9fa; font-weight: bold; color: ${company.invoiceColors.primary}; }
         .text-right { text-align: right; }
-        .total-section { margin-top: 20px; }
-        .total-row { display: flex; justify-content: space-between; margin: 5px 0; }
-        .final-total { font-weight: bold; font-size: 18px; border-top: 2px solid #333; padding-top: 10px; }
-        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; }
-        .gst-details { margin-top: 20px; font-size: 12px; }
+        .text-center { text-align: center; }
+        .total-section { margin-top: 30px; }
+        .total-row { display: flex; justify-content: space-between; margin: 8px 0; padding: 5px 0; }
+        .final-total { font-weight: bold; font-size: 20px; border-top: 2px solid #333; padding-top: 15px; color: ${company.invoiceColors.accent}; }
+        .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; }
+        .terms { margin-top: 30px; font-size: 12px; line-height: 1.6; }
         @media print { body { margin: 0; } }
       </style>
     </head>
@@ -105,18 +102,18 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
       </div>
 
       <div class="invoice-info">
-        <div class="info-box" style="width: 45%;">
+        <div class="info-box">
           <h3>Invoice Details</h3>
-          <strong>Invoice No:</strong> ${invoice.invoiceNumber}<br>
-          <strong>Date:</strong> ${invoice.date}<br>
-          <strong>Time:</strong> ${invoice.time}
+          <strong>Invoice No:</strong> ${escapeHTML(invoice.invoiceNumber)}<br>
+          <strong>Date:</strong> ${escapeHTML(invoice.date)}<br>
+          <strong>Time:</strong> ${escapeHTML(invoice.time)}
         </div>
-        <div class="info-box" style="width: 45%;">
+        <div class="info-box">
           <h3>Bill To</h3>
           <strong>${escapeHTML(invoice.customer.name)}</strong><br>
-          Phone: ${escapeHTML(invoice.customer.phone)}<br>
+          ${invoice.customer.phone ? `Phone: ${escapeHTML(invoice.customer.phone)}<br>` : ''}
           ${invoice.customer.email ? `Email: ${escapeHTML(invoice.customer.email)}<br>` : ''}
-          Address: ${escapeHTML(invoice.customer.address)}<br>
+          ${invoice.customer.address ? `Address: ${escapeHTML(invoice.customer.address)}<br>` : ''}
           ${invoice.customer.gstin ? `GSTIN: ${escapeHTML(invoice.customer.gstin)}` : ''}
         </div>
       </div>
@@ -124,26 +121,26 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
       <table class="table">
         <thead>
           <tr>
-            <th>S.No</th>
+            <th class="text-center">S.No</th>
             <th>Product Code</th>
             <th>Description</th>
-            <th>Qty</th>
-            <th>Rate</th>
-            <th>Amount</th>
-            <th>GST %</th>
-            <th>Total</th>
+            <th class="text-center">Qty</th>
+            <th class="text-right">Rate</th>
+            <th class="text-right">Amount</th>
+            <th class="text-center">GST %</th>
+            <th class="text-right">Total</th>
           </tr>
         </thead>
         <tbody>
           ${invoice.items.map((item, index) => `
             <tr>
-              <td>${index + 1}</td>
+              <td class="text-center">${index + 1}</td>
               <td>${escapeHTML(item.product.code)}</td>
               <td>${escapeHTML(item.product.name)}</td>
-              <td>${item.quantity}</td>
+              <td class="text-center">${item.quantity}</td>
               <td class="text-right">₹${item.unitPrice.toFixed(2)}</td>
               <td class="text-right">₹${(item.quantity * item.unitPrice).toFixed(2)}</td>
-              <td class="text-right">${item.product.gstRate}%</td>
+              <td class="text-center">${item.product.gstRate}%</td>
               <td class="text-right">₹${item.total.toFixed(2)}</td>
             </tr>
           `).join('')}
@@ -156,14 +153,18 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
             <span>Subtotal:</span>
             <span>₹${invoice.subtotal.toFixed(2)}</span>
           </div>
+          ${invoice.discount > 0 ? `
           <div class="total-row">
             <span>Discount:</span>
             <span>-₹${invoice.discount.toFixed(2)}</span>
           </div>
+          ` : ''}
+          ${invoice.tax > 0 ? `
           <div class="total-row">
             <span>CGST + SGST (18%):</span>
             <span>₹${invoice.tax.toFixed(2)}</span>
           </div>
+          ` : ''}
           <div class="total-row final-total">
             <span>Grand Total:</span>
             <span>₹${invoice.total.toFixed(2)}</span>
@@ -171,8 +172,8 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
         </div>
       </div>
 
-      <div class="gst-details">
-        <strong>GST Details:</strong><br>
+      <div class="terms">
+        <strong>Terms & Conditions:</strong><br>
         ${(company.terms || "").replace(/\\n/g, "<br>")}
       </div>
 
@@ -187,8 +188,7 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
   printWindow.document.close();
   printWindow.focus();
 
-  // Auto print after delay
   setTimeout(() => {
     printWindow.print();
-  }, 800);
+  }, 1000);
 };
