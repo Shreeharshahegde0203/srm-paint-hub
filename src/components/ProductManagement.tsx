@@ -22,6 +22,7 @@ export interface Product {
   image?: string;
   unit_quantity?: number;
   unit_type?: string;
+  hsn_code?: string;
 }
 
 interface ProductManagementProps {
@@ -52,10 +53,10 @@ const ProductManagement = ({
   // Only Dulux and Indigo brands
   const brands = ['Dulux', 'Indigo'];
   
-  // Dynamic unit types based on category
+  // Extended unit types including inches
   const getUnitTypes = (category: string) => {
-    if (['Other', 'Accessories', 'Roller'].includes(category)) {
-      return ['1 Inch', '2 Inch', '3 Inch', '4 Inch', '5 Inch', '6 Inch', '7 Inch', '8 Inch', '9 Inch', '10 Inch'];
+    if (['Brush', 'Roller', 'Tools', 'Accessories', 'Other'].includes(category)) {
+      return ['1 Inch', '2 Inch', '3 Inch', '4 Inch', '5 Inch', '6 Inch', '7 Inch', '8 Inch', '9 Inch', '10 Inch', 'Piece'];
     }
     return ['Litre', 'Kg', 'Piece', 'Box', 'Sqft', 'Meter'];
   };
@@ -99,6 +100,7 @@ const ProductManagement = ({
         description: '',
         unit_quantity: 1,
         unit_type: 'Litre',
+        hsn_code: '',
       }
     );
     const [imageFile, setImageFile] = useState<File | null>(null);
@@ -180,16 +182,27 @@ const ProductManagement = ({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Item Name</label>
+                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">HSN Code</label>
                 <input
                   type="text"
-                  value={formData.name || ''}
-                  onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  value={formData.hsn_code || ''}
+                  onChange={e => setFormData({ ...formData, hsn_code: e.target.value })}
                   className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
-                  placeholder="e.g., Dulux Velvet Touch White"
-                  required
+                  placeholder="e.g., 3208"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Item Name</label>
+              <input
+                type="text"
+                value={formData.name || ''}
+                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+                placeholder="e.g., Dulux Velvet Touch White"
+                required
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -237,8 +250,8 @@ const ProductManagement = ({
                   value={formData.unit_quantity || 1}
                   onChange={e => setFormData({ ...formData, unit_quantity: parseFloat(e.target.value) || 1 })}
                   className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
-                  min="0.1"
-                  step="0.1"
+                  min="0.5"
+                  step="0.5"
                   placeholder="e.g., 5"
                   required
                 />
@@ -292,6 +305,7 @@ const ProductManagement = ({
                   onChange={e => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
                   className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                   min="0"
+                  step="0.5"
                   required
                 />
               </div>
@@ -420,6 +434,7 @@ const ProductManagement = ({
             <tr>
               <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Image</th>
               <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Product Code</th>
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">HSN Code</th>
               <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Item Name</th>
               <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Brand</th>
               <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Category</th>
@@ -443,7 +458,7 @@ const ProductManagement = ({
                       onError={(e) => {
                         console.log('Image failed to load:', product.image);
                         e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling.style.display = 'flex';
+                        e.currentTarget.nextElementSibling!.style.display = 'flex';
                       }}
                     />
                   ) : null}
@@ -452,6 +467,7 @@ const ProductManagement = ({
                   </div>
                 </td>
                 <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 font-mono text-sm text-blue-600 dark:text-blue-400">{product.code}</td>
+                <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 font-mono text-sm text-gray-600 dark:text-gray-400">{product.hsn_code || '-'}</td>
                 <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 font-medium text-gray-900 dark:text-white">{product.name}</td>
                 <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-gray-600 dark:text-gray-300">{product.brand}</td>
                 <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-gray-600 dark:text-gray-300">{product.type}</td>

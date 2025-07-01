@@ -27,6 +27,7 @@ const Inventory = () => {
     gstRate: product.gst_rate, // map Supabase's gst_rate to gstRate
     unit_quantity: parseFloat(product.unit?.split(' ')[0]) || 1,
     unit_type: product.unit?.split(' ').slice(1).join(' ') || 'Piece',
+    hsn_code: product.hsn_code, // Add HSN code mapping
   }));
 
   const handleAddProduct = async (productData: Omit<Product, 'id'>) => {
@@ -42,6 +43,7 @@ const Inventory = () => {
       unit: productData.unit || "1 Piece",
       description: productData.description,
       image: productData.image,
+      hsn_code: productData.hsn_code,
     };
 
     await addProduct(payload as TablesInsert<"products">);
@@ -58,6 +60,7 @@ const Inventory = () => {
       unit: productData.unit,
       description: productData.description,
       image: productData.image,
+      hsn_code: productData.hsn_code,
     };
 
     await updateProduct({ id, product: payload as TablesUpdate<"products"> });

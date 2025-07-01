@@ -240,6 +240,7 @@ export type Database = {
       }
       invoices: {
         Row: {
+          bill_type: string | null
           billing_mode: string | null
           created_at: string | null
           created_by: string | null
@@ -251,6 +252,7 @@ export type Database = {
           total: number
         }
         Insert: {
+          bill_type?: string | null
           billing_mode?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -262,6 +264,7 @@ export type Database = {
           total: number
         }
         Update: {
+          bill_type?: string | null
           billing_mode?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -329,6 +332,7 @@ export type Database = {
           description: string | null
           expiry_date: string | null
           gst_rate: number
+          hsn_code: string | null
           id: string
           image: string | null
           last_received_date: string | null
@@ -352,6 +356,7 @@ export type Database = {
           description?: string | null
           expiry_date?: string | null
           gst_rate?: number
+          hsn_code?: string | null
           id?: string
           image?: string | null
           last_received_date?: string | null
@@ -375,6 +380,7 @@ export type Database = {
           description?: string | null
           expiry_date?: string | null
           gst_rate?: number
+          hsn_code?: string | null
           id?: string
           image?: string | null
           last_received_date?: string | null

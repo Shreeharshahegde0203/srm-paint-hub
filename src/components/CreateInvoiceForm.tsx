@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2, Search, Calendar } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
@@ -41,12 +42,13 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
   const [customerGstin, setCustomerGstin] = useState('');
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
   const [invoiceStatus, setInvoiceStatus] = useState('pending');
+  const [billType, setBillType] = useState<'gst' | 'non_gst' | 'casual'>('gst');
   
   // Add Items Form
   const [productCode, setProductCode] = useState('');
   const [itemName, setItemName] = useState('');
   const [perUnit, setPerUnit] = useState(1);
-  const [units, setUnits] = useState('liter');
+  const [units, setUnits] = useState('litre');
   const [gstPercent, setGstPercent] = useState(18);
   const [amountPerUnit, setAmountPerUnit] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -56,6 +58,9 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
   
   const [loading, setLoading] = useState(false);
   const [showProductDropdown, setShowProductDropdown] = useState(false);
+
+  // Unit types including inches
+  const unitTypes = ['litre', 'kg', '1 inch', '2 inch', '3 inch', '4 inch', '5 inch', '6 inch', '7 inch', '8 inch', '9 inch', '10 inch'];
 
   const filteredProducts = products?.filter(product =>
     product.name?.toLowerCase().includes(itemName.toLowerCase()) ||
@@ -67,8 +72,16 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
     setItemName(product.name);
     setAmountPerUnit(product.price);
     setGstPercent(product.gst_rate || 18);
-    setUnits(product.unit || 'liter');
+    setUnits(product.unit?.split(' ').slice(1).join(' ').toLowerCase() || 'litre');
     setShowProductDropdown(false);
+  };
+
+  const validateQuantity = (value: number) => {
+    // Allow only whole numbers or 0.5
+    if (value % 1 === 0 || value % 1 === 0.5) {
+      return value;
+    }
+    return Math.floor(value) + (value % 1 >= 0.25 ? 0.5 : 0);
   };
 
   const handleAddItem = () => {
@@ -77,7 +90,8 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
       return;
     }
 
-    const total = quantity * amountPerUnit;
+    const validatedQuantity = validateQuantity(quantity);
+    const total = validatedQuantity * amountPerUnit;
 
     const newItem: InvoiceItem = {
       id: Date.now().toString(),
@@ -85,9 +99,9 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
       itemName,
       perUnit,
       units,
-      gstPercent,
+      gstPercent: billType === 'non_gst' ? 0 : gstPercent,
       amountPerUnit,
-      quantity,
+      quantity: validatedQuantity,
       total,
     };
 
@@ -97,7 +111,7 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
     setProductCode('');
     setItemName('');
     setPerUnit(1);
-    setUnits('liter');
+    setUnits('litre');
     setGstPercent(18);
     setAmountPerUnit(0);
     setQuantity(1);
@@ -141,7 +155,8 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
           customer_id: newCustomer.id,
           total: grandTotal,
           status: invoiceStatus,
-          billing_mode: 'with_gst',
+          billing_mode: billType === 'gst' ? 'with_gst' : 'without_gst',
+          bill_type: billType,
         })
         .select('*')
         .single();
@@ -157,7 +172,7 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
             .insert({
               invoice_id: invoice.id,
               product_id: product.id,
-              quantity: item.quantity,
+              quantity: item.quantity * item.perUnit,
               price: item.amountPerUnit,
             });
             
@@ -175,6 +190,88 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
     }
   };
 
+  const renderItemsTable = () => {
+    if (billType === 'casual') {
+      return (
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse border border-gray-200 dark:border-gray-700">
+            <thead className="bg-gray-50 dark:bg-slate-700">
+              <tr>
+                <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-gray-700 dark:text-gray-300">Product Name</th>
+                <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-gray-700 dark:text-gray-300">Quantity</th>
+                <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-gray-700 dark:text-gray-300">Unit Type</th>
+                <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-gray-700 dark:text-gray-300">Per Unit</th>
+                <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-center text-gray-700 dark:text-gray-300">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {invoiceItems.map((item) => (
+                <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-slate-700">
+                  <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-gray-900 dark:text-white">{item.itemName}</td>
+                  <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-gray-900 dark:text-white">{item.quantity}</td>
+                  <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-gray-900 dark:text-white">{item.units}</td>
+                  <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-gray-900 dark:text-white">{item.perUnit}</td>
+                  <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-center">
+                    <button
+                      onClick={() => removeItem(item.id)}
+                      className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900 p-2 rounded"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse border border-gray-200 dark:border-gray-700">
+          <thead className="bg-gray-50 dark:bg-slate-700">
+            <tr>
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-gray-700 dark:text-gray-300">Product Code</th>
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-gray-700 dark:text-gray-300">Description</th>
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-gray-700 dark:text-gray-300">Quantity</th>
+              {billType !== 'non_gst' && (
+                <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-gray-700 dark:text-gray-300">GST %</th>
+              )}
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-gray-700 dark:text-gray-300">Rate/Unit (₹)</th>
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-gray-700 dark:text-gray-300">Amount (₹)</th>
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-center text-gray-700 dark:text-gray-300">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {invoiceItems.map((item) => (
+              <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-slate-700">
+                <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-gray-900 dark:text-white font-mono">{item.productCode}</td>
+                <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-gray-900 dark:text-white">{item.itemName}</td>
+                <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-gray-900 dark:text-white">
+                  {item.quantity} × {item.perUnit} {item.units}
+                </td>
+                {billType !== 'non_gst' && (
+                  <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-gray-900 dark:text-white">{item.gstPercent}%</td>
+                )}
+                <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-gray-900 dark:text-white">₹{item.amountPerUnit.toFixed(2)}</td>
+                <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-gray-900 dark:text-white font-medium">₹{item.total.toFixed(2)}</td>
+                <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-center">
+                  <button
+                    onClick={() => removeItem(item.id)}
+                    className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900 p-2 rounded"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white dark:bg-slate-800 rounded-xl w-full max-w-6xl max-h-screen overflow-y-auto">
@@ -184,6 +281,46 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
             <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
               <X className="h-6 w-6" />
             </button>
+          </div>
+
+          {/* Bill Type Selection */}
+          <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg mb-6">
+            <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Select Bill Type</h3>
+            <div className="flex gap-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="billType"
+                  value="gst"
+                  checked={billType === 'gst'}
+                  onChange={(e) => setBillType(e.target.value as 'gst')}
+                  className="mr-2"
+                />
+                <span className="text-gray-700 dark:text-gray-300">GST Bill</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="billType"
+                  value="non_gst"
+                  checked={billType === 'non_gst'}
+                  onChange={(e) => setBillType(e.target.value as 'non_gst')}
+                  className="mr-2"
+                />
+                <span className="text-gray-700 dark:text-gray-300">Non-GST Bill</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="billType"
+                  value="casual"
+                  checked={billType === 'casual'}
+                  onChange={(e) => setBillType(e.target.value as 'casual')}
+                  className="mr-2"
+                />
+                <span className="text-gray-700 dark:text-gray-300">Casual Bill</span>
+              </label>
+            </div>
           </div>
 
           {/* Customer Details Section */}
@@ -200,16 +337,18 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
                   required
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">Customer GSTIN (Optional)</label>
-                <input
-                  type="text"
-                  value={customerGstin}
-                  onChange={(e) => setCustomerGstin(e.target.value)}
-                  className="w-full p-3 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
-                  placeholder="Enter GSTIN"
-                />
-              </div>
+              {billType === 'gst' && (
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">Customer GSTIN (Optional)</label>
+                  <input
+                    type="text"
+                    value={customerGstin}
+                    onChange={(e) => setCustomerGstin(e.target.value)}
+                    className="w-full p-3 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+                    placeholder="Enter GSTIN"
+                  />
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">Invoice Date</label>
                 <div className="relative">
@@ -284,7 +423,7 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
                           className="p-3 hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer border-b last:border-b-0 border-gray-200 dark:border-gray-600"
                         >
                           <div className="font-medium text-gray-900 dark:text-white">{product.code} - {product.name}</div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">{product.brand} - ₹{product.price}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">{product.brand} - ₹{product.price} {billType !== 'non_gst' && `(GST: ${product.gst_rate}%)`}</div>
                         </div>
                       ))}
                     </div>
@@ -304,8 +443,8 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
                   value={quantity}
                   onChange={(e) => setQuantity(parseFloat(e.target.value) || 1)}
                   className="w-full p-3 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
-                  min="0.1"
-                  step="0.1"
+                  min="0.5"
+                  step="0.5"
                 />
               </div>
               <div>
@@ -317,49 +456,55 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
                   value={perUnit}
                   onChange={(e) => setPerUnit(parseFloat(e.target.value) || 1)}
                   className="w-full p-3 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
-                  min="0.1"
-                  step="0.1"
+                  min="0.5"
+                  step="0.5"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
                   Units <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
+                <select
                   value={units}
                   onChange={(e) => setUnits(e.target.value)}
                   className="w-full p-3 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
-                  placeholder="liter"
-                />
+                >
+                  {unitTypes.map(unit => (
+                    <option key={unit} value={unit}>{unit}</option>
+                  ))}
+                </select>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
-                  GST % <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  value={gstPercent}
-                  onChange={(e) => setGstPercent(parseFloat(e.target.value) || 18)}
-                  className="w-full p-3 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
-                  Amount Per Unit (Incl. GST) <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  value={amountPerUnit}
-                  onChange={(e) => setAmountPerUnit(parseFloat(e.target.value) || 0)}
-                  className="w-full p-3 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
+              {billType !== 'non_gst' && (
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
+                    GST % <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={gstPercent}
+                    onChange={(e) => setGstPercent(parseFloat(e.target.value) || 18)}
+                    className="w-full p-3 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                  />
+                </div>
+              )}
+              {billType !== 'casual' && (
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
+                    Amount Per Unit {billType === 'gst' ? '(Incl. GST)' : ''} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={amountPerUnit}
+                    onChange={(e) => setAmountPerUnit(parseFloat(e.target.value) || 0)}
+                    className="w-full p-3 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+              )}
             </div>
 
             <button
@@ -374,50 +519,16 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
           {invoiceItems.length > 0 && (
             <div className="mb-6">
               <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Invoice Items</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse border border-gray-200 dark:border-gray-700">
-                  <thead className="bg-gray-50 dark:bg-slate-700">
-                    <tr>
-                      <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-gray-700 dark:text-gray-300">Product Code</th>
-                      <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-gray-700 dark:text-gray-300">Description</th>
-                      <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-gray-700 dark:text-gray-300">Quantity</th>
-                      <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-gray-700 dark:text-gray-300">GST %</th>
-                      <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-gray-700 dark:text-gray-300">Rate/Unit (₹)</th>
-                      <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-left text-gray-700 dark:text-gray-300">Amount (₹)</th>
-                      <th className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-center text-gray-700 dark:text-gray-300">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {invoiceItems.map((item) => (
-                      <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-slate-700">
-                        <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-gray-900 dark:text-white font-mono">{item.productCode}</td>
-                        <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-gray-900 dark:text-white">{item.itemName}</td>
-                        <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-gray-900 dark:text-white">
-                          {item.quantity} × {item.perUnit} {item.units}
-                        </td>
-                        <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-gray-900 dark:text-white">{item.gstPercent}%</td>
-                        <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-gray-900 dark:text-white">₹{item.amountPerUnit.toFixed(2)}</td>
-                        <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-gray-900 dark:text-white font-medium">₹{item.total.toFixed(2)}</td>
-                        <td className="border border-gray-200 dark:border-gray-700 px-4 py-3 text-center">
-                          <button
-                            onClick={() => removeItem(item.id)}
-                            className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900 p-2 rounded"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              {renderItemsTable()}
 
-              {/* Grand Total */}
-              <div className="mt-4 text-right">
-                <div className="text-xl font-bold text-gray-900 dark:text-white">
-                  Grand Total: ₹{calculateGrandTotal().toFixed(2)}
+              {/* Grand Total - Only for GST and Non-GST bills */}
+              {billType !== 'casual' && (
+                <div className="mt-4 text-right">
+                  <div className="text-xl font-bold text-gray-900 dark:text-white">
+                    Grand Total: ₹{calculateGrandTotal().toFixed(2)}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
