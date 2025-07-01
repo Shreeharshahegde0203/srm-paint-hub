@@ -69,6 +69,7 @@ const Billing = () => {
             name: prod?.name || "",
             code: prod?.code || "",
             gstRate: prod?.gst_rate || 18,
+            hsn_code: prod?.hsn_code || "",
           },
           quantity: item.quantity,
           unitPrice: item.price,
@@ -79,6 +80,7 @@ const Billing = () => {
       discount: 0,
       tax: gstAmount,
       total,
+      billType: invoice.bill_type as 'gst' | 'non_gst' | 'casual',
     });
   };
 

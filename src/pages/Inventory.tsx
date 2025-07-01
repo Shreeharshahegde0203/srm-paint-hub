@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter, Edit, Trash2, Package, AlertTriangle } from 'lucide-react';
 import { Product } from '../data/products';
@@ -29,7 +30,7 @@ const Inventory = () => {
     hsn_code: product.hsn_code, // Add HSN code mapping
   }));
 
-  const handleAddProduct = async (productData: Omit<Product, 'id'>) => {
+  const handleAddProduct = async (productData: Omit<Product, 'id'> & { hsn_code?: string }) => {
     const payload: any = {
       code: productData.code,
       name: productData.name,
@@ -48,7 +49,7 @@ const Inventory = () => {
     await addProduct(payload as TablesInsert<"products">);
   };
 
-  const handleUpdateProduct = async (id: string, productData: Partial<Product>) => {
+  const handleUpdateProduct = async (id: string, productData: Partial<Product> & { hsn_code?: string }) => {
     const payload: any = {
       name: productData.name,
       brand: productData.brand,

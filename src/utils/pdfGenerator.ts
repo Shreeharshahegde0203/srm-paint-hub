@@ -17,6 +17,7 @@ interface InvoiceData {
       name: string;
       code: string;
       gstRate: number;
+      hsn_code?: string;
     };
     quantity: number;
     unitPrice: number;
@@ -26,6 +27,7 @@ interface InvoiceData {
   discount: number;
   tax: number;
   total: number;
+  billType?: 'gst' | 'non_gst' | 'casual';
 }
 
 let _companyInfo: any;
@@ -36,14 +38,14 @@ export function setCompanyInfoForPDF(companyInfo: any) {
 export const generateInvoicePDF = (invoice: InvoiceData) => {
   const company = _companyInfo || {
     name: "SHREERAM MARKETING",
-    tagline: "Premium Paints & Coatings Dealer",
-    address: "Shreeram, Nadigalli, Sira-561401",
-    phone: "[Your Phone]",
-    email: "[Your Email]",
-    gstin: "GAGDTEK5585196",
+    tagline: "Shreeram Building, Nadigalli, SIRSI-581401 (U.K.)",
+    address: "Dealers in: ICI, Dulux Paints, Indigo Paints and Painting Assessories",
+    phone: "M: 9448376055",
+    email: "",
+    gstin: "",
     logoUrl: "",
-    footer: "Thank you for your business!\\nVisit us again for all your paint needs.",
-    terms: "This is a computer generated invoice and does not require signature.\\nTerms & Conditions: Payment due within 30 days. All disputes subject to local jurisdiction.",
+    footer: "* Goods once sold cannot be taken back or exchanged.\n* All disputes are Subject to Sirsi Jurisdiction.",
+    terms: "",
     invoiceColors: { primary: "#1e3a8a", accent: "#dc2626", text: "#333" }
   };
 
@@ -58,131 +60,238 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
       ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m] || m)
     );
 
-  const logoHTML = company.logoUrl
-    ? `<img src="${company.logoUrl}" alt="Logo" style="max-height:48px;" />`
-    : `<span style="font-size:28px;font-weight:bold;color:${company.invoiceColors.primary};">SRM</span>`;
+  let invoiceHTML = '';
 
-  const invoiceHTML = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Invoice ${invoice.invoiceNumber}</title>
-      <style>
-        body { font-family: Arial, sans-serif; margin: 20px; color: ${company.invoiceColors.text}; line-height: 1.4; }
-        .header { text-align: center; border-bottom: 3px solid ${company.invoiceColors.accent}; padding-bottom: 20px; margin-bottom: 30px; }
-        .logo { margin-bottom: 10px; }
-        .company-name { font-size: 28px; font-weight: bold; color: ${company.invoiceColors.accent}; margin-bottom: 8px; }
-        .company-details { font-size: 14px; color: #666; }
-        .invoice-info { display: flex; justify-content: space-between; margin-bottom: 30px; }
-        .info-box { border: 2px solid #ddd; padding: 20px; border-radius: 8px; width: 45%; }
-        .info-box h3 { margin: 0 0 10px 0; color: ${company.invoiceColors.primary}; font-size: 16px; }
-        .table { width: 100%; border-collapse: collapse; margin: 30px 0; }
-        .table th, .table td { border: 1px solid #ddd; padding: 12px 8px; text-align: left; }
-        .table th { background-color: #f8f9fa; font-weight: bold; color: ${company.invoiceColors.primary}; }
-        .text-right { text-align: right; }
-        .text-center { text-align: center; }
-        .total-section { margin-top: 30px; }
-        .total-row { display: flex; justify-content: space-between; margin: 8px 0; padding: 5px 0; }
-        .final-total { font-weight: bold; font-size: 20px; border-top: 2px solid #333; padding-top: 15px; color: ${company.invoiceColors.accent}; }
-        .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; }
-        .terms { margin-top: 30px; font-size: 12px; line-height: 1.6; }
-        @media print { body { margin: 0; } }
-      </style>
-    </head>
-    <body>
-      <div class="header">
-        <div class="logo">${logoHTML}</div>
-        <div class="company-name">${escapeHTML(company.name)}</div>
-        <div class="company-details">
+  if (invoice.billType === 'casual') {
+    // Casual Bill Format - Thermal Printer Style
+    invoiceHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Casual Bill ${invoice.invoiceNumber}</title>
+        <style>
+          body { font-family: 'Courier New', monospace; margin: 20px; font-size: 12px; line-height: 1.4; }
+          .center { text-align: center; }
+          .divider { border-top: 1px dashed #000; margin: 10px 0; }
+          .header { font-weight: bold; margin-bottom: 15px; }
+          .item-row { display: flex; justify-content: space-between; margin: 2px 0; }
+          .footer { margin-top: 20px; font-size: 10px; }
+          @media print { body { margin: 0; font-size: 10px; } }
+        </style>
+      </head>
+      <body>
+        <div class="center header">
+          ${escapeHTML(company.name)}<br>
           ${escapeHTML(company.tagline)}<br>
-          Address: ${escapeHTML(company.address)}<br>
-          Phone: ${escapeHTML(company.phone)} | Email: ${escapeHTML(company.email)}<br>
-          GSTIN: ${escapeHTML(company.gstin)}
+          ${escapeHTML(company.address)}<br>
+          ${escapeHTML(company.phone)}<br>
+          <strong>CASUAL BILL (No Price)</strong>
         </div>
-      </div>
+        
+        <div class="divider"></div>
+        
+        <div>
+          Date: ${escapeHTML(invoice.date)} Time: ${escapeHTML(invoice.time)}<br>
+          Bill No: ${escapeHTML(invoice.invoiceNumber)}<br>
+          Customer: ${escapeHTML(invoice.customer.name)}
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div style="font-weight: bold;">
+          Item${' '.repeat(15)}Qty  Unit  PerUnit
+        </div>
+        <div class="divider"></div>
+        
+        ${invoice.items.map(item => {
+          const itemName = item.product.name.substring(0, 15).padEnd(15);
+          const qty = item.quantity.toString().padStart(3);
+          const unit = item.product.name.includes('inch') ? 'In' : 'Pc';
+          const perUnit = '1 ' + unit;
+          return `<div>${itemName} ${qty}  ${unit.padEnd(4)} ${perUnit}</div>`;
+        }).join('')}
+        
+        <div class="divider"></div>
+        <div class="center">
+          Note: No prices included.<br>
+          For reference only.<br>
+          Thank You! Visit Again!
+        </div>
+        
+        <div class="footer center">
+          ${escapeHTML(company.footer).replace(/\n/g, '<br>')}
+        </div>
+      </body>
+      </html>
+    `;
+  } else {
+    // GST Bill Format - Exact match to your reference image
+    invoiceHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Invoice ${invoice.invoiceNumber}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px; font-size: 12px; line-height: 1.3; }
+          .header { text-align: center; border: 2px solid #000; padding: 10px; margin-bottom: 20px; }
+          .company-name { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+          .company-details { font-size: 11px; margin-bottom: 10px; }
+          .bill-type { font-size: 12px; font-weight: bold; border: 1px solid #000; padding: 2px 8px; display: inline-block; }
+          .invoice-details { margin: 15px 0; }
+          .customer-details { margin: 15px 0; }
+          .table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+          .table th, .table td { border: 1px solid #000; padding: 8px 4px; text-align: left; font-size: 11px; }
+          .table th { background-color: #f0f0f0; font-weight: bold; text-align: center; }
+          .text-right { text-align: right; }
+          .text-center { text-align: center; }
+          .totals { margin-top: 20px; }
+          .total-row { display: flex; justify-content: space-between; padding: 3px 0; }
+          .grand-total { font-weight: bold; font-size: 14px; border-top: 2px solid #000; padding-top: 8px; }
+          .footer { margin-top: 30px; font-size: 10px; }
+          .bank-details { margin-top: 15px; font-size: 10px; }
+          .signature-section { margin-top: 30px; display: flex; justify-content: space-between; }
+          .rupees-in-words { margin-top: 15px; border: 1px solid #000; padding: 5px; }
+          @media print { body { margin: 0; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="company-name">SHREERAM MARKETING</div>
+          <div class="company-details">
+            Shreeram Building, Nadigalli, SIRSI-581401 (U.K.)<br>
+            Dealers in: ICI, Dulux Paints, Indigo Paints and Painting Assessories
+          </div>
+          <div style="margin-top: 10px;">
+            <span class="bill-type">${invoice.billType === 'non_gst' ? 'NON-GST BILL' : 'CASH / CREDIT BILL'}</span>
+            <span style="float: right; font-weight: bold;">M: 9448376055</span>
+          </div>
+        </div>
 
-      <div class="invoice-info">
-        <div class="info-box">
-          <h3>Invoice Details</h3>
-          <strong>Invoice No:</strong> ${escapeHTML(invoice.invoiceNumber)}<br>
-          <strong>Date:</strong> ${escapeHTML(invoice.date)}<br>
-          <strong>Time:</strong> ${escapeHTML(invoice.time)}
+        <div class="invoice-details">
+          <div style="float: left;">
+            <strong>No. ${escapeHTML(invoice.invoiceNumber)}</strong>
+          </div>
+          <div style="float: right;">
+            <strong>Date: ${escapeHTML(invoice.date)}</strong>
+          </div>
+          <div style="clear: both;"></div>
         </div>
-        <div class="info-box">
-          <h3>Bill To</h3>
-          <strong>${escapeHTML(invoice.customer.name)}</strong><br>
-          ${invoice.customer.phone ? `Phone: ${escapeHTML(invoice.customer.phone)}<br>` : ''}
-          ${invoice.customer.email ? `Email: ${escapeHTML(invoice.customer.email)}<br>` : ''}
-          ${invoice.customer.address ? `Address: ${escapeHTML(invoice.customer.address)}<br>` : ''}
-          ${invoice.customer.gstin ? `GSTIN: ${escapeHTML(invoice.customer.gstin)}` : ''}
-        </div>
-      </div>
 
-      <table class="table">
-        <thead>
-          <tr>
-            <th class="text-center">S.No</th>
-            <th>Product Code</th>
-            <th>Description</th>
-            <th class="text-center">Qty</th>
-            <th class="text-right">Rate</th>
-            <th class="text-right">Amount</th>
-            <th class="text-center">GST %</th>
-            <th class="text-right">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${invoice.items.map((item, index) => `
+        <div class="customer-details">
+          <div><strong>To: ${escapeHTML(invoice.customer.name)}</strong></div>
+          ${invoice.customer.address ? `<div>${escapeHTML(invoice.customer.address)}</div>` : ''}
+          ${invoice.customer.phone ? `<div>Phone: ${escapeHTML(invoice.customer.phone)}</div>` : ''}
+          ${invoice.billType === 'gst' && invoice.customer.gstin ? `<div><strong>GST of Buyer: ${escapeHTML(invoice.customer.gstin)}</strong></div>` : ''}
+        </div>
+
+        <table class="table">
+          <thead>
             <tr>
-              <td class="text-center">${index + 1}</td>
-              <td>${escapeHTML(item.product.code)}</td>
-              <td>${escapeHTML(item.product.name)}</td>
-              <td class="text-center">${item.quantity}</td>
-              <td class="text-right">₹${item.unitPrice.toFixed(2)}</td>
-              <td class="text-right">₹${(item.quantity * item.unitPrice).toFixed(2)}</td>
-              <td class="text-center">${item.product.gstRate}%</td>
-              <td class="text-right">₹${item.total.toFixed(2)}</td>
+              <th style="width: 35%;">Description Of Goods</th>
+              <th style="width: 12%;">HSN Code</th>
+              <th style="width: 10%;">Quantity</th>
+              <th style="width: 10%;">Rate</th>
+              <th style="width: 15%;">Amount</th>
+              <th style="width: 8%;">Rs.</th>
+              <th style="width: 10%;">Ps.</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            ${invoice.items.map(item => `
+              <tr>
+                <td>${escapeHTML(item.product.name)}</td>
+                <td class="text-center">${escapeHTML(item.product.hsn_code || '')}</td>
+                <td class="text-center">${item.quantity}</td>
+                <td class="text-right">₹${item.unitPrice.toFixed(2)}</td>
+                <td class="text-right">₹${item.total.toFixed(2)}</td>
+                <td class="text-right">${Math.floor(item.total)}</td>
+                <td class="text-right">${Math.round((item.total % 1) * 100)}</td>
+              </tr>
+            `).join('')}
+            ${Array.from({ length: Math.max(0, 8 - invoice.items.length) }, () => `
+              <tr>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
 
-      <div class="total-section">
-        <div style="width: 50%; margin-left: auto;">
-          <div class="total-row">
-            <span>Subtotal:</span>
-            <span>₹${invoice.subtotal.toFixed(2)}</span>
+        <div style="display: flex; justify-content: space-between;">
+          <div style="width: 48%;">
+            <div class="rupees-in-words">
+              <strong>Rupees in words:</strong><br>
+              ${numberToWords(invoice.total)} Only
+            </div>
+            
+            <div class="bank-details">
+              <strong>Karnataka Bank, Sirsi</strong><br>
+              A/c. No. 707200010040901<br>
+              IFSC: KARB0000707<br>
+              A/c. Holder Name: GAJANAN N. HEGDE
+            </div>
           </div>
-          ${invoice.discount > 0 ? `
-          <div class="total-row">
-            <span>Discount:</span>
-            <span>-₹${invoice.discount.toFixed(2)}</span>
-          </div>
-          ` : ''}
-          ${invoice.tax > 0 ? `
-          <div class="total-row">
-            <span>CGST + SGST (18%):</span>
-            <span>₹${invoice.tax.toFixed(2)}</span>
-          </div>
-          ` : ''}
-          <div class="total-row final-total">
-            <span>Grand Total:</span>
-            <span>₹${invoice.total.toFixed(2)}</span>
+          
+          <div style="width: 48%;">
+            <div class="totals">
+              <div class="total-row">
+                <span>Sub Total</span>
+                <span>₹${invoice.subtotal.toFixed(2)}</span>
+              </div>
+              <div class="total-row">
+                <span>Net Value</span>
+                <span>₹${invoice.subtotal.toFixed(2)}</span>
+              </div>
+              ${invoice.billType === 'gst' ? `
+              <div class="total-row">
+                <span>CGST@</span>
+                <span>₹${(invoice.tax / 2).toFixed(2)}</span>
+              </div>
+              <div class="total-row">
+                <span>SGST@</span>
+                <span>₹${(invoice.tax / 2).toFixed(2)}</span>
+              </div>
+              ` : ''}
+              <div class="total-row">
+                <span>Freight</span>
+                <span>-</span>
+              </div>
+              <div class="total-row grand-total">
+                <span>GRAND TOTAL</span>
+                <span>₹${invoice.total.toFixed(2)}</span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="terms">
-        <strong>Terms & Conditions:</strong><br>
-        ${(company.terms || "").replace(/\\n/g, "<br>")}
-      </div>
+        <div class="footer">
+          <div style="text-align: right; margin-bottom: 20px;">
+            <strong>For Shreeram Marketing</strong>
+          </div>
+        </div>
 
-      <div class="footer">
-        ${(company.footer || "").replace(/\\n/g, "<br>")}
-      </div>
-    </body>
-    </html>
-  `;
+        <div class="signature-section">
+          <div>
+            <strong>Customer's Signature</strong>
+          </div>
+          <div>
+            <strong>Signature</strong>
+          </div>
+        </div>
+
+        <div style="margin-top: 20px; font-size: 10px; text-align: center;">
+          * Goods once sold cannot be taken back or exchanged.<br>
+          * All disputes are Subject to Sirsi Jurisdiction.
+        </div>
+      </body>
+      </html>
+    `;
+  }
 
   printWindow.document.write(invoiceHTML);
   printWindow.document.close();
@@ -192,3 +301,65 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
     printWindow.print();
   }, 1000);
 };
+
+// Helper function to convert numbers to words
+function numberToWords(amount: number): string {
+  const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+  const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+  const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  
+  function convertHundreds(num: number): string {
+    let result = '';
+    
+    if (num >= 100) {
+      result += ones[Math.floor(num / 100)] + ' Hundred ';
+      num %= 100;
+    }
+    
+    if (num >= 20) {
+      result += tens[Math.floor(num / 10)] + ' ';
+      num %= 10;
+    } else if (num >= 10) {
+      result += teens[num - 10] + ' ';
+      return result;
+    }
+    
+    if (num > 0) {
+      result += ones[num] + ' ';
+    }
+    
+    return result;
+  }
+  
+  const rupees = Math.floor(amount);
+  const paise = Math.round((amount - rupees) * 100);
+  
+  let result = '';
+  
+  if (rupees >= 10000000) {
+    result += convertHundreds(Math.floor(rupees / 10000000)) + 'Crore ';
+    rupees %= 10000000;
+  }
+  
+  if (rupees >= 100000) {
+    result += convertHundreds(Math.floor(rupees / 100000)) + 'Lakh ';
+    rupees %= 100000;
+  }
+  
+  if (rupees >= 1000) {
+    result += convertHundreds(Math.floor(rupees / 1000)) + 'Thousand ';
+    rupees %= 1000;
+  }
+  
+  if (rupees > 0) {
+    result += convertHundreds(rupees);
+  }
+  
+  result += 'Rupees';
+  
+  if (paise > 0) {
+    result += ' and ' + convertHundreds(paise) + 'Paise';
+  }
+  
+  return result.trim();
+}

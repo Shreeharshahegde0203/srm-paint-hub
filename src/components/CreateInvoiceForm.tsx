@@ -85,13 +85,13 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
   };
 
   const handleAddItem = () => {
-    if (!productCode || !itemName || perUnit <= 0 || amountPerUnit <= 0 || quantity <= 0) {
+    if (!productCode || !itemName || perUnit <= 0 || (billType !== 'casual' && amountPerUnit <= 0) || quantity <= 0) {
       toast({ title: "Error", description: "Please fill all required fields", variant: "destructive" });
       return;
     }
 
     const validatedQuantity = validateQuantity(quantity);
-    const total = validatedQuantity * amountPerUnit;
+    const total = billType === 'casual' ? 0 : validatedQuantity * amountPerUnit;
 
     const newItem: InvoiceItem = {
       id: Date.now().toString(),
@@ -100,7 +100,7 @@ export const CreateInvoiceForm: React.FC<CreateInvoiceFormProps> = ({
       perUnit,
       units,
       gstPercent: billType === 'non_gst' ? 0 : gstPercent,
-      amountPerUnit,
+      amountPerUnit: billType === 'casual' ? 0 : amountPerUnit,
       quantity: validatedQuantity,
       total,
     };
