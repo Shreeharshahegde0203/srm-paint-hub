@@ -331,7 +331,7 @@ function numberToWords(amount: number): string {
     return result;
   }
   
-  const rupees = Math.floor(amount);
+  let rupees = Math.floor(amount);
   const paise = Math.round((amount - rupees) * 100);
   
   let result = '';
