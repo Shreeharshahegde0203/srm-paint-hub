@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter, Edit, Trash2, Package, AlertTriangle } from 'lucide-react';
 import { Product } from '../data/products';
@@ -43,7 +42,7 @@ const Inventory = () => {
       unit: productData.unit || "1 Piece",
       description: productData.description,
       image: productData.image,
-      hsn_code: productData.hsn_code,
+      hsn_code: productData.hsn_code || null,
     };
 
     await addProduct(payload as TablesInsert<"products">);
@@ -60,7 +59,7 @@ const Inventory = () => {
       unit: productData.unit,
       description: productData.description,
       image: productData.image,
-      hsn_code: productData.hsn_code,
+      hsn_code: productData.hsn_code || null,
     };
 
     await updateProduct({ id, product: payload as TablesUpdate<"products"> });

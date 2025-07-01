@@ -339,9 +339,17 @@ const ProductManagement = ({
                     className="w-20 h-20 object-cover rounded border"
                     onError={(e) => {
                       console.log('Image failed to load:', formData.image);
-                      e.currentTarget.style.display = 'none';
+                      const target = e.currentTarget as HTMLImageElement;
+                      target.style.display = 'none';
+                      const nextElement = target.nextElementSibling as HTMLElement;
+                      if (nextElement) {
+                        nextElement.style.display = 'flex';
+                      }
                     }}
                   />
+                  <div className="w-20 h-20 bg-gray-200 dark:bg-gray-700 rounded border flex items-center justify-center" style={{ display: (formData.image && !imageFile) ? 'none' : 'flex' }}>
+                    <Image className="h-6 w-6 text-gray-400" />
+                  </div>
                 </div>
               )}
             </div>
@@ -457,8 +465,12 @@ const ProductManagement = ({
                       className="w-12 h-12 object-cover rounded border"
                       onError={(e) => {
                         console.log('Image failed to load:', product.image);
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling!.style.display = 'flex';
+                        const target = e.currentTarget as HTMLImageElement;
+                        target.style.display = 'none';
+                        const nextElement = target.nextElementSibling as HTMLElement;
+                        if (nextElement) {
+                          nextElement.style.display = 'flex';
+                        }
                       }}
                     />
                   ) : null}
