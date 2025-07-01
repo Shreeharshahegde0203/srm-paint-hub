@@ -15,13 +15,16 @@ interface InvoiceData {
   items: Array<{
     product: {
       name: string;
-      code: string;
+      base?: string;
       gstRate: number;
       hsn_code?: string;
     };
     quantity: number;
     unitPrice: number;
     total: number;
+    colorCode?: string;
+    isReturned?: boolean;
+    returnReason?: string;
   }>;
   subtotal: number;
   discount: number;
@@ -76,6 +79,7 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
           .header { font-weight: bold; margin-bottom: 15px; }
           .item-row { display: flex; justify-content: space-between; margin: 2px 0; }
           .footer { margin-top: 20px; font-size: 10px; }
+          .returned { color: red; font-style: italic; }
           @media print { body { margin: 0; font-size: 10px; } }
         </style>
       </head>
@@ -104,11 +108,15 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
         <div class="divider"></div>
         
         ${invoice.items.map(item => {
-          const itemName = item.product.name.substring(0, 15).padEnd(15);
+          const itemName = `${item.product.name}${item.product.base ? ` (${item.product.base})` : ''}${item.colorCode ? ` - ${item.colorCode}` : ''}`;
+          const displayName = itemName.substring(0, 15).padEnd(15);
           const qty = item.quantity.toString().padStart(3);
-          const unit = item.product.name.includes('inch') ? 'In' : 'Pc';
+          const unit = item.product.name.toLowerCase().includes('inch') ? 'In' : 'Pc';
           const perUnit = '1 ' + unit;
-          return `<div>${itemName} ${qty}  ${unit.padEnd(4)} ${perUnit}</div>`;
+          const returnedClass = item.isReturned ? ' class="returned"' : '';
+          const returnedText = item.isReturned ? ' (RETURNED)' : '';
+          
+          return `<div${returnedClass}>${displayName} ${qty}  ${unit.padEnd(4)} ${perUnit}${returnedText}</div>`;
         }).join('')}
         
         <div class="divider"></div>
@@ -125,7 +133,7 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
       </html>
     `;
   } else {
-    // GST Bill Format - Exact match to your reference image
+    // GST Bill Format - Updated to include returned items
     invoiceHTML = `
       <!DOCTYPE html>
       <html>
@@ -151,6 +159,7 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
           .bank-details { margin-top: 15px; font-size: 10px; }
           .signature-section { margin-top: 30px; display: flex; justify-content: space-between; }
           .rupees-in-words { margin-top: 15px; border: 1px solid #000; padding: 5px; }
+          .returned-item { color: red; font-style: italic; }
           @media print { body { margin: 0; } }
         </style>
       </head>
@@ -197,17 +206,24 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
             </tr>
           </thead>
           <tbody>
-            ${invoice.items.map(item => `
-              <tr>
-                <td>${escapeHTML(item.product.name)}</td>
-                <td class="text-center">${escapeHTML(item.product.hsn_code || '')}</td>
-                <td class="text-center">${item.quantity}</td>
-                <td class="text-right">₹${item.unitPrice.toFixed(2)}</td>
-                <td class="text-right">₹${item.total.toFixed(2)}</td>
-                <td class="text-right">${Math.floor(item.total)}</td>
-                <td class="text-right">${Math.round((item.total % 1) * 100)}</td>
-              </tr>
-            `).join('')}
+            ${invoice.items.map(item => {
+              const itemDescription = `${item.product.name}${item.product.base ? ` (${item.product.base})` : ''}${item.colorCode ? ` - ${item.colorCode}` : ''}`;
+              const displayAmount = item.isReturned ? -item.total : item.total;
+              const returnedClass = item.isReturned ? ' class="returned-item"' : '';
+              const returnedText = item.isReturned ? ' (RETURNED)' : '';
+              
+              return `
+                <tr${returnedClass}>
+                  <td>${escapeHTML(itemDescription)}${returnedText}</td>
+                  <td class="text-center">${escapeHTML(item.product.hsn_code || '')}</td>
+                  <td class="text-center">${item.quantity}</td>
+                  <td class="text-right">₹${item.unitPrice.toFixed(2)}</td>
+                  <td class="text-right">₹${displayAmount.toFixed(2)}</td>
+                  <td class="text-right">${Math.floor(Math.abs(displayAmount))}</td>
+                  <td class="text-right">${Math.round((Math.abs(displayAmount) % 1) * 100)}</td>
+                </tr>
+              `;
+            }).join('')}
             ${Array.from({ length: Math.max(0, 8 - invoice.items.length) }, () => `
               <tr>
                 <td>&nbsp;</td>
@@ -226,7 +242,7 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
           <div style="width: 48%;">
             <div class="rupees-in-words">
               <strong>Rupees in words:</strong><br>
-              ${numberToWords(invoice.total)} Only
+              ${numberToWords(Math.abs(invoice.total))} Only
             </div>
             
             <div class="bank-details">

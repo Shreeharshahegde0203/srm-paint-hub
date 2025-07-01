@@ -201,6 +201,8 @@ export type Database = {
       }
       invoice_items: {
         Row: {
+          base: string | null
+          color_code: string | null
           id: string
           invoice_id: string | null
           price: number
@@ -208,6 +210,8 @@ export type Database = {
           quantity: number
         }
         Insert: {
+          base?: string | null
+          color_code?: string | null
           id?: string
           invoice_id?: string | null
           price: number
@@ -215,6 +219,8 @@ export type Database = {
           quantity: number
         }
         Update: {
+          base?: string | null
+          color_code?: string | null
           id?: string
           invoice_id?: string | null
           price?: number
@@ -231,6 +237,51 @@ export type Database = {
           },
           {
             foreignKeyName: "invoice_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_returned_items: {
+        Row: {
+          created_at: string | null
+          id: string
+          invoice_id: string | null
+          product_id: string | null
+          quantity: number
+          return_reason: string | null
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          invoice_id?: string | null
+          product_id?: string | null
+          quantity?: number
+          return_reason?: string | null
+          unit_price?: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          invoice_id?: string | null
+          product_id?: string | null
+          quantity?: number
+          return_reason?: string | null
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_returned_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_returned_items_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
@@ -323,10 +374,9 @@ export type Database = {
       }
       products: {
         Row: {
+          base: string | null
           batch_number: string | null
           brand: string
-          code: string
-          color: string
           cost_price: number | null
           created_at: string | null
           description: string | null
@@ -347,10 +397,9 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          base?: string | null
           batch_number?: string | null
           brand: string
-          code: string
-          color: string
           cost_price?: number | null
           created_at?: string | null
           description?: string | null
@@ -371,10 +420,9 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          base?: string | null
           batch_number?: string | null
           brand?: string
-          code?: string
-          color?: string
           cost_price?: number | null
           created_at?: string | null
           description?: string | null

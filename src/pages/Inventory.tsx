@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter, Edit, Trash2, Package, AlertTriangle } from 'lucide-react';
-import { Product } from '../data/products';
+import { Product, UNIT_TYPES } from '../data/products';
 import StockLevelIcon from '../components/StockLevelIcon';
 import ViewModeToggle from '../components/ViewModeToggle';
 import { useSupabaseAuth } from "../contexts/SupabaseAuthContext";
@@ -21,22 +21,22 @@ const Inventory = () => {
     deleteProduct
   } = useSupabaseProducts();
 
-  // Add mapping logic here to conform to local Product type
+  // Map Supabase products to local Product type (without 'code', with 'base')
   const products: Product[] = (rawProducts || []).map((product: any) => ({
     ...product,
-    gstRate: product.gst_rate, // map Supabase's gst_rate to gstRate
+    gstRate: product.gst_rate,
     unit_quantity: parseFloat(product.unit?.split(' ')[0]) || 1,
     unit_type: product.unit?.split(' ').slice(1).join(' ') || 'Piece',
-    hsn_code: product.hsn_code, // Add HSN code mapping
+    hsn_code: product.hsn_code,
+    base: product.base, // Now using 'base' instead of 'color'
   }));
 
   const handleAddProduct = async (productData: Omit<Product, 'id'> & { hsn_code?: string }) => {
     const payload: any = {
-      code: productData.code,
       name: productData.name,
       brand: productData.brand,
       type: productData.type,
-      color: productData.color,
+      base: productData.base || null, // Using 'base' instead of 'color'
       stock: productData.stock,
       price: productData.price,
       gst_rate: productData.gstRate ?? 18,
@@ -54,7 +54,7 @@ const Inventory = () => {
       name: productData.name,
       brand: productData.brand,
       type: productData.type,
-      color: productData.color,
+      base: productData.base || null, // Using 'base' instead of 'color'
       price: productData.price,
       gst_rate: productData.gstRate,
       unit: productData.unit,

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import { Product } from '../data/products';
@@ -6,11 +7,10 @@ import { useSupabaseProducts } from '../hooks/useSupabaseProducts';
 // Helper: Map snake_case from Supabase to camelCase Product
 const mapDbProductToProduct = (dbProduct: any): Product => ({
   id: dbProduct.id,
-  code: dbProduct.code,
   name: dbProduct.name,
   brand: dbProduct.brand,
   type: dbProduct.type,
-  color: dbProduct.color,
+  base: dbProduct.base || undefined,
   price: dbProduct.price,
   stock: dbProduct.stock,
   image: dbProduct.image || undefined,
@@ -19,6 +19,7 @@ const mapDbProductToProduct = (dbProduct: any): Product => ({
   batchNumber: dbProduct.batch_number ?? undefined,
   expiryDate: dbProduct.expiry_date ?? undefined,
   description: dbProduct.description ?? undefined,
+  hsn_code: dbProduct.hsn_code ?? undefined,
 });
 
 interface ProductSelectorProps {
@@ -31,7 +32,6 @@ const ProductSelector = ({ onProductSelect, selectedProduct }: ProductSelectorPr
   const [isOpen, setIsOpen] = useState(false);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
-  // Use Supabase products instead of static DB
   const { products, isLoading, error } = useSupabaseProducts();
 
   useEffect(() => {
@@ -39,26 +39,26 @@ const ProductSelector = ({ onProductSelect, selectedProduct }: ProductSelectorPr
       setFilteredProducts([]);
       return;
     }
-    // Map DB products to local Product[]
+    
     const productList: Product[] = products.map(mapDbProductToProduct);
 
     const filtered = productList.filter(product =>
-      product.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.brand?.toLowerCase().includes(searchTerm.toLowerCase())
+      product.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.base?.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredProducts(filtered);
   }, [searchTerm, products]);
 
   const handleProductSelect = (product: Product) => {
     onProductSelect(product);
-    setSearchTerm(`${product.code} - ${product.name}`);
+    setSearchTerm(`${product.name}${product.base ? ` - ${product.base}` : ''}`);
     setIsOpen(false);
   };
 
   useEffect(() => {
     if (selectedProduct) {
-      setSearchTerm(`${selectedProduct.code} - ${selectedProduct.name}`);
+      setSearchTerm(`${selectedProduct.name}${selectedProduct.base ? ` - ${selectedProduct.base}` : ''}`);
     }
   }, [selectedProduct]);
 
@@ -69,7 +69,7 @@ const ProductSelector = ({ onProductSelect, selectedProduct }: ProductSelectorPr
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
         <input
           type="text"
-          placeholder="Search by code, name, or brand..."
+          placeholder="Search by product name or base..."
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
@@ -95,9 +95,14 @@ const ProductSelector = ({ onProductSelect, selectedProduct }: ProductSelectorPr
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="font-medium text-gray-900">{product.code} - {product.name}</p>
-                    <p className="text-sm text-gray-600">{product.brand} • {product.type} • {product.color}</p>
-                    <p className="text-sm text-gray-500">Stock: {product.stock} units</p>
+                    <p className="font-medium text-gray-900">
+                      {product.name}{product.base ? ` - ${product.base}` : ''}
+                    </p>
+                    <p className="text-sm text-gray-600">{product.brand} • {product.type}</p>
+                    <p className="text-sm text-gray-500">Stock: {product.stock} {product.unit}</p>
+                    {product.hsn_code && (
+                      <p className="text-xs text-gray-400">HSN: {product.hsn_code}</p>
+                    )}
                   </div>
                   <p className="font-bold text-green-600">₹{product.price}</p>
                 </div>

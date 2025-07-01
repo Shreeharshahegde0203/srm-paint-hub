@@ -41,13 +41,36 @@ const Billing = () => {
       .from("invoice_items").select("*").eq("invoice_id", invoice.id);
     const { data: customer } = await supabase
       .from("customers").select("*").eq("id", invoice.customer_id).maybeSingle();
+    const { data: returnedItems } = await supabase
+      .from("invoice_returned_items").select("*").eq("invoice_id", invoice.id);
 
     const invoiceNumber = invoice.id?.slice(0, 8) || generateInvoiceNumber();
     const dateObj = invoice.created_at ? new Date(invoice.created_at) : new Date();
     const date = dateObj.toLocaleDateString("en-IN");
     const time = dateObj.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
 
-    const subtotal = (items || []).reduce((sum, i) => sum + i.quantity * i.price, 0);
+    // Combine regular items with returned items
+    const allItems = (items || []).map((item) => {
+      const prod = products?.find((p) => p.id === item.product_id);
+      const returnedItem = returnedItems?.find(r => r.product_id === item.product_id);
+      
+      return {
+        product: {
+          name: prod?.name || "",
+          base: item.base || prod?.base,
+          gstRate: prod?.gst_rate || 18,
+          hsn_code: prod?.hsn_code || "",
+        },
+        quantity: item.quantity,
+        unitPrice: item.price,
+        total: item.quantity * item.price,
+        colorCode: item.color_code,
+        isReturned: !!returnedItem,
+        returnReason: returnedItem?.return_reason,
+      };
+    });
+
+    const subtotal = allItems.reduce((sum, i) => sum + (i.isReturned ? -i.total : i.total), 0);
     const gstAmount = invoice.billing_mode === 'with_gst' ? subtotal * 0.18 : 0;
     const total = subtotal + gstAmount;
 
@@ -62,20 +85,7 @@ const Billing = () => {
         email: customer?.email || undefined,
         gstin: (customer as any)?.gstin || undefined,
       },
-      items: (items || []).map((item) => {
-        const prod = products?.find((p) => p.id === item.product_id);
-        return {
-          product: {
-            name: prod?.name || "",
-            code: prod?.code || "",
-            gstRate: prod?.gst_rate || 18,
-            hsn_code: prod?.hsn_code || "",
-          },
-          quantity: item.quantity,
-          unitPrice: item.price,
-          total: item.quantity * item.price,
-        };
-      }),
+      items: allItems,
       subtotal,
       discount: 0,
       tax: gstAmount,
@@ -85,7 +95,6 @@ const Billing = () => {
   };
 
   const handleView = (invoice: Invoice) => {
-    // Implement view logic
     console.log("View invoice:", invoice);
   };
 
