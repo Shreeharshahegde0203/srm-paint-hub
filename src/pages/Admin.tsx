@@ -181,7 +181,11 @@ const Admin = () => {
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Quick Product Management</h2>
           <ProductManagement
-            products={products}
+            products={products.map(p => ({
+              ...p,
+              code: `PRD-${p.id.slice(0, 4)}`,
+              color: p.base || 'Standard'
+            }))}
             onAddProduct={handleAddProduct}
             onUpdateProduct={handleUpdateProduct}
             onDeleteProduct={handleDeleteProduct}

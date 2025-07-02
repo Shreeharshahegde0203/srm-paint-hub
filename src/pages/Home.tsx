@@ -2,12 +2,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Package, FileText, ShoppingCart, Users, BarChart3, Shield } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from 'next-themes';
 import { productsDatabase } from '../data/products';
 import ProductShowcaseCard from '../components/ProductShowcaseCard';
 
 const Home = () => {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   
   // Show first 3 products as showcase
   const showcaseProducts = productsDatabase.slice(0, 3);
@@ -83,7 +84,14 @@ const Home = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {showcaseProducts.map((product) => (
-              <ProductShowcaseCard key={product.id} product={product} />
+              <ProductShowcaseCard 
+                key={product.id} 
+                product={{
+                  ...product,
+                  color: product.base || 'Standard',
+                  code: `PRD-${product.id.slice(0, 4)}`
+                }}
+              />
             ))}
           </div>
           <div className="text-center mt-8">
