@@ -101,7 +101,11 @@ const Inventory = () => {
 
         {/* Product Management Component */}
         <ProductManagement
-          products={products}
+          products={products.map(p => ({
+            ...p,
+            code: `PRD-${p.id.slice(0, 4)}`,
+            color: p.base || 'Standard'
+          }))}
           onAddProduct={handleAddProduct}
           onUpdateProduct={handleUpdateProduct}
           onDeleteProduct={handleDeleteProduct}

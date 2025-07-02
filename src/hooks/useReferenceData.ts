@@ -6,7 +6,7 @@ import { CACHE_CONFIGS } from "@/services/cacheService";
 export interface ReferenceData {
   brands: string[];
   paintTypes: string[];
-  colors: string[];
+  bases: string[];
   units: string[];
   customerTypes: string[];
   paymentMethods: string[];
@@ -29,11 +29,11 @@ export function useReferenceData() {
         .select("type")
         .not("type", "is", null);
 
-      // Fetch colors from products
-      const { data: colorsData } = await supabase
+      // Fetch bases from products
+      const { data: basesData } = await supabase
         .from("products")
-        .select("color")
-        .not("color", "is", null);
+        .select("base")
+        .not("base", "is", null);
 
       // Extract unique values
       const brands = [...new Set([
@@ -46,9 +46,9 @@ export function useReferenceData() {
         "Emulsion", "Enamel", "Primer", "Distemper", "Texture", "Wood Finish"
       ])].sort();
 
-      const colors = [...new Set([
-        ...colorsData?.map(p => p.color).filter(Boolean) || [],
-        "White", "Off White", "Cream", "Beige", "Yellow", "Red", "Blue", "Green", "Black"
+      const bases = [...new Set([
+        ...basesData?.map(p => p.base).filter(Boolean) || [],
+        "White", "Off White", "Cream", "Beige", "Tintable", "Deep Base"
       ])].sort();
 
       const units = ["Litre", "Kg", "Piece", "Box", "Gallon", "Quart"];
@@ -58,7 +58,7 @@ export function useReferenceData() {
       return {
         brands,
         paintTypes,
-        colors,
+        bases,
         units,
         customerTypes,
         paymentMethods,
@@ -78,7 +78,7 @@ export function useReferenceData() {
     // Individual arrays for easier access
     brands: data?.brands || [],
     paintTypes: data?.paintTypes || [],
-    colors: data?.colors || [],
+    bases: data?.bases || [],
     units: data?.units || [],
     customerTypes: data?.customerTypes || [],
     paymentMethods: data?.paymentMethods || [],

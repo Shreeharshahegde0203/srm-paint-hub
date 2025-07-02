@@ -8,11 +8,10 @@ import { Product } from '../data/products';
 // Helper to map unified product to local Product interface
 const mapUnifiedProductToProduct = (unifiedProduct: any): Product => ({
   id: unifiedProduct.id,
-  code: unifiedProduct.code,
   name: unifiedProduct.name,
   brand: unifiedProduct.brand,
   type: unifiedProduct.type,
-  color: unifiedProduct.color,
+  base: unifiedProduct.base,
   price: unifiedProduct.price,
   stock: unifiedProduct.stock,
   image: undefined,
@@ -57,7 +56,7 @@ const EnhancedProductSelector = ({ onProductSelect, selectedProduct }: EnhancedP
 
   const handleProductSelect = (product: Product) => {
     onProductSelect(product);
-    setSearchTerm(`${product.code} - ${product.name}`);
+    setSearchTerm(`${product.name}`);
     setIsOpen(false);
     setShowBrandSuggestions(false);
   };
@@ -75,7 +74,7 @@ const EnhancedProductSelector = ({ onProductSelect, selectedProduct }: EnhancedP
 
   useEffect(() => {
     if (selectedProduct) {
-      setSearchTerm(`${selectedProduct.code} - ${selectedProduct.name}`);
+      setSearchTerm(`${selectedProduct.name}`);
     }
   }, [selectedProduct]);
 
@@ -86,7 +85,7 @@ const EnhancedProductSelector = ({ onProductSelect, selectedProduct }: EnhancedP
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
         <input
           type="text"
-          placeholder="Search by code, name, or brand (try 'Dulux' or 'Indigo')..."
+          placeholder="Search by name or brand (try 'Dulux' or 'Indigo')..."
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
@@ -137,8 +136,8 @@ const EnhancedProductSelector = ({ onProductSelect, selectedProduct }: EnhancedP
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="font-medium text-gray-900">{product.code} - {product.name}</p>
-                    <p className="text-sm text-gray-600">{product.brand} • {product.type} • {product.color}</p>
+                    <p className="font-medium text-gray-900">{product.name}</p>
+                    <p className="text-sm text-gray-600">{product.brand} • {product.type} • {product.base || 'No Base'}</p>
                     <p className="text-sm text-gray-500">
                       Stock: {product.stock} units
                       {product.stock === 0 && (
