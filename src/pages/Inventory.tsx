@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Edit, Trash2, Package, AlertTriangle } from 'lucide-react';
+import { Plus, Search, Filter, Edit, Trash2, Package, AlertTriangle, X } from 'lucide-react';
 import { Product, UNIT_TYPES } from '../data/products';
 import StockLevelIcon from '../components/StockLevelIcon';
 import ViewModeToggle from '../components/ViewModeToggle';
@@ -9,6 +9,7 @@ import { useSupabaseProducts } from "../hooks/useSupabaseProducts";
 import { useNavigate } from "react-router-dom";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import EnhancedProductForm from "../components/EnhancedProductForm";
+import RestockProductDialog from "../components/RestockProductDialog";
 
 const Inventory = () => {
   const { user, loading } = useSupabaseAuth();
@@ -22,6 +23,8 @@ const Inventory = () => {
   } = useSupabaseProducts();
 
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showRestockDialog, setShowRestockDialog] = useState(false);
+  const [restockingProduct, setRestockingProduct] = useState<Product | null>(null);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState('large');
@@ -84,6 +87,23 @@ const Inventory = () => {
     }
   };
 
+  const handleRestockProduct = async (productId: string, quantity: number) => {
+    const product = products.find(p => p.id === productId);
+    if (product) {
+      const newStock = product.stock + quantity;
+      await updateProduct({ 
+        id: productId, 
+        product: { stock: newStock } as TablesUpdate<"products"> 
+      });
+      setRestockingProduct(null);
+    }
+  };
+
+  const openRestockDialog = (product: Product) => {
+    setRestockingProduct(product);
+    setShowRestockDialog(false);
+  };
+
   // Filter products
   const filteredProducts = products.filter(product => {
     const matchesSearch = 
@@ -127,13 +147,22 @@ const Inventory = () => {
                 Complete inventory management with HSN codes, categories, and advanced features
               </p>
             </div>
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center font-semibold"
-            >
-              <Plus className="mr-2 h-5 w-5" />
-              Add New Product
-            </button>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowAddForm(true)}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center font-semibold"
+              >
+                <Plus className="mr-2 h-5 w-5" />
+                Add New Product
+              </button>
+              <button
+                onClick={() => setShowRestockDialog(true)}
+                className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 flex items-center font-semibold"
+              >
+                <Package className="mr-2 h-5 w-5" />
+                Restock Product
+              </button>
+            </div>
           </div>
         </div>
 
@@ -197,6 +226,7 @@ const Inventory = () => {
                 viewMode={viewMode}
                 onEdit={() => setEditingProduct(product)}
                 onDelete={() => handleDeleteProduct(product.id)}
+                onRestock={() => openRestockDialog(product)}
               />
             ))}
           </div>
@@ -220,6 +250,52 @@ const Inventory = () => {
           isEditing
         />
       )}
+
+      {/* Restock Product Selection */}
+      {showRestockDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Select Product to Restock</h2>
+              <button onClick={() => setShowRestockDialog(false)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="grid gap-4">
+                {products.map((product) => (
+                  <div key={product.id} className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <div className="flex items-center space-x-4">
+                      {product.image && (
+                        <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded" />
+                      )}
+                      <div>
+                        <h3 className="font-semibold text-gray-900 dark:text-white">{product.name}</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">{product.brand} • Stock: {product.stock}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => openRestockDialog(product)}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    >
+                      Restock
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Restock Product Dialog */}
+      {restockingProduct && (
+        <RestockProductDialog
+          product={restockingProduct}
+          onRestock={handleRestockProduct}
+          onClose={() => setRestockingProduct(null)}
+        />
+      )}
     </div>
   );
 };
@@ -230,9 +306,10 @@ interface ProductCardProps {
   viewMode: string;
   onEdit: () => void;
   onDelete: () => void;
+  onRestock: () => void;
 }
 
-const ProductCard = ({ product, viewMode, onEdit, onDelete }: ProductCardProps) => {
+const ProductCard = ({ product, viewMode, onEdit, onDelete, onRestock }: ProductCardProps) => {
   const isListView = viewMode === 'list';
   
   if (isListView) {
@@ -260,6 +337,9 @@ const ProductCard = ({ product, viewMode, onEdit, onDelete }: ProductCardProps) 
           <StockLevelIcon stock={product.stock} />
           <button onClick={onEdit} className="p-2 text-blue-600 hover:bg-blue-50 rounded">
             <Edit className="h-4 w-4" />
+          </button>
+          <button onClick={onRestock} className="p-2 text-green-600 hover:bg-green-50 rounded">
+            <Package className="h-4 w-4" />
           </button>
           <button onClick={onDelete} className="p-2 text-red-600 hover:bg-red-50 rounded">
             <Trash2 className="h-4 w-4" />
@@ -316,6 +396,13 @@ const ProductCard = ({ product, viewMode, onEdit, onDelete }: ProductCardProps) 
               title="Edit Product"
             >
               <Edit className="h-4 w-4" />
+            </button>
+            <button
+              onClick={onRestock}
+              className="p-1 text-green-600 hover:bg-green-50 rounded"
+              title="Restock Product"
+            >
+              <Package className="h-4 w-4" />
             </button>
             <button
               onClick={onDelete}

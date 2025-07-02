@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Plus, Minus, Search, ShoppingCart, Edit3, Trash2, RotateCcw } from 'lucide-react';
 import { Product, isValidQuantity, UNIT_TYPES } from '../data/products';
 import { useSupabaseProducts } from '../hooks/useSupabaseProducts';
+import ReturnItemDialog from './ReturnItemDialog';
 
 interface BillingItem {
   id: string;
@@ -34,6 +35,8 @@ interface BillingFormProps {
   isEditing?: boolean;
 }
 
+type BillType = 'gst' | 'non_gst' | 'casual';
+
 const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false }: BillingFormProps) => {
   const [customer, setCustomer] = useState<CustomerInfo>({
     name: '',
@@ -46,8 +49,10 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [billType, setBillType] = useState<BillType>('gst');
   const [paymentStatus, setPaymentStatus] = useState<'paid' | 'unpaid' | 'partially_paid'>('unpaid');
   const [partialAmount, setPartialAmount] = useState<number>(0);
+  const [showReturnDialog, setShowReturnDialog] = useState(false);
   
   // Current item being added
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -173,7 +178,12 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
 
   const calculateTotals = () => {
     const subtotal = items.reduce((sum, item) => sum + (item.isReturned ? -item.total : item.total), 0);
-    const gstAmount = subtotal * 0.18;
+    let gstAmount = 0;
+    
+    if (billType === 'gst') {
+      gstAmount = subtotal * 0.18;
+    }
+    
     const total = subtotal + gstAmount;
     
     return { subtotal, gstAmount, total };
@@ -198,6 +208,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
       subtotal,
       gstAmount,
       total,
+      billType,
       paymentStatus,
       partialAmount: paymentStatus === 'partially_paid' ? partialAmount : 0,
       createdAt: new Date().toISOString()
@@ -224,6 +235,43 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
         </div>
 
         <div className="p-6 space-y-6">
+          {/* Bill Type Selection */}
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">📋 Bill Type</h3>
+            <div className="flex space-x-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  value="gst"
+                  checked={billType === 'gst'}
+                  onChange={(e) => setBillType(e.target.value as BillType)}
+                  className="mr-2"
+                />
+                <span className="text-gray-700 dark:text-gray-300">GST Bill</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  value="non_gst"
+                  checked={billType === 'non_gst'}
+                  onChange={(e) => setBillType(e.target.value as BillType)}
+                  className="mr-2"
+                />
+                <span className="text-gray-700 dark:text-gray-300">Non-GST Bill</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  value="casual"
+                  checked={billType === 'casual'}
+                  onChange={(e) => setBillType(e.target.value as BillType)}
+                  className="mr-2"
+                />
+                <span className="text-gray-700 dark:text-gray-300">Casual Bill</span>
+              </label>
+            </div>
+          </div>
+
           {/* Customer Information */}
           <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">👤 Customer Information</h3>
@@ -425,58 +473,62 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                     </div>
                   </div>
                   
-                  <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">GST %</label>
-                    <div className="flex items-center">
-                      <button
-                        type="button"
-                        onClick={() => setCurrentGstPercentage(Math.max(0, currentGstPercentage - 1))}
-                        className="p-1 border rounded-l hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-500"
-                      >
-                        <Minus className="h-4 w-4" />
-                      </button>
-                      <input
-                        type="number"
-                        value={currentGstPercentage}
-                        onChange={(e) => setCurrentGstPercentage(parseInt(e.target.value) || 0)}
-                        className="w-16 px-2 py-1 border-t border-b text-center dark:bg-gray-600 dark:text-white dark:border-gray-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setCurrentGstPercentage(currentGstPercentage + 1)}
-                        className="p-1 border rounded-r hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-500"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
+                   {billType !== 'casual' && (
+                     <div>
+                       <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">GST %</label>
+                       <div className="flex items-center">
+                         <button
+                           type="button"
+                           onClick={() => setCurrentGstPercentage(Math.max(0, currentGstPercentage - 1))}
+                           className="p-1 border rounded-l hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-500"
+                         >
+                           <Minus className="h-4 w-4" />
+                         </button>
+                         <input
+                           type="number"
+                           value={currentGstPercentage}
+                           onChange={(e) => setCurrentGstPercentage(parseInt(e.target.value) || 0)}
+                           className="w-16 px-2 py-1 border-t border-b text-center dark:bg-gray-600 dark:text-white dark:border-gray-500"
+                         />
+                         <button
+                           type="button"
+                           onClick={() => setCurrentGstPercentage(currentGstPercentage + 1)}
+                           className="p-1 border rounded-r hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-500"
+                         >
+                           <Plus className="h-4 w-4" />
+                         </button>
+                       </div>
+                     </div>
+                   )}
                   
-                  <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Unit Price (Ex-GST)</label>
-                    <div className="flex items-center">
-                      <button
-                        type="button"
-                        onClick={() => setCurrentUnitPrice(Math.max(0, currentUnitPrice - 10))}
-                        className="p-1 border rounded-l hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-500"
-                      >
-                        <Minus className="h-4 w-4" />
-                      </button>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={currentUnitPrice}
-                        onChange={(e) => setCurrentUnitPrice(parseFloat(e.target.value) || 0)}
-                        className="w-20 px-2 py-1 border-t border-b text-center dark:bg-gray-600 dark:text-white dark:border-gray-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setCurrentUnitPrice(currentUnitPrice + 10)}
-                        className="p-1 border rounded-r hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-500"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
+                   {billType !== 'casual' && (
+                     <div>
+                       <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Unit Price (Ex-GST)</label>
+                       <div className="flex items-center">
+                         <button
+                           type="button"
+                           onClick={() => setCurrentUnitPrice(Math.max(0, currentUnitPrice - 10))}
+                           className="p-1 border rounded-l hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-500"
+                         >
+                           <Minus className="h-4 w-4" />
+                         </button>
+                         <input
+                           type="number"
+                           step="0.01"
+                           value={currentUnitPrice}
+                           onChange={(e) => setCurrentUnitPrice(parseFloat(e.target.value) || 0)}
+                           className="w-20 px-2 py-1 border-t border-b text-center dark:bg-gray-600 dark:text-white dark:border-gray-500"
+                         />
+                         <button
+                           type="button"
+                           onClick={() => setCurrentUnitPrice(currentUnitPrice + 10)}
+                           className="p-1 border rounded-r hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-500"
+                         >
+                           <Plus className="h-4 w-4" />
+                         </button>
+                       </div>
+                     </div>
+                   )}
                 </div>
                 
                 <button
@@ -508,9 +560,9 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                       <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">Color/Code</th>
                       <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">Qty</th>
                       <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">Unit</th>
-                      <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">GST%</th>
-                      <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">Price (Ex-GST)</th>
-                      <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">Total</th>
+                       {billType !== 'casual' && <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">GST%</th>}
+                       {billType !== 'casual' && <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">Price (Ex-GST)</th>}
+                       {billType !== 'casual' && <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">Total</th>}
                       <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">Actions</th>
                     </tr>
                   </thead>
@@ -526,19 +578,26 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                         <td className="px-4 py-3 text-center text-gray-900 dark:text-white">{item.colorCode || '-'}</td>
                         <td className="px-4 py-3 text-center text-gray-900 dark:text-white font-medium">{item.quantity}</td>
                         <td className="px-4 py-3 text-center text-gray-900 dark:text-white">{item.quantityType}</td>
-                        <td className="px-4 py-3 text-center text-gray-900 dark:text-white font-medium">{item.gstPercentage}%</td>
-                        <td className="px-4 py-3 text-center text-gray-900 dark:text-white font-medium">₹{item.priceExcludingGst.toFixed(2)}</td>
-                        <td className="px-4 py-3 text-center font-bold text-lg text-green-600">₹{item.total.toFixed(2)}</td>
+                         {billType !== 'casual' && <td className="px-4 py-3 text-center text-gray-900 dark:text-white font-medium">{item.gstPercentage}%</td>}
+                         {billType !== 'casual' && <td className="px-4 py-3 text-center text-gray-900 dark:text-white font-medium">₹{item.priceExcludingGst.toFixed(2)}</td>}
+                         {billType !== 'casual' && <td className="px-4 py-3 text-center font-bold text-lg text-green-600">₹{item.total.toFixed(2)}</td>}
                         <td className="px-4 py-3">
-                          <div className="flex items-center justify-center space-x-2">
-                            <button
-                              onClick={() => removeItem(item.id)}
-                              className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded dark:hover:bg-red-900"
-                              title="Remove"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
+                           <div className="flex items-center justify-center space-x-2">
+                             <button
+                               onClick={() => removeItem(item.id)}
+                               className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded dark:hover:bg-red-900"
+                               title="Remove"
+                             >
+                               <Trash2 className="h-4 w-4" />
+                             </button>
+                             <button
+                               onClick={() => setShowReturnDialog(true)}
+                               className="p-2 text-orange-600 hover:text-orange-800 hover:bg-orange-50 rounded dark:hover:bg-orange-900"
+                               title="Return Item"
+                             >
+                               <RotateCcw className="h-4 w-4" />
+                             </button>
+                           </div>
                         </td>
                       </tr>
                     ))}
@@ -595,10 +654,12 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                     <span className="font-medium text-gray-700 dark:text-gray-300">Subtotal:</span>
                     <span className="font-semibold text-gray-900 dark:text-white">₹{subtotal.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-lg">
-                    <span className="font-medium text-gray-700 dark:text-gray-300">GST (18%):</span>
-                    <span className="font-semibold text-gray-900 dark:text-white">₹{gstAmount.toFixed(2)}</span>
-                  </div>
+                   {billType === 'gst' && (
+                     <div className="flex justify-between text-lg">
+                       <span className="font-medium text-gray-700 dark:text-gray-300">GST (18%):</span>
+                       <span className="font-semibold text-gray-900 dark:text-white">₹{gstAmount.toFixed(2)}</span>
+                     </div>
+                   )}
                   <div className="flex justify-between font-bold text-xl border-t pt-3 text-green-600">
                     <span>Total:</span>
                     <span>₹{total.toFixed(2)}</span>
@@ -625,6 +686,30 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
           </div>
         </div>
       </div>
+
+      {/* Return Item Dialog */}
+      {showReturnDialog && (
+        <ReturnItemDialog
+          onReturn={(returnData) => {
+            const returnItem: BillingItem = {
+              id: Date.now().toString(),
+              product: returnData.product,
+              quantity: returnData.quantity,
+              unitQuantity: 1,
+              quantityType: 'Piece',
+              unitPrice: 0,
+              priceExcludingGst: 0,
+              gstPercentage: 0,
+              total: 0,
+              isReturned: true,
+              returnReason: returnData.returnReason
+            };
+            setItems(prev => [...prev, returnItem]);
+          }}
+          onClose={() => setShowReturnDialog(false)}
+          availableProducts={searchResults}
+        />
+      )}
     </div>
   );
 };

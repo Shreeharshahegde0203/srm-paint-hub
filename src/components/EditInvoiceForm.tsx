@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, RotateCcw } from "lucide-react";
 import ProductSelector from "./ProductSelector";
 import { toast } from "@/hooks/use-toast";
 import type { Product, Invoice } from "@/hooks/useSupabaseInvoices";
@@ -117,14 +117,28 @@ export default function EditInvoiceForm({
               ))}
             </div>
           </div>
-          {/* Status */}
+          {/* Status and Return Items */}
           <div className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg">
-            <label className="block text-sm font-medium mb-1">Status</label>
-            <select value={status} onChange={e => setStatus(e.target.value)} className="w-44 p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white">
-              <option value="pending">Pending</option>
-              <option value="paid">Paid</option>
-              <option value="overdue">Overdue</option>
-            </select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Status</label>
+                <select value={status} onChange={e => setStatus(e.target.value)} className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white">
+                  <option value="pending">Pending</option>
+                  <option value="paid">Paid</option>
+                  <option value="partially_paid">Partially Paid</option>
+                  <option value="overdue">Overdue</option>
+                </select>
+              </div>
+              <div className="flex items-end">
+                <button 
+                  type="button" 
+                  onClick={() => setItems([...items, { product: undefined, quantity: 1, unitPrice: 0, total: 0, isReturned: true, returnReason: '' }])}
+                  className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700"
+                >
+                  Add Return Item
+                </button>
+              </div>
+            </div>
           </div>
           {/* Totals */}
           <div className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg">
