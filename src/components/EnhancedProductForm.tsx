@@ -1,7 +1,21 @@
 
 import React, { useState } from 'react';
-import { X, Upload, Plus, Minus } from 'lucide-react';
-import { Product, UNIT_TYPES } from '../data/products';
+import { X, Upload, Plus, Minus, Eye } from 'lucide-react';
+import { Product } from '../data/products';
+
+const BRANDS = ['Dulux', 'Indigo'];
+const CATEGORIES = [
+  'Interior Paint',
+  'Exterior Paint', 
+  'Primer',
+  'Distemper',
+  'Putty',
+  'Gloss Paints',
+  'Brush',
+  'Roller',
+  'Other Accessories'
+];
+const UNIT_TYPES = ['Litre', 'Kg', 'Inch', 'Number', 'Piece'];
 
 interface EnhancedProductFormProps {
   product?: Product | null;
@@ -13,10 +27,10 @@ interface EnhancedProductFormProps {
 const EnhancedProductForm = ({ product, onSave, onCancel, isEditing = false }: EnhancedProductFormProps) => {
   const [formData, setFormData] = useState({
     name: product?.name || '',
-    brand: product?.brand || '',
+    brand: product?.brand || 'Dulux',
     type: product?.type || '',
     base: product?.base || '',
-    category: (product as any)?.category || '',
+    category: (product as any)?.category || 'Interior Paint',
     price: product?.price || 0,
     gstRate: product?.gstRate || 18,
     stock: product?.stock || 0,
@@ -28,6 +42,7 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isEditing = false }: E
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showImagePreview, setShowImagePreview] = useState(false);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -66,115 +81,122 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isEditing = false }: E
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-2xl font-bold">
-            {isEditing ? 'Edit Product' : 'Add New Product'}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-5xl w-full max-h-[95vh] overflow-y-auto">
+        <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+            {isEditing ? '✏️ Edit Product' : '➕ Add New Product'}
           </h2>
-          <button onClick={onCancel} className="text-gray-500 hover:text-gray-700">
-            <X className="h-6 w-6" />
+          <button onClick={onCancel} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600">
+            <X className="h-8 w-8" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Basic Product Info */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Basic Information</h3>
+            <div className="space-y-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                📋 Basic Information
+              </h3>
               
               <div>
-                <label className="block text-sm font-medium mb-1">Product Name *</label>
+                <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Product Name *</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  className={`w-full px-3 py-2 border rounded-lg ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
+                  className={`w-full px-4 py-3 border-2 rounded-lg text-lg ${errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white`}
                   placeholder="e.g., Premium Emulsion"
                 />
                 {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Brand *</label>
-                <input
-                  type="text"
+                <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Brand *</label>
+                <select
                   value={formData.brand}
                   onChange={(e) => setFormData(prev => ({ ...prev, brand: e.target.value }))}
-                  className={`w-full px-3 py-2 border rounded-lg ${errors.brand ? 'border-red-500' : 'border-gray-300'}`}
-                  placeholder="e.g., Dulux, Asian Paints"
-                />
-                {errors.brand && <p className="text-red-500 text-sm mt-1">{errors.brand}</p>}
+                  className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                >
+                  {BRANDS.map(brand => (
+                    <option key={brand} value={brand}>{brand}</option>
+                  ))}
+                </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Product Type *</label>
+                <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Product Type *</label>
                 <input
                   type="text"
                   value={formData.type}
                   onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
-                  className={`w-full px-3 py-2 border rounded-lg ${errors.type ? 'border-red-500' : 'border-gray-300'}`}
+                  className={`w-full px-4 py-3 border-2 rounded-lg text-lg ${errors.type ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white`}
                   placeholder="e.g., Emulsion, Enamel, Primer"
                 />
                 {errors.type && <p className="text-red-500 text-sm mt-1">{errors.type}</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Base (Optional)</label>
+                <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Base (Optional)</label>
                 <input
                   type="text"
                   value={formData.base}
                   onChange={(e) => setFormData(prev => ({ ...prev, base: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                   placeholder="e.g., White, Deep Base, Tintable"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Category</label>
-                <input
-                  type="text"
+                <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Category *</label>
+                <select
                   value={formData.category}
                   onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  placeholder="e.g., Interior Paint, Exterior Paint"
-                />
+                  className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                >
+                  {CATEGORIES.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">HSN Code</label>
+                <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">HSN Code</label>
                 <input
                   type="text"
                   value={formData.hsn_code}
                   onChange={(e) => setFormData(prev => ({ ...prev, hsn_code: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                   placeholder="e.g., 3208"
                 />
               </div>
             </div>
 
             {/* Pricing & Stock Info */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Pricing & Stock</h3>
+            <div className="space-y-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                💰 Pricing & Stock
+              </h3>
               
               <div>
-                <label className="block text-sm font-medium mb-1">Price per Unit (GST Included) *</label>
+                <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Price per Unit (GST Included) *</label>
                 <input
                   type="number"
                   step="0.01"
                   value={formData.price}
                   onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
-                  className={`w-full px-3 py-2 border rounded-lg ${errors.price ? 'border-red-500' : 'border-gray-300'}`}
+                  className={`w-full px-4 py-3 border-2 rounded-lg text-lg ${errors.price ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white`}
                   placeholder="0.00"
                 />
                 {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">GST Percentage *</label>
+                <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">GST Percentage *</label>
                 <select
                   value={formData.gstRate}
                   onChange={(e) => setFormData(prev => ({ ...prev, gstRate: parseInt(e.target.value) }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                 >
                   <option value={0}>0%</option>
                   <option value={5}>5%</option>
@@ -185,11 +207,11 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isEditing = false }: E
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Unit Type *</label>
+                <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Unit Type *</label>
                 <select
                   value={formData.unit}
                   onChange={(e) => setFormData(prev => ({ ...prev, unit: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                 >
                   {UNIT_TYPES.map(unit => (
                     <option key={unit} value={unit}>{unit}</option>
@@ -198,14 +220,14 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isEditing = false }: E
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Unit Quantity *</label>
-                <div className="flex items-center space-x-2">
+                <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Unit Quantity *</label>
+                <div className="flex items-center space-x-3">
                   <button
                     type="button"
                     onClick={() => adjustQuantity('unit_quantity', false)}
-                    className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="p-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
                   >
-                    <Minus className="h-4 w-4" />
+                    <Minus className="h-5 w-5" />
                   </button>
                   <input
                     type="number"
@@ -216,41 +238,41 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isEditing = false }: E
                       const rounded = Math.round(value * 2) / 2;
                       setFormData(prev => ({ ...prev, unit_quantity: rounded }));
                     }}
-                    className={`flex-1 px-3 py-2 border rounded-lg text-center ${errors.unit_quantity ? 'border-red-500' : 'border-gray-300'}`}
+                    className={`flex-1 px-4 py-3 border-2 rounded-lg text-center text-lg ${errors.unit_quantity ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white`}
                   />
                   <button
                     type="button"
                     onClick={() => adjustQuantity('unit_quantity', true)}
-                    className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="p-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
                   >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-5 w-5" />
                   </button>
                 </div>
                 {errors.unit_quantity && <p className="text-red-500 text-sm mt-1">{errors.unit_quantity}</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Available Stock *</label>
-                <div className="flex items-center space-x-2">
+                <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Available Stock *</label>
+                <div className="flex items-center space-x-3">
                   <button
                     type="button"
                     onClick={() => adjustQuantity('stock', false)}
-                    className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="p-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
                   >
-                    <Minus className="h-4 w-4" />
+                    <Minus className="h-5 w-5" />
                   </button>
                   <input
                     type="number"
                     value={formData.stock}
                     onChange={(e) => setFormData(prev => ({ ...prev, stock: parseInt(e.target.value) || 0 }))}
-                    className={`flex-1 px-3 py-2 border rounded-lg text-center ${errors.stock ? 'border-red-500' : 'border-gray-300'}`}
+                    className={`flex-1 px-4 py-3 border-2 rounded-lg text-center text-lg ${errors.stock ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white`}
                   />
                   <button
                     type="button"
                     onClick={() => adjustQuantity('stock', true)}
-                    className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="p-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
                   >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-5 w-5" />
                   </button>
                 </div>
                 {errors.stock && <p className="text-red-500 text-sm mt-1">{errors.stock}</p>}
@@ -259,43 +281,80 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isEditing = false }: E
           </div>
 
           {/* Description & Image */}
-          <div className="space-y-4">
+          <div className="space-y-6">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+              📝 Additional Details
+            </h3>
+
             <div>
-              <label className="block text-sm font-medium mb-1">Description</label>
+              <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Description</label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                 rows={3}
                 placeholder="Product description..."
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Product Photo URL</label>
-              <input
-                type="url"
-                value={formData.image}
-                onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                placeholder="https://example.com/image.jpg"
-              />
+              <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Product Photo URL</label>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="url"
+                  value={formData.image}
+                  onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.value }))}
+                  className="flex-1 px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="https://example.com/image.jpg"
+                />
+                {formData.image && (
+                  <button
+                    type="button"
+                    onClick={() => setShowImagePreview(!showImagePreview)}
+                    className="p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    title="Preview Image"
+                  >
+                    <Eye className="h-5 w-5" />
+                  </button>
+                )}
+              </div>
+              
+              {/* Image Preview */}
+              {showImagePreview && formData.image && (
+                <div className="mt-4 p-4 border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Image Preview:</p>
+                  <div className="flex justify-center">
+                    <img 
+                      src={formData.image} 
+                      alt="Product Preview" 
+                      className="max-w-xs max-h-48 object-contain rounded-lg shadow-md"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'text-red-500 text-sm p-4 bg-red-50 rounded border border-red-200';
+                        errorDiv.textContent = 'Unable to load image. Please check the URL.';
+                        (e.target as HTMLImageElement).parentNode?.appendChild(errorDiv);
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="flex justify-end space-x-4 pt-6 border-t">
+          <div className="flex justify-end space-x-4 pt-8 border-t border-gray-200 dark:border-gray-700">
             <button
               type="button"
               onClick={onCancel}
-              className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-8 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 font-medium transition-colors shadow-lg"
             >
-              {isEditing ? 'Update Product' : 'Add Product'}
+              {isEditing ? '💾 Update Product' : '💾 Add Product'}
             </button>
           </div>
         </form>

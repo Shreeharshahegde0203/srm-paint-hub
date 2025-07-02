@@ -1,46 +1,25 @@
-
 export interface Product {
   id: string;
   name: string;
   brand: string;
   type: string;
-  base?: string; // Optional base field
-  stock: number;
+  base?: string;
   price: number;
+  stock: number;
   gstRate: number;
   unit: string;
-  image?: string;
-  batchNumber?: string;
-  expiryDate?: string;
   description?: string;
-  hsn_code?: string;
+  image?: string;
   unit_quantity?: number;
-  unit_type?: string;
 }
 
-export interface InvoiceItem {
-  id: string;
-  product: Product;
-  quantity: number;
-  unitPrice: number;
-  total: number;
-  colorCode?: string;
-  base?: string;
-  isReturned?: boolean;
-  returnReason?: string;
-}
+export const UNIT_TYPES = ['Litre', 'Kg', 'Inch', 'Number', 'Piece'];
 
-// Allowed unit types
-export const UNIT_TYPES = ['Litre', 'Kg', 'Inch', 'Piece', 'Number'] as const;
-export type UnitType = typeof UNIT_TYPES[number];
-
-// Helper function to validate quantity (whole numbers or 0.5 only)
-export const isValidQuantity = (value: number): boolean => {
-  return value > 0 && (Number.isInteger(value) || value % 0.5 === 0);
+export const isValidQuantity = (quantity: number): boolean => {
+  return quantity > 0 && (quantity % 0.5 === 0);
 };
 
-// Sample products database for compatibility
-export const productsDatabase: Product[] = [
+export const products: Product[] = [
   {
     id: "1",
     name: "Premium Emulsion",
