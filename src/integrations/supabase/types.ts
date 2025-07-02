@@ -42,7 +42,9 @@ export type Database = {
         Row: {
           address: string | null
           created_at: string | null
+          customer_number: string | null
           email: string | null
+          gstin: string | null
           id: string
           name: string
           phone: string | null
@@ -51,7 +53,9 @@ export type Database = {
         Insert: {
           address?: string | null
           created_at?: string | null
+          customer_number?: string | null
           email?: string | null
+          gstin?: string | null
           id?: string
           name: string
           phone?: string | null
@@ -60,7 +64,9 @@ export type Database = {
         Update: {
           address?: string | null
           created_at?: string | null
+          customer_number?: string | null
           email?: string | null
+          gstin?: string | null
           id?: string
           name?: string
           phone?: string | null
@@ -203,29 +209,38 @@ export type Database = {
         Row: {
           base: string | null
           color_code: string | null
+          gst_percentage: number | null
           id: string
           invoice_id: string | null
           price: number
+          price_excluding_gst: number | null
           product_id: string | null
           quantity: number
+          unit_type: string | null
         }
         Insert: {
           base?: string | null
           color_code?: string | null
+          gst_percentage?: number | null
           id?: string
           invoice_id?: string | null
           price: number
+          price_excluding_gst?: number | null
           product_id?: string | null
           quantity: number
+          unit_type?: string | null
         }
         Update: {
           base?: string | null
           color_code?: string | null
+          gst_percentage?: number | null
           id?: string
           invoice_id?: string | null
           price?: number
+          price_excluding_gst?: number | null
           product_id?: string | null
           quantity?: number
+          unit_type?: string | null
         }
         Relationships: [
           {
@@ -377,6 +392,7 @@ export type Database = {
           base: string | null
           batch_number: string | null
           brand: string
+          category: string | null
           cost_price: number | null
           created_at: string | null
           description: string | null
@@ -394,12 +410,14 @@ export type Database = {
           supplier_id: string | null
           type: string
           unit: string
+          unit_quantity: number | null
           updated_at: string | null
         }
         Insert: {
           base?: string | null
           batch_number?: string | null
           brand: string
+          category?: string | null
           cost_price?: number | null
           created_at?: string | null
           description?: string | null
@@ -417,12 +435,14 @@ export type Database = {
           supplier_id?: string | null
           type: string
           unit?: string
+          unit_quantity?: number | null
           updated_at?: string | null
         }
         Update: {
           base?: string | null
           batch_number?: string | null
           brand?: string
+          category?: string | null
           cost_price?: number | null
           created_at?: string | null
           description?: string | null
@@ -440,6 +460,7 @@ export type Database = {
           supplier_id?: string | null
           type?: string
           unit?: string
+          unit_quantity?: number | null
           updated_at?: string | null
         }
         Relationships: [
