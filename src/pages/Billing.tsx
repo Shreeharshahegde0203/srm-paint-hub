@@ -161,11 +161,9 @@ const Billing = () => {
     const date = dateObj.toLocaleDateString("en-IN");
     const time = dateObj.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
 
-    // Combine regular items with returned items
-    const allItems = (items || []).map((item) => {
+    // Process regular items
+    const regularItems = (items || []).map((item) => {
       const prod = products?.find((p) => p.id === item.product_id);
-      const returnedItem = returnedItems?.find(r => r.product_id === item.product_id);
-      
       return {
         product: {
           name: prod?.name || "",
@@ -177,14 +175,40 @@ const Billing = () => {
         unitPrice: item.price,
         total: item.quantity * item.price,
         colorCode: item.color_code,
-        isReturned: !!returnedItem,
-        returnReason: returnedItem?.return_reason,
+        unitType: item.unit_type,
+        isReturned: false,
       };
     });
 
-    const subtotal = allItems.reduce((sum, i) => sum + (i.isReturned ? -i.total : i.total), 0);
-    const gstAmount = invoice.billing_mode === 'with_gst' ? subtotal * 0.18 : 0;
-    const total = subtotal + gstAmount;
+    // Process returned items
+    const processedReturnedItems = (returnedItems || []).map((item) => {
+      const prod = products?.find((p) => p.id === item.product_id);
+      return {
+        product: {
+          name: prod?.name || "",
+          base: prod?.base,
+          gstRate: prod?.gst_rate || 18,
+          hsn_code: prod?.hsn_code || "",
+        },
+        quantity: item.quantity,
+        unitPrice: item.unit_price,
+        total: -(item.quantity * item.unit_price), // Negative for returns
+        isReturned: true,
+        returnReason: item.return_reason,
+      };
+    });
+
+    const allItems = [...regularItems, ...processedReturnedItems];
+    const subtotal = regularItems.reduce((sum, i) => sum + i.total, 0);
+    const returnTotal = processedReturnedItems.reduce((sum, i) => sum + Math.abs(i.total), 0);
+    const netSubtotal = subtotal - returnTotal;
+    
+    let gstAmount = 0;
+    if (invoice.billing_mode === 'with_gst') {
+      gstAmount = netSubtotal * 0.18;
+    }
+    
+    const total = netSubtotal + gstAmount;
 
     generateInvoicePDF({
       invoiceNumber,
@@ -198,11 +222,12 @@ const Billing = () => {
         gstin: (customer as any)?.gstin || undefined,
       },
       items: allItems,
-      subtotal,
+      subtotal: netSubtotal,
       discount: 0,
       tax: gstAmount,
       total,
       billType: invoice.bill_type as 'gst' | 'non_gst' | 'casual',
+      returnTotal: returnTotal > 0 ? returnTotal : undefined,
     });
   };
 

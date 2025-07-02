@@ -1,8 +1,10 @@
 
 import React, { useState } from "react";
-import { Trash2, RotateCcw } from "lucide-react";
+import { Trash2, RotateCcw, Plus } from "lucide-react";
 import ProductSelector from "./ProductSelector";
+import ReturnItemDialog from "./ReturnItemDialog";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import type { Product, Invoice } from "@/hooks/useSupabaseInvoices";
 
 export default function EditInvoiceForm({
@@ -21,13 +23,18 @@ export default function EditInvoiceForm({
     product: products.find((p) => p.id === item.product_id),
     quantity: item.quantity,
     unitPrice: item.price,
-    total: (item.quantity || 0) * (item.price || 0)
+    total: (item.quantity || 0) * (item.price || 0),
+    isReturned: false
   })) ?? []);
+  
+  const [returnedItems, setReturnedItems] = useState<any[]>([]);
   const [discount, setDiscount] = useState(0);
   const [status, setStatus] = useState(invoice.status);
+  const [showReturnDialog, setShowReturnDialog] = useState(false);
 
   const addItem = () =>
-    setItems([...items, { product: undefined, quantity: 1, unitPrice: 0, total: 0 }]);
+    setItems([...items, { product: undefined, quantity: 1, unitPrice: 0, total: 0, isReturned: false }]);
+  
   const updateItem = (idx: number, field: string, value: any) => {
     const arr = [...items];
     arr[idx] = { ...arr[idx], [field]: value };
@@ -38,6 +45,7 @@ export default function EditInvoiceForm({
     }
     setItems(arr);
   };
+
   const handleProductSelect = (idx: number, product: any) => {
     const arr = [...items];
     arr[idx] = {
@@ -48,20 +56,58 @@ export default function EditInvoiceForm({
     };
     setItems(arr);
   };
+
   const removeItem = (idx: number) => {
     if (items.length > 1) setItems(items.filter((_, i) => i !== idx));
   };
 
+  const handleReturnItem = async (returnData: any) => {
+    // Add to returned items list
+    const newReturnedItem = {
+      ...returnData,
+      total: -(returnData.quantity * returnData.product.price) // Negative for return
+    };
+    setReturnedItems([...returnedItems, newReturnedItem]);
+
+    // Update product stock immediately
+    try {
+      await supabase
+        .from("products")
+        .update({ 
+          stock: returnData.product.stock + returnData.quantity 
+        })
+        .eq("id", returnData.product.id);
+
+      toast({
+        title: "Return Processed",
+        description: `${returnData.quantity} units of ${returnData.product.name} returned and added back to stock`,
+      });
+    } catch (error) {
+      console.error('Error updating stock:', error);
+      toast({
+        title: "Warning",
+        description: "Return recorded but stock update failed",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const removeReturnedItem = (idx: number) => {
+    setReturnedItems(returnedItems.filter((_, i) => i !== idx));
+  };
+
   const subtotal = items.reduce((sum, item) => sum + (item.total || 0), 0);
+  const returnTotal = returnedItems.reduce((sum, item) => sum + Math.abs(item.total || 0), 0);
   const discountAmount = (subtotal * discount) / 100;
-  const tax = (subtotal - discountAmount) * 0.18;
-  const total = subtotal - discountAmount + tax;
+  const tax = invoice.billing_mode === 'with_gst' ? ((subtotal - returnTotal - discountAmount) * 0.18) : 0;
+  const total = subtotal - returnTotal - discountAmount + tax;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const allItems = [...items, ...returnedItems];
       await onSave({
-        items,
+        items: allItems,
         status,
         discount: discountAmount,
         total,
@@ -74,17 +120,34 @@ export default function EditInvoiceForm({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-5xl max-h-screen overflow-y-auto transition-colors">
+      <div className="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-6xl max-h-screen overflow-y-auto transition-colors">
         <h3 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Edit Invoice</h3>
         <form onSubmit={handleSubmit} className="space-y-6">
+          
           {/* Items Section */}
           <div className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg">
             <div className="flex justify-between items-center mb-4">
               <h4 className="font-semibold text-gray-800 dark:text-gray-100">Invoice Items</h4>
-              <button type="button" onClick={addItem} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800">
-                Add Item
-              </button>
+              <div className="flex gap-2">
+                <button 
+                  type="button" 
+                  onClick={() => setShowReturnDialog(true)}
+                  className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 flex items-center"
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Return Item
+                </button>
+                <button 
+                  type="button" 
+                  onClick={addItem} 
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Item
+                </button>
+              </div>
             </div>
+            
             <div className="space-y-4">
               {items.map((item, index) => (
                 <div key={index} className="bg-white dark:bg-slate-800 p-4 rounded-lg border dark:border-gray-700">
@@ -97,11 +160,26 @@ export default function EditInvoiceForm({
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Quantity</label>
-                      <input type="number" value={item.quantity} onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 1)} className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white" min="1" required />
+                      <input 
+                        type="number" 
+                        value={item.quantity} 
+                        onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 1)} 
+                        className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white" 
+                        min="1" 
+                        required 
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Unit Price</label>
-                      <input type="number" value={item.unitPrice} onChange={(e) => updateItem(index, 'unitPrice', parseFloat(e.target.value) || 0)} className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white" min="0" step="0.01" required />
+                      <input 
+                        type="number" 
+                        value={item.unitPrice} 
+                        onChange={(e) => updateItem(index, 'unitPrice', parseFloat(e.target.value) || 0)} 
+                        className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white" 
+                        min="0" 
+                        step="0.01" 
+                        required 
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Total</label>
@@ -110,57 +188,121 @@ export default function EditInvoiceForm({
                       </div>
                     </div>
                     <div className="flex items-end">
-                      <button type="button" onClick={() => removeItem(index)} className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900/40 p-2 rounded-lg h-10" disabled={items.length === 1}><Trash2 className="h-4 w-4" /></button>
+                      <button 
+                        type="button" 
+                        onClick={() => removeItem(index)} 
+                        className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900/40 p-2 rounded-lg h-10" 
+                        disabled={items.length === 1}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          {/* Status and Return Items */}
+
+          {/* Returned Items Section */}
+          {returnedItems.length > 0 && (
+            <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
+              <h4 className="font-semibold text-red-800 dark:text-red-200 mb-4">Returned Items</h4>
+              <div className="space-y-2">
+                {returnedItems.map((item, index) => (
+                  <div key={index} className="bg-white dark:bg-slate-800 p-3 rounded border flex justify-between items-center">
+                    <div>
+                      <span className="font-medium">{item.product.name}</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                        Qty: {item.quantity} | Reason: {item.returnReason}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-red-600 font-medium">-₹{Math.abs(item.total).toFixed(2)}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeReturnedItem(index)}
+                        className="text-red-600 hover:bg-red-100 dark:hover:bg-red-900/40 p-1 rounded"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Status */}
           <div className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Status</label>
-                <select value={status} onChange={e => setStatus(e.target.value)} className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white">
+                <select 
+                  value={status} 
+                  onChange={e => setStatus(e.target.value)} 
+                  className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white"
+                >
                   <option value="pending">Pending</option>
                   <option value="paid">Paid</option>
                   <option value="partially_paid">Partially Paid</option>
                   <option value="overdue">Overdue</option>
                 </select>
               </div>
-              <div className="flex items-end">
-                <button 
-                  type="button" 
-                  onClick={() => setItems([...items, { product: undefined, quantity: 1, unitPrice: 0, total: 0, isReturned: true, returnReason: '' }])}
-                  className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700"
-                >
-                  Add Return Item
-                </button>
-              </div>
             </div>
           </div>
+
           {/* Totals */}
           <div className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg">
             <h4 className="font-semibold mb-4 text-gray-800 dark:text-gray-100">Invoice Summary</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Discount (%)</label>
-                <input type="number" value={discount} onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)} className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white" min="0" max="100" step="0.1" />
+                <input 
+                  type="number" 
+                  value={discount} 
+                  onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)} 
+                  className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white" 
+                  min="0" 
+                  max="100" 
+                  step="0.1" 
+                />
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between"><span>Subtotal:</span><span>₹{subtotal.toFixed(2)}</span></div>
+                {returnedItems.length > 0 && (
+                  <div className="flex justify-between text-red-600">
+                    <span>Returns:</span><span>-₹{returnTotal.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between"><span>Discount:</span><span>-₹{discountAmount.toFixed(2)}</span></div>
-                <div className="flex justify-between"><span>GST (18%):</span><span>₹{tax.toFixed(2)}</span></div>
-                <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Total:</span><span>₹{total.toFixed(2)}</span></div>
+                {invoice.billing_mode === 'with_gst' && (
+                  <div className="flex justify-between"><span>GST (18%):</span><span>₹{tax.toFixed(2)}</span></div>
+                )}
+                <div className="flex justify-between font-bold text-lg border-t pt-2">
+                  <span>Total:</span><span>₹{total.toFixed(2)}</span>
+                </div>
               </div>
             </div>
           </div>
+
           <div className="flex gap-4">
-            <button type="submit" className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700">Save Changes</button>
-            <button type="button" onClick={onCancel} className="flex-1 bg-gray-300 dark:bg-slate-700 text-gray-700 dark:text-gray-100 py-3 rounded-lg hover:bg-gray-400 dark:hover:bg-slate-600">Cancel</button>
+            <button type="submit" className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700">
+              Save Changes
+            </button>
+            <button type="button" onClick={onCancel} className="flex-1 bg-gray-300 dark:bg-slate-700 text-gray-700 dark:text-gray-100 py-3 rounded-lg hover:bg-gray-400 dark:hover:bg-slate-600">
+              Cancel
+            </button>
           </div>
         </form>
+
+        {/* Return Item Dialog */}
+        {showReturnDialog && (
+          <ReturnItemDialog
+            onReturn={handleReturnItem}
+            onClose={() => setShowReturnDialog(false)}
+            availableProducts={products}
+          />
+        )}
       </div>
     </div>
   );
