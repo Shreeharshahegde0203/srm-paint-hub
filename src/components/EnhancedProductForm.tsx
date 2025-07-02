@@ -30,6 +30,7 @@ interface EnhancedProductFormProps {
   onSave: (productData: ProductFormData) => void;
   onCancel: () => void;
   isInline?: boolean;
+  isEditing?: boolean;
 }
 
 const BRANDS = ['Dulux', 'Indigo'];
