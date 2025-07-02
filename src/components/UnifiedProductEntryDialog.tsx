@@ -21,15 +21,16 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
   onComplete,
 }) => {
   const [mode, setMode] = useState<"new" | "receive">("new");
-  const [searchName, setSearchName] = useState("");
+  const [searchCode, setSearchCode] = useState("");
   const [foundProduct, setFoundProduct] = useState<Product | null>(null);
 
   // New product form
   const [formData, setFormData] = useState<Partial<Product>>({
+    code: "",
     name: "",
     brand: "",
     type: "",
-    base: "",
+    color: "",
     stock: 1,
     price: 0,
     gst_rate: 18,
@@ -44,14 +45,16 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
   const [billFile, setBillFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Find product by name
-  function handleNameSearch() {
+  // Find product by code or name
+  function handleCodeSearch() {
     const prod = products.find(
-      (p) => p.name && p.name.toLowerCase() === searchName.toLowerCase()
+      (p) =>
+        (p.code && p.code.toLowerCase() === searchCode.toLowerCase()) ||
+        (p.name && p.name.toLowerCase() === searchCode.toLowerCase())
     );
     setFoundProduct(prod ?? null);
     if (!prod) {
-      toast({ title: "Product not found", description: "Check product name", variant: "destructive" });
+      toast({ title: "Product not found", description: "Check code or name", variant: "destructive" });
     }
   }
 
@@ -63,10 +66,11 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
       const { data: inserted, error: insErr } = await supabase
         .from("products")
         .insert({
+          code: formData.code,
           name: formData.name,
           brand: formData.brand,
           type: formData.type,
-          base: formData.base,
+          color: formData.color,
           price: formData.price,
           gst_rate: formData.gst_rate ?? 18,
           unit: formData.unit ?? "Litre",
@@ -200,14 +204,16 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
         </div>
         {mode === "new" ? (
           <form onSubmit={handleSubmitNewProduct} className="space-y-3">
-            <input type="text" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" placeholder="Product Name" value={formData.name} required
+            <input type="text" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" placeholder="Product Code" value={formData.code} required
+              onChange={e => setFormData(fd => ({ ...fd, code: e.target.value }))} />
+            <input type="text" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" placeholder="Name" value={formData.name} required
               onChange={e => setFormData(fd => ({ ...fd, name: e.target.value }))} />
             <input type="text" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" placeholder="Brand" value={formData.brand} required
               onChange={e => setFormData(fd => ({ ...fd, brand: e.target.value }))} />
             <input type="text" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" placeholder="Type" value={formData.type} required
               onChange={e => setFormData(fd => ({ ...fd, type: e.target.value }))} />
-            <input type="text" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" placeholder="Base (optional)" value={formData.base}
-              onChange={e => setFormData(fd => ({ ...fd, base: e.target.value }))} />
+            <input type="text" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" placeholder="Color" value={formData.color} required
+              onChange={e => setFormData(fd => ({ ...fd, color: e.target.value }))} />
             <div className="flex gap-2">
               <div className="flex-1">
                 <input type="number" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
@@ -253,20 +259,20 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
             <div className="flex gap-1">
               <input
                 type="text"
-                placeholder="Enter Product Name"
+                placeholder="Enter Product Code or Name"
                 className="flex-1 p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
-                value={searchName}
-                onChange={e => setSearchName(e.target.value)}
-                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); handleNameSearch(); } }}
+                value={searchCode}
+                onChange={e => setSearchCode(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); handleCodeSearch(); } }}
               />
-              <Button type="button" size="sm" variant="secondary" onClick={handleNameSearch}>Find</Button>
+              <Button type="button" size="sm" variant="secondary" onClick={handleCodeSearch}>Find</Button>
             </div>
             {foundProduct && (
               <div className="bg-gray-50 dark:bg-slate-900 border text-xs p-2 mb-2 rounded">
-                <div>Name: <span className="font-bold">{foundProduct.name}</span></div>
+                <div>Code: <span className="font-bold">{foundProduct.code}</span></div>
+                <div>Name: {foundProduct.name}</div>
                 <div>Current Stock: <span className="text-blue-600 font-bold">{foundProduct.stock}</span></div>
                 <div>Brand: {foundProduct.brand} | Type: {foundProduct.type}</div>
-                <div>Base: {foundProduct.base || 'None'}</div>
                 <div>Price: ₹{foundProduct.price}</div>
               </div>
             )}
@@ -301,7 +307,7 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
                 className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded font-semibold mt-1"
               >Receive Stock</button>
             </>}
-            {!foundProduct && <div className="text-sm text-gray-400 pt-2">Search product by name.</div>}
+            {!foundProduct && <div className="text-sm text-gray-400 pt-2">Search product by code or name.</div>}
           </form>
         )}
       </div>

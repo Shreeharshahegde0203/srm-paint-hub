@@ -9,7 +9,7 @@ import { useSupabaseProducts } from "../hooks/useSupabaseProducts";
 import { toast } from "@/hooks/use-toast";
 import { useSupabaseInvoices, Invoice } from "../hooks/useSupabaseInvoices";
 import { InvoiceHistoryTable } from "../components/InvoiceHistoryTable";
-import CreateInvoiceForm from "../components/CreateInvoiceForm";
+import { CreateInvoiceForm } from "../components/CreateInvoiceForm";
 import EditInvoiceForm from "../components/EditInvoiceForm";
 import ConfirmDialog from "../components/ConfirmDialog";
 

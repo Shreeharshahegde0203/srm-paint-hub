@@ -5,10 +5,11 @@ import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 export interface UnifiedProduct {
   id: string;
+  code: string;
   name: string;
   brand: string;
   type: string;
-  base: string;
+  color: string;
   price: number;
   stock: number;
   source: 'inventory' | 'catalog';
@@ -49,10 +50,11 @@ export function useUnifiedProducts() {
         inventoryProducts.forEach(product => {
           unified.push({
             id: product.id,
+            code: product.code,
             name: product.name,
             brand: product.brand,
             type: product.type,
-            base: product.base || '',
+            color: product.color,
             price: product.price,
             stock: product.stock,
             source: 'inventory',
@@ -68,16 +70,17 @@ export function useUnifiedProducts() {
       // Add catalog products (if not already in inventory)
       if (catalogProducts) {
         catalogProducts.forEach(product => {
-          // Check if this product name already exists in inventory
-          const existsInInventory = unified.some(p => p.name === product.name);
+          // Check if this product code already exists in inventory
+          const existsInInventory = unified.some(p => p.code === product.code);
           
           if (!existsInInventory) {
             unified.push({
               id: product.id,
+              code: product.code,
               name: product.name,
               brand: product.brand,
               type: product.type,
-              base: product.color || '',
+              color: product.color || '',
               price: product.default_price,
               stock: 0, // Catalog products have no stock
               source: 'catalog',
@@ -99,6 +102,7 @@ export function useUnifiedProducts() {
     const searchTerm = query.toLowerCase();
     return productsQuery.data
       .filter(product => 
+        product.code?.toLowerCase().includes(searchTerm) ||
         product.name?.toLowerCase().includes(searchTerm) ||
         product.brand?.toLowerCase().includes(searchTerm) ||
         product.type?.toLowerCase().includes(searchTerm)
@@ -106,9 +110,9 @@ export function useUnifiedProducts() {
       .slice(0, 20);
   };
 
-  const getProductByName = (name: string) => {
+  const getProductByCode = (code: string) => {
     if (!productsQuery.data) return null;
-    return productsQuery.data.find(product => product.name === name) || null;
+    return productsQuery.data.find(product => product.code === code) || null;
   };
 
   const getProductsByBrand = (brand: string) => {
@@ -155,7 +159,7 @@ export function useUnifiedProducts() {
     isLoading: productsQuery.isLoading,
     error: productsQuery.error,
     searchProducts,
-    getProductByName,
+    getProductByCode,
     getProductsByBrand,
     addToInventory: addToInventoryMutation.mutateAsync,
     addToCatalog: addToCatalogMutation.mutateAsync,

@@ -138,7 +138,7 @@ const ReceiveStockDialog: React.FC<ReceiveStockDialogProps> = ({ products, onRec
             >
               <option value="">Select a product...</option>
               {products.map(p => (
-                <option key={p.id} value={p.id}>{p.name} - {p.brand}</option>
+                <option key={p.id} value={p.id}>{p.code} - {p.name}</option>
               ))}
             </select>
           </div>
