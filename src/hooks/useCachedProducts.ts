@@ -30,7 +30,6 @@ export function useCachedProducts() {
     const searchTerm = query.toLowerCase();
     return data
       .filter(product => 
-        product.code?.toLowerCase().includes(searchTerm) ||
         product.name?.toLowerCase().includes(searchTerm) ||
         product.brand?.toLowerCase().includes(searchTerm) ||
         product.type?.toLowerCase().includes(searchTerm)
@@ -38,9 +37,9 @@ export function useCachedProducts() {
       .slice(0, 20); // Limit results
   };
 
-  const getProductByCode = (code: string) => {
+  const getProductByName = (name: string) => {
     if (!data) return null;
-    return data.find(product => product.code === code) || null;
+    return data.find(product => product.name === name) || null;
   };
 
   const getProductsByBrand = (brand: string) => {
@@ -70,7 +69,7 @@ export function useCachedProducts() {
     isLoading,
     error,
     searchProducts,
-    getProductByCode,
+    getProductByName,
     getProductsByBrand,
     invalidateProducts: invalidateCache,
     updateProductInCache,
