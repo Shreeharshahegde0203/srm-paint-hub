@@ -91,8 +91,8 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
       newErrors.brand = 'Brand is required';
     }
     
-    if (!formData.type.trim()) {
-      newErrors.type = 'Product type is required';
+    if (!formData.hsnCode.trim()) {
+      newErrors.hsnCode = 'HSN Code is required';
     }
     
     if (formData.price <= 0) {
@@ -241,27 +241,13 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Category *</label>
             <select
               value={formData.category}
-              onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value, type: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 rounded-lg dark:bg-gray-600 dark:text-white"
             >
               {CATEGORIES.map(category => (
                 <option key={category} value={category}>{category}</option>
               ))}
             </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Type *</label>
-            <input
-              type="text"
-              value={formData.type}
-              onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
-              className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-600 dark:text-white ${
-                errors.type ? 'border-red-500' : 'border-gray-300 dark:border-gray-500'
-              }`}
-              placeholder="e.g., Emulsion, Enamel"
-            />
-            {errors.type && <p className="text-red-500 text-sm mt-1">{errors.type}</p>}
           </div>
 
           <div>
@@ -275,18 +261,6 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Unit Type</label>
-            <select
-              value={formData.unit}
-              onChange={(e) => setFormData(prev => ({ ...prev, unit: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 rounded-lg dark:bg-gray-600 dark:text-white"
-            >
-              {UNIT_TYPES.map(unit => (
-                <option key={unit} value={unit}>{unit}</option>
-              ))}
-            </select>
-          </div>
         </div>
       </div>
 
@@ -411,17 +385,30 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Unit Quantity</label>
-            <input
-              type="number"
-              step="0.01"
-              value={formData.unitQuantity}
-              onChange={(e) => setFormData(prev => ({ ...prev, unitQuantity: parseFloat(e.target.value) || 1 }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 rounded-lg dark:bg-gray-600 dark:text-white"
-              placeholder="1"
-            />
-          </div>
+           <div>
+             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Unit Quantity</label>
+             <input
+               type="number"
+               step="0.01"
+               value={formData.unitQuantity}
+               onChange={(e) => setFormData(prev => ({ ...prev, unitQuantity: parseFloat(e.target.value) || 1 }))}
+               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 rounded-lg dark:bg-gray-600 dark:text-white"
+               placeholder="1"
+             />
+           </div>
+
+           <div>
+             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Unit Type</label>
+             <select
+               value={formData.unit}
+               onChange={(e) => setFormData(prev => ({ ...prev, unit: e.target.value }))}
+               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 rounded-lg dark:bg-gray-600 dark:text-white"
+             >
+               {UNIT_TYPES.map(unit => (
+                 <option key={unit} value={unit}>{unit}</option>
+               ))}
+             </select>
+           </div>
         </div>
       </div>
 
@@ -430,14 +417,17 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
         <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">Additional Details</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">HSN Code</label>
+            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">HSN Code *</label>
             <input
               type="text"
               value={formData.hsnCode}
               onChange={(e) => setFormData(prev => ({ ...prev, hsnCode: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 rounded-lg dark:bg-gray-600 dark:text-white"
+              className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-600 dark:text-white ${
+                errors.hsnCode ? 'border-red-500' : 'border-gray-300 dark:border-gray-500'
+              }`}
               placeholder="e.g., 3208"
             />
+            {errors.hsnCode && <p className="text-red-500 text-sm mt-1">{errors.hsnCode}</p>}
           </div>
 
           <div>
@@ -483,13 +473,22 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
         >
           Cancel
         </button>
-        <button
-          type="submit"
-          disabled={uploading}
-          className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 font-medium shadow-lg disabled:opacity-50"
-        >
-          {uploading ? 'Uploading...' : (product?.id ? 'Update Product' : 'Save Product')}
-        </button>
+         <button
+           type="submit"
+           disabled={uploading}
+           className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 font-medium shadow-lg disabled:opacity-50"
+         >
+           {uploading ? 'Uploading...' : (product?.id ? 'Update Product' : 'Save Product')}
+         </button>
+         {product?.id && (
+           <button
+             type="button"
+             onClick={() => {/* TODO: Implement restock functionality */}}
+             className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 font-medium shadow-lg"
+           >
+             Restock
+           </button>
+         )}
       </div>
     </form>
   );
