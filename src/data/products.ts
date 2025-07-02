@@ -1,3 +1,4 @@
+
 export interface Product {
   id: string;
   name: string;
@@ -11,6 +12,22 @@ export interface Product {
   description?: string;
   image?: string;
   unit_quantity?: number;
+  hsn_code?: string;
+  batchNumber?: string;
+  expiryDate?: string;
+  category?: string;
+}
+
+export interface InvoiceItem {
+  id: string;
+  product: Product;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+  colorCode?: string;
+  base?: string;
+  isReturned?: boolean;
+  returnReason?: string;
 }
 
 export const UNIT_TYPES = ['Litre', 'Kg', 'Inch', 'Number', 'Piece'];
@@ -30,7 +47,8 @@ export const products: Product[] = [
     price: 1200,
     gstRate: 18,
     unit: "4 Litre",
-    description: "High quality interior emulsion paint"
+    description: "High quality interior emulsion paint",
+    hsn_code: "3208"
   },
   {
     id: "2", 
@@ -42,6 +60,10 @@ export const products: Product[] = [
     price: 1800,
     gstRate: 18,
     unit: "4 Litre",
-    description: "Weather resistant exterior paint"
+    description: "Weather resistant exterior paint",
+    hsn_code: "3208"
   }
 ];
+
+// Legacy export for backward compatibility
+export const productsDatabase = products;
