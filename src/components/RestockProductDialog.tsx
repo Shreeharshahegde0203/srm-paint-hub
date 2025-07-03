@@ -19,6 +19,26 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
 
   const filteredProducts = searchQuery ? searchProducts(searchQuery) : products.slice(0, 20);
 
+  // Map Supabase product to local Product type
+  const mapToProduct = (supabaseProduct: any): Product => ({
+    id: supabaseProduct.id,
+    name: supabaseProduct.name,
+    brand: supabaseProduct.brand,
+    type: supabaseProduct.type,
+    base: supabaseProduct.base,
+    price: supabaseProduct.price,
+    stock: supabaseProduct.stock,
+    gstRate: supabaseProduct.gst_rate,
+    unit: supabaseProduct.unit,
+    description: supabaseProduct.description,
+    image: supabaseProduct.image,
+    unit_quantity: supabaseProduct.unit_quantity,
+    hsn_code: supabaseProduct.hsn_code,
+    batchNumber: supabaseProduct.batch_number,
+    expiryDate: supabaseProduct.expiry_date,
+    category: supabaseProduct.category,
+  });
+
   const adjustQuantity = (increment: boolean) => {
     if (increment) {
       setQuantity(prev => prev + 1);
@@ -103,26 +123,29 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
               Select Product
             </label>
             <div className="max-h-48 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg">
-              {filteredProducts.map((product) => (
-                <div
-                  key={product.id}
-                  onClick={() => setSelectedProduct(product)}
-                  className={`p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-600 last:border-b-0 ${
-                    selectedProduct?.id === product.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white">{product.name}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">{product.brand} • {product.type}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Stock: {product.stock} {product.unit}</p>
+              {filteredProducts.map((product) => {
+                const mappedProduct = mapToProduct(product);
+                return (
+                  <div
+                    key={product.id}
+                    onClick={() => setSelectedProduct(mappedProduct)}
+                    className={`p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-600 last:border-b-0 ${
+                      selectedProduct?.id === product.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">{product.name}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">{product.brand} • {product.type}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Stock: {product.stock} {product.unit}</p>
+                      </div>
+                      {product.image && (
+                        <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded" />
+                      )}
                     </div>
-                    {product.image && (
-                      <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded" />
-                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
               {filteredProducts.length === 0 && (
                 <div className="p-4 text-center text-gray-500 dark:text-gray-400">
                   No products found

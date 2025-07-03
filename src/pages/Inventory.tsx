@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter, Edit, Trash2, Package, AlertTriangle, X } from 'lucide-react';
 import { Product, UNIT_TYPES } from '../data/products';
@@ -251,49 +250,11 @@ const Inventory = () => {
         />
       )}
 
-      {/* Restock Product Selection */}
-      {showRestockDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Select Product to Restock</h2>
-              <button onClick={() => setShowRestockDialog(false)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            <div className="p-6">
-              <div className="grid gap-4">
-                {products.map((product) => (
-                  <div key={product.id} className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <div className="flex items-center space-x-4">
-                      {product.image && (
-                        <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded" />
-                      )}
-                      <div>
-                        <h3 className="font-semibold text-gray-900 dark:text-white">{product.name}</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">{product.brand} • Stock: {product.stock}</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => openRestockDialog(product)}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                    >
-                      Restock
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Restock Product Dialog */}
-      {restockingProduct && (
+      {showRestockDialog && (
         <RestockProductDialog
-          product={restockingProduct}
           onRestock={handleRestockProduct}
-          onClose={() => setRestockingProduct(null)}
+          onClose={() => setShowRestockDialog(false)}
         />
       )}
     </div>
