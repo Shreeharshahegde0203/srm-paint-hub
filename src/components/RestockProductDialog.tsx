@@ -16,6 +16,7 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
   const [priceChanged, setPriceChanged] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showFields, setShowFields] = useState(false);
   const { products } = useSupabaseProducts();
 
   const filteredProducts = searchQuery 
@@ -43,10 +44,17 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
   };
 
   const handleProductSelect = (product: any) => {
-    setSelectedProduct(product);
-    setNewPrice(Number(product.price));
-    setPriceChanged(false);
-    setQuantity(1);
+    if (selectedProduct?.id === product.id && !showFields) {
+      // Second click - show fields
+      setShowFields(true);
+      setNewPrice(Number(product.price));
+      setPriceChanged(false);
+      setQuantity(1);
+    } else {
+      // First click - select product
+      setSelectedProduct(product);
+      setShowFields(false);
+    }
   };
 
   const handlePriceChange = (value: number) => {
@@ -127,7 +135,7 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
           {/* Product Selection */}
           <div>
             <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-              Select Product
+              Select Product (Click twice to show restock fields)
             </label>
             <div className="max-h-48 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg">
               {filteredProducts.map((product) => (
@@ -158,89 +166,87 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
             </div>
           </div>
 
-          {/* Selected Product Info */}
-          {selectedProduct && (
-            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-              <h3 className="font-semibold text-gray-900 dark:text-white">{selectedProduct.name}</h3>
-              <p className="text-gray-600 dark:text-gray-300">{selectedProduct.brand} • {selectedProduct.type}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Current Stock: {selectedProduct.stock} {selectedProduct.unit}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Current Price: ₹{selectedProduct.price}</p>
-            </div>
-          )}
-
-          {/* Quantity Input */}
-          {selectedProduct && (
-            <div>
-              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                Restock Quantity
-              </label>
-              <div className="flex items-center">
-                <button
-                  type="button"
-                  onClick={() => adjustQuantity(false)}
-                  className="p-2 border border-gray-300 dark:border-gray-600 rounded-l-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-                  disabled={quantity <= 1}
-                >
-                  <Minus className="h-4 w-4" />
-                </button>
-                <input
-                  type="number"
-                  value={quantity}
-                  onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-20 px-3 py-2 border-t border-b border-gray-300 dark:border-gray-600 text-center focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                  min="1"
-                />
-                <button
-                  type="button"
-                  onClick={() => adjustQuantity(true)}
-                  className="p-2 border border-gray-300 dark:border-gray-600 rounded-r-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-                >
-                  <Plus className="h-4 w-4" />
-                </button>
+          {/* Restock Fields - Only show when product is double-clicked */}
+          {selectedProduct && showFields && (
+            <>
+              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                <h3 className="font-semibold text-gray-900 dark:text-white">{selectedProduct.name}</h3>
+                <p className="text-gray-600 dark:text-gray-300">{selectedProduct.brand} • {selectedProduct.type}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Current Stock: {selectedProduct.stock} {selectedProduct.unit}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Current Price: ₹{selectedProduct.price}</p>
               </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                New stock will be: {selectedProduct.stock + quantity} {selectedProduct.unit}
-              </p>
-            </div>
-          )}
 
-          {/* Price Update */}
-          {selectedProduct && (
-            <div>
-              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                Price per Unit
-              </label>
-              <div className="flex items-center">
-                <button
-                  type="button"
-                  onClick={() => adjustPrice(false)}
-                  className="p-2 border border-gray-300 dark:border-gray-600 rounded-l-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-                  disabled={newPrice <= 0}
-                >
-                  <Minus className="h-4 w-4" />
-                </button>
-                <input
-                  type="number"
-                  value={newPrice}
-                  onChange={(e) => handlePriceChange(parseFloat(e.target.value) || 0)}
-                  className="w-24 px-3 py-2 border-t border-b border-gray-300 dark:border-gray-600 text-center focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                  min="0"
-                  step="0.01"
-                />
-                <button
-                  type="button"
-                  onClick={() => adjustPrice(true)}
-                  className="p-2 border border-gray-300 dark:border-gray-600 rounded-r-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-                >
-                  <Plus className="h-4 w-4" />
-                </button>
-              </div>
-              {priceChanged && (
-                <p className="text-sm text-orange-600 mt-1">
-                  Price will be updated from ₹{selectedProduct.price} to ₹{newPrice}
+              {/* Restock Quantity */}
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Restock Quantity
+                </label>
+                <div className="flex items-center">
+                  <button
+                    type="button"
+                    onClick={() => adjustQuantity(false)}
+                    className="p-2 border border-gray-300 dark:border-gray-600 rounded-l-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+                    disabled={quantity <= 1}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </button>
+                  <input
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="w-20 px-3 py-2 border-t border-b border-gray-300 dark:border-gray-600 text-center focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    min="1"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => adjustQuantity(true)}
+                    className="p-2 border border-gray-300 dark:border-gray-600 rounded-r-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  New stock will be: {selectedProduct.stock + quantity} {selectedProduct.unit}
                 </p>
-              )}
-            </div>
+              </div>
+
+              {/* Unit Price */}
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Unit Price
+                </label>
+                <div className="flex items-center">
+                  <button
+                    type="button"
+                    onClick={() => adjustPrice(false)}
+                    className="p-2 border border-gray-300 dark:border-gray-600 rounded-l-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+                    disabled={newPrice <= 0}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </button>
+                  <input
+                    type="number"
+                    value={newPrice}
+                    onChange={(e) => handlePriceChange(parseFloat(e.target.value) || 0)}
+                    className="flex-1 px-3 py-2 border-t border-b border-gray-300 dark:border-gray-600 text-center focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    min="0"
+                    step="0.01"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => adjustPrice(true)}
+                    className="p-2 border border-gray-300 dark:border-gray-600 rounded-r-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
+                {priceChanged && (
+                  <p className="text-sm text-orange-600 mt-1">
+                    Price will be updated from ₹{selectedProduct.price} to ₹{newPrice}
+                  </p>
+                )}
+              </div>
+            </>
           )}
         </div>
 
@@ -253,7 +259,7 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
           </button>
           <button
             onClick={handleRestock}
-            disabled={loading || !selectedProduct}
+            disabled={loading || !selectedProduct || !showFields}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center"
           >
             {loading ? (
