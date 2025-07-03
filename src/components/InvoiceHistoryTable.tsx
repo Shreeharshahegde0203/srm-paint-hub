@@ -5,16 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Edit, Trash2, Download, Eye, EyeOff } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-
-interface Invoice {
-  id: string;
-  total: number;
-  status: string;
-  created_at: string;
-  customer_id: string;
-  bill_type?: string;
-  billing_mode?: string;
-}
+import { Invoice } from "../hooks/useSupabaseInvoices";
 
 interface InvoiceHistoryTableProps {
   invoices: Invoice[];
@@ -107,7 +98,7 @@ export const InvoiceHistoryTable = ({
                     {invoice.id.slice(0, 8)}
                   </td>
                   <td className="p-3">
-                    {new Date(invoice.created_at).toLocaleDateString()}
+                    {invoice.created_at ? new Date(invoice.created_at).toLocaleDateString() : 'N/A'}
                   </td>
                   <td className="p-3">
                     <div className="flex items-center gap-2">
