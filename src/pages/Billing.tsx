@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Plus, FileText } from 'lucide-react';
 import { generateInvoicePDF } from '../utils/pdfGenerator';
@@ -11,6 +12,9 @@ import { InvoiceHistoryTable } from "../components/InvoiceHistoryTable";
 import EnhancedBillingForm from "../components/EnhancedBillingForm";
 import EditInvoiceForm from "../components/EditInvoiceForm";
 import ConfirmDialog from "../components/ConfirmDialog";
+import type { Tables } from "@/integrations/supabase/types";
+
+type Product = Tables<"products">;
 
 const Billing = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -233,6 +237,26 @@ const Billing = () => {
     console.log("View invoice:", invoice);
   };
 
+  // Convert Supabase products to the expected format for EditInvoiceForm
+  const convertedProducts = products?.map((product: Product) => ({
+    id: product.id,
+    name: product.name,
+    brand: product.brand,
+    type: product.type,
+    base: product.base,
+    price: Number(product.price),
+    stock: product.stock,
+    gstRate: product.gst_rate,
+    unit: product.unit,
+    description: product.description,
+    image: product.image,
+    unit_quantity: product.unit_quantity,
+    hsn_code: product.hsn_code,
+    batchNumber: product.batch_number,
+    expiryDate: product.expiry_date,
+    category: product.category,
+  })) || [];
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <div className="max-w-7xl mx-auto">
@@ -286,7 +310,7 @@ const Billing = () => {
       {editingInvoice && (
         <EditInvoiceForm
           invoice={editingInvoice}
-          products={products || []}
+          products={convertedProducts}
           onSave={async (newData) => {
             await editInvoice(editingInvoice.id, newData);
             setEditingInvoice(null);

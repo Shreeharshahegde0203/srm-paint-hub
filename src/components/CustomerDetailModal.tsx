@@ -7,6 +7,9 @@ import { useCustomerInvoices } from "@/hooks/useCustomerInvoices";
 import { useSupabaseInvoices } from "@/hooks/useSupabaseInvoices";
 import { useSupabaseProducts } from "@/hooks/useSupabaseProducts";
 import EditInvoiceForm from "./EditInvoiceForm";
+import type { Tables } from "@/integrations/supabase/types";
+
+type Product = Tables<"products">;
 
 interface CustomerDetailModalProps {
   customer: any;
@@ -51,6 +54,26 @@ const CustomerDetailModal = ({ customer, isOpen, onClose }: CustomerDetailModalP
     // Refresh invoices
     invoicesQuery.refetch();
   };
+
+  // Convert Supabase products to the expected format for EditInvoiceForm
+  const convertedProducts = products?.map((product: Product) => ({
+    id: product.id,
+    name: product.name,
+    brand: product.brand,
+    type: product.type,
+    base: product.base,
+    price: Number(product.price),
+    stock: product.stock,
+    gstRate: product.gst_rate,
+    unit: product.unit,
+    description: product.description,
+    image: product.image,
+    unit_quantity: product.unit_quantity,
+    hsn_code: product.hsn_code,
+    batchNumber: product.batch_number,
+    expiryDate: product.expiry_date,
+    category: product.category,
+  })) || [];
 
   return (
     <>
@@ -164,7 +187,7 @@ const CustomerDetailModal = ({ customer, isOpen, onClose }: CustomerDetailModalP
       {editingInvoice && (
         <EditInvoiceForm
           invoice={editingInvoice.invoice}
-          products={products || []}
+          products={convertedProducts}
           onSave={handleEditInvoice}
           onCancel={() => setEditingInvoice(null)}
         />
