@@ -470,8 +470,8 @@ export default function EditInvoiceForm({
             
             <div className="space-y-4">
               {items.map((item, index) => (
-                <div key={item.id || index} className="bg-white dark:bg-slate-800 p-4 rounded-lg border dark:border-gray-700">
-                  <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                <div key={item.id || index} className="bg-white dark:bg-slate-800 p-4 rounded-lg border dark:border-gray-700 card-hover">
+                  <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1">Product</label>
                       <div className="p-2 bg-gray-100 dark:bg-slate-900 rounded-lg">
@@ -480,6 +480,16 @@ export default function EditInvoiceForm({
                           <p className="text-xs text-gray-500">{item.product.brand} • {item.product.type}</p>
                         )}
                       </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Color/Code</label>
+                      <input 
+                        type="text" 
+                        value={item.colorCode || ''} 
+                        onChange={(e) => updateItem(index, 'colorCode', e.target.value)} 
+                        className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white" 
+                        placeholder="Color/Code"
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Quantity</label>

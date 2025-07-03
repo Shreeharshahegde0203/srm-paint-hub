@@ -262,20 +262,20 @@ const Billing = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-6">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-6 card-hover">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
-                <FileText className="mr-3 h-8 w-8 text-blue-600" />
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center animate-fade-in">
+                <FileText className="mr-3 h-8 w-8 text-blue-600 wobble-on-hover" />
                 Enhanced Billing System
               </h1>
-              <p className="text-gray-600 dark:text-gray-300 mt-1">
+              <p className="text-gray-600 dark:text-gray-300 mt-1 animate-fade-in" style={{ animationDelay: '0.1s' }}>
                 Create GST, Non-GST, and Casual bills with full inventory integration
               </p>
             </div>
             <button
               onClick={() => setShowCreateForm(true)}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center font-semibold"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center font-semibold transition-all duration-300 transform hover:scale-105 glow-on-hover pulse-slow"
             >
               <Plus className="mr-2 h-5 w-5" />
               Create New Bill

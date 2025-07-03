@@ -55,7 +55,7 @@ const Navbar = () => {
             {(isAdmin
               ? adminNavItems.map(item => (
                   <Link key={item.name} to={item.path}
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 transform hover:scale-105 bounce-on-hover ${
                       isActive(item.path)
                         ? 'text-red-600 bg-red-50 border-b-2 border-red-600 dark:text-red-400 dark:bg-red-950 dark:border-red-900'
                         : 'text-gray-700 hover:text-red-600 hover:bg-gray-50 dark:text-gray-200 dark:hover:text-red-400 dark:hover:bg-gray-800'
@@ -70,7 +70,7 @@ const Navbar = () => {
                 ))
               : navItems.map(item => (
                   <Link key={item.name} to={item.path}
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 transform hover:scale-105 bounce-on-hover ${
                       isActive(item.path)
                         ? 'text-red-600 bg-red-50 border-b-2 border-red-600 dark:text-red-400 dark:bg-red-950 dark:border-red-900'
                         : 'text-gray-700 hover:text-red-600 hover:bg-gray-50 dark:text-gray-200 dark:hover:text-red-400 dark:hover:bg-gray-800'
@@ -84,13 +84,13 @@ const Navbar = () => {
               <AdminInfoDialog />
             )}
             {!isAuthenticated ? (
-              <Link to="/admin-login" className="bg-blue-900 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-800 transition-colors dark:bg-blue-700 dark:hover:bg-blue-600">
+              <Link to="/admin-login" className="bg-blue-900 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-800 transition-all duration-300 transform hover:scale-105 glow-on-hover dark:bg-blue-700 dark:hover:bg-blue-600">
                 Admin Login
               </Link>
             ) : (
               <button
                 onClick={handleLogout}
-                className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-colors flex items-center dark:bg-red-800 dark:hover:bg-red-700"
+                className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-all duration-300 transform hover:scale-105 flex items-center wobble-on-hover dark:bg-red-800 dark:hover:bg-red-700"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout

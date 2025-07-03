@@ -234,3 +234,79 @@ html {
 .dark .form-modal {
   background: rgba(31, 41, 55, 0.98);
 }
+
+/* Enhanced hover and animation effects */
+.bounce-on-hover {
+  transition: transform 0.3s ease;
+}
+
+.bounce-on-hover:hover {
+  transform: translateY(-2px);
+}
+
+.scale-on-hover {
+  transition: transform 0.3s ease;
+}
+
+.scale-on-hover:hover {
+  transform: scale(1.05);
+}
+
+.glow-on-hover {
+  transition: box-shadow 0.3s ease;
+}
+
+.glow-on-hover:hover {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+}
+
+.slide-in-left {
+  animation: slideInLeft 0.5s ease-out;
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.gradient-hover {
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.gradient-hover:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  transform: translateY(-1px);
+}
+
+/* Pulse animation for important elements */
+.pulse-slow {
+  animation: pulse 3s infinite;
+}
+
+/* Wobble animation */
+@keyframes wobble {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+
+.wobble-on-hover:hover {
+  animation: wobble 0.5s ease-in-out;
+}
+
+/* Smooth card transitions */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
