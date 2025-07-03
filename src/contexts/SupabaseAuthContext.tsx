@@ -60,7 +60,7 @@ export const SupabaseAuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     await supabase.auth.signOut();
     setLoading(false);
-    window.location.href = "/auth";
+    window.location.href = "/";
   };
 
   return (

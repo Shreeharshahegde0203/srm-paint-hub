@@ -177,7 +177,7 @@ const Billing = () => {
         quantity: item.quantity,
         unitPrice: item.price,
         total: item.quantity * item.price,
-        colorCode: item.color_code,
+        colorCode: item.color_code || "",
         unitType: item.unit_type,
         isReturned: false,
       };
@@ -196,6 +196,7 @@ const Billing = () => {
         quantity: item.quantity,
         unitPrice: item.unit_price,
         total: -(item.quantity * item.unit_price), // Negative for returns
+        colorCode: "",
         isReturned: true,
         returnReason: item.return_reason,
       };
