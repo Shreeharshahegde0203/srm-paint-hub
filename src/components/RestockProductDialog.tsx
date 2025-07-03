@@ -34,10 +34,19 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
     }
   };
 
+  const adjustPrice = (increment: boolean) => {
+    if (increment) {
+      setNewPrice(prev => prev + 1);
+    } else {
+      setNewPrice(prev => Math.max(0, prev - 1));
+    }
+  };
+
   const handleProductSelect = (product: any) => {
     setSelectedProduct(product);
     setNewPrice(Number(product.price));
     setPriceChanged(false);
+    setQuantity(1);
   };
 
   const handlePriceChange = (value: number) => {
@@ -204,9 +213,9 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
               <div className="flex items-center">
                 <button
                   type="button"
-                  onClick={() => handlePriceChange(newPrice - 1)}
+                  onClick={() => adjustPrice(false)}
                   className="p-2 border border-gray-300 dark:border-gray-600 rounded-l-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-                  disabled={newPrice <= 1}
+                  disabled={newPrice <= 0}
                 >
                   <Minus className="h-4 w-4" />
                 </button>
@@ -220,7 +229,7 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
                 />
                 <button
                   type="button"
-                  onClick={() => handlePriceChange(newPrice + 1)}
+                  onClick={() => adjustPrice(true)}
                   className="p-2 border border-gray-300 dark:border-gray-600 rounded-r-lg hover:bg-gray-100 dark:hover:bg-gray-600"
                 >
                   <Plus className="h-4 w-4" />

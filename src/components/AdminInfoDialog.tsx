@@ -7,7 +7,15 @@ const AdminInfoDialog = () => {
   const { companyInfo, updateCompanyInfo } = useCompanyInfo();
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("company");
-  const [formData, setFormData] = useState(companyInfo);
+  const [formData, setFormData] = useState({
+    ...companyInfo,
+    bankDetails: companyInfo.bankDetails || {
+      bankName: '',
+      accountNumber: '',
+      ifscCode: '',
+      branch: ''
+    }
+  });
 
   const handleSave = () => {
     updateCompanyInfo(formData);
@@ -405,9 +413,10 @@ const AdminInfoDialog = () => {
                   </label>
                   <input
                     type="text"
-                    value={formData.bankDetails.bankName}
+                    value={formData.bankDetails?.bankName || ''}
                     onChange={(e) => handleNestedInputChange("bankDetails", "bankName", e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="Enter bank name"
                   />
                 </div>
                 <div>
@@ -416,9 +425,10 @@ const AdminInfoDialog = () => {
                   </label>
                   <input
                     type="text"
-                    value={formData.bankDetails.accountNumber}
+                    value={formData.bankDetails?.accountNumber || ''}
                     onChange={(e) => handleNestedInputChange("bankDetails", "accountNumber", e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="Enter account number"
                   />
                 </div>
               </div>
@@ -430,9 +440,10 @@ const AdminInfoDialog = () => {
                   </label>
                   <input
                     type="text"
-                    value={formData.bankDetails.ifscCode}
+                    value={formData.bankDetails?.ifscCode || ''}
                     onChange={(e) => handleNestedInputChange("bankDetails", "ifscCode", e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="Enter IFSC code"
                   />
                 </div>
                 <div>
@@ -441,9 +452,10 @@ const AdminInfoDialog = () => {
                   </label>
                   <input
                     type="text"
-                    value={formData.bankDetails.branch}
+                    value={formData.bankDetails?.branch || ''}
                     onChange={(e) => handleNestedInputChange("bankDetails", "branch", e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="Enter branch name"
                   />
                 </div>
               </div>

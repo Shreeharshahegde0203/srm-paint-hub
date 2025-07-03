@@ -1,88 +1,63 @@
+
 import React, { useState } from 'react';
-import { BarChart3, Package, TrendingUp, FileText } from 'lucide-react';
+import { BarChart3, TrendingUp, Package, Users, DollarSign } from 'lucide-react';
 import SalesReport from '../components/SalesReport';
 import InventoryReport from '../components/InventoryReport';
-import BalanceSheetReport from '../components/BalanceSheetReport';
+import EnhancedBalanceSheetReport from '../components/EnhancedBalanceSheetReport';
 
 const Reports = () => {
-  const [activeReport, setActiveReport] = useState<string>('sales');
+  const [activeTab, setActiveTab] = useState('sales');
 
-  const renderSalesReport = () => {
-    return <SalesReport />;
-  };
-
-  const renderInventoryReport = () => {
-    return <InventoryReport />;
-  };
-
-  const renderReportContent = () => {
-    switch (activeReport) {
-      case 'sales':
-        return renderSalesReport();
-      case 'inventory':
-        return renderInventoryReport();
-      case 'balance_sheet':
-        return <BalanceSheetReport />;
-      default:
-        return renderSalesReport();
-    }
-  };
+  const tabs = [
+    { id: 'sales', label: 'Sales Analytics', icon: TrendingUp },
+    { id: 'inventory', label: 'Inventory Analytics', icon: Package },
+    { id: 'balance', label: 'Balance Sheet', icon: DollarSign },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
-            <BarChart3 className="mr-3 h-8 w-8 text-blue-600" />
-            Business Reports & Analytics
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">
-            Comprehensive reporting for sales, inventory, and financial analysis
-          </p>
-        </div>
-
-        {/* Report Type Selector */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-6">
-          <div className="flex flex-wrap gap-4">
-            <button
-              onClick={() => setActiveReport('sales')}
-              className={`px-6 py-3 rounded-lg font-semibold flex items-center ${
-                activeReport === 'sales'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-              }`}
-            >
-              <TrendingUp className="mr-2 h-5 w-5" />
-              Sales Reports
-            </button>
-            <button
-              onClick={() => setActiveReport('inventory')}
-              className={`px-6 py-3 rounded-lg font-semibold flex items-center ${
-                activeReport === 'inventory'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-              }`}
-            >
-              <Package className="mr-2 h-5 w-5" />
-              Inventory Reports
-            </button>
-            <button
-              onClick={() => setActiveReport('balance_sheet')}
-              className={`px-6 py-3 rounded-lg font-semibold flex items-center ${
-                activeReport === 'balance_sheet'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-              }`}
-            >
-              <FileText className="mr-2 h-5 w-5" />
-              Balance Sheet
-            </button>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
+                <BarChart3 className="mr-3 h-8 w-8 text-blue-600" />
+                Business Reports & Analytics
+              </h1>
+              <p className="text-gray-600 dark:text-gray-300 mt-1">
+                Comprehensive business intelligence and financial reporting
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Report Content */}
-        {renderReportContent()}
+        {/* Tab Navigation */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg mb-6">
+          <div className="flex border-b border-gray-200 dark:border-gray-700">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-900/20'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}
+              >
+                <tab.icon className="h-5 w-5 mr-2" />
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6">
+          {activeTab === 'sales' && <SalesReport />}
+          {activeTab === 'inventory' && <InventoryReport />}
+          {activeTab === 'balance' && <EnhancedBalanceSheetReport />}
+        </div>
       </div>
     </div>
   );

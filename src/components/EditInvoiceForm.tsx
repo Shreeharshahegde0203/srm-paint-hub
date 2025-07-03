@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Trash2, RotateCcw, Plus, X } from "lucide-react";
 import EnhancedProductSelector from "./EnhancedProductSelector";
@@ -130,18 +131,28 @@ const ReturnItemDialog = ({ invoiceItems, onReturn, onClose }: ReturnItemDialogP
 };
 
 interface AddItemDialogProps {
-  onAddProduct: (product: Product, quantity: number, unitPrice: number) => void;
+  onAddProduct: (product: Product, itemData: any) => void;
   onClose: () => void;
+  billingMode?: string;
 }
 
-const AddItemDialog = ({ onAddProduct, onClose }: AddItemDialogProps) => {
+const AddItemDialog = ({ onAddProduct, onClose, billingMode }: AddItemDialogProps) => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [colorCode, setColorCode] = useState('');
   const [quantity, setQuantity] = useState(1);
+  const [unitQuantity, setUnitQuantity] = useState(1);
+  const [unitType, setUnitType] = useState('Piece');
+  const [gstPercentage, setGstPercentage] = useState(18);
   const [unitPrice, setUnitPrice] = useState(0);
+
+  const unitTypes = ['Litre', 'Kg', 'Inch', 'Piece', 'Number', 'Meter', 'Square Feet'];
 
   useEffect(() => {
     if (selectedProduct) {
       setUnitPrice(selectedProduct.price);
+      setGstPercentage(selectedProduct.gstRate || 18);
+      setUnitType(selectedProduct.unit || 'Piece');
+      setUnitQuantity(selectedProduct.unit_quantity || 1);
     }
   }, [selectedProduct]);
 
@@ -168,7 +179,16 @@ const AddItemDialog = ({ onAddProduct, onClose }: AddItemDialogProps) => {
       return;
     }
 
-    onAddProduct(selectedProduct, quantity, unitPrice);
+    const itemData = {
+      colorCode,
+      quantity,
+      unitQuantity,
+      unitType,
+      gstPercentage: billingMode === 'with_gst' ? gstPercentage : 0,
+      unitPrice,
+    };
+
+    onAddProduct(selectedProduct, itemData);
     onClose();
   };
 
@@ -189,17 +209,67 @@ const AddItemDialog = ({ onAddProduct, onClose }: AddItemDialogProps) => {
           />
           
           {selectedProduct && (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Colour/Code</label>
+                <input
+                  type="text"
+                  value={colorCode}
+                  onChange={(e) => setColorCode(e.target.value)}
+                  className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                  placeholder="Enter colour or code"
+                />
+              </div>
+              
               <div>
                 <label className="block text-sm font-medium mb-1">Quantity</label>
                 <input
                   type="number"
                   value={quantity}
                   onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-full p-2 border rounded-lg"
+                  className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
                   min="1"
                 />
               </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Unit Quantity</label>
+                <input
+                  type="number"
+                  value={unitQuantity}
+                  onChange={(e) => setUnitQuantity(parseFloat(e.target.value) || 1)}
+                  className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                  min="0"
+                  step="0.1"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Unit Type</label>
+                <select
+                  value={unitType}
+                  onChange={(e) => setUnitType(e.target.value)}
+                  className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                >
+                  {unitTypes.map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+              
+              {billingMode === 'with_gst' && (
+                <div>
+                  <label className="block text-sm font-medium mb-1">GST %</label>
+                  <input
+                    type="number"
+                    value={gstPercentage}
+                    onChange={(e) => setGstPercentage(parseInt(e.target.value) || 18)}
+                    className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                    min="0"
+                    max="28"
+                  />
+                </div>
+              )}
               
               <div>
                 <label className="block text-sm font-medium mb-1">Unit Price</label>
@@ -207,7 +277,7 @@ const AddItemDialog = ({ onAddProduct, onClose }: AddItemDialogProps) => {
                   type="number"
                   value={unitPrice}
                   onChange={(e) => setUnitPrice(parseFloat(e.target.value) || 0)}
-                  className="w-full p-2 border rounded-lg"
+                  className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
                   min="0"
                   step="0.01"
                 />
@@ -217,7 +287,7 @@ const AddItemDialog = ({ onAddProduct, onClose }: AddItemDialogProps) => {
         </div>
 
         <div className="flex justify-end space-x-4 mt-6">
-          <button onClick={onClose} className="px-4 py-2 border rounded-lg hover:bg-gray-50">
+          <button onClick={onClose} className="px-4 py-2 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
             Cancel
           </button>
           <button
@@ -239,7 +309,7 @@ export default function EditInvoiceForm({
   onSave,
   onCancel,
 }: {
-  invoice: Invoice;
+  invoice: any;
   products: Product[];
   onSave: (newData: { items: any[]; status: string; discount: number; total: number }) => Promise<void>;
   onCancel: () => void;
@@ -283,13 +353,17 @@ export default function EditInvoiceForm({
 
   const addItem = () => setShowAddItem(true);
   
-  const handleAddProduct = (product: Product, quantity: number, unitPrice: number) => {
+  const handleAddProduct = (product: Product, itemData: any) => {
     const newItem = {
       id: Date.now().toString(),
       product,
-      quantity,
-      unitPrice,
-      total: quantity * unitPrice,
+      quantity: itemData.quantity,
+      unitPrice: itemData.unitPrice,
+      total: itemData.quantity * itemData.unitPrice,
+      colorCode: itemData.colorCode,
+      unitQuantity: itemData.unitQuantity,
+      unitType: itemData.unitType,
+      gstPercentage: itemData.gstPercentage,
       isReturned: false,
       isNew: true
     };
@@ -530,6 +604,7 @@ export default function EditInvoiceForm({
           <AddItemDialog
             onAddProduct={handleAddProduct}
             onClose={() => setShowAddItem(false)}
+            billingMode={invoice.billing_mode}
           />
         )}
 
