@@ -139,6 +139,7 @@ interface AddItemDialogProps {
 const AddItemDialog = ({ onAddProduct, onClose, billingMode }: AddItemDialogProps) => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [colorCode, setColorCode] = useState('');
+  const [base, setBase] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [unitQuantity, setUnitQuantity] = useState(1);
   const [unitType, setUnitType] = useState('Piece');
@@ -153,6 +154,7 @@ const AddItemDialog = ({ onAddProduct, onClose, billingMode }: AddItemDialogProp
       setGstPercentage(selectedProduct.gstRate || 18);
       setUnitType(selectedProduct.unit || 'Piece');
       setUnitQuantity(selectedProduct.unit_quantity || 1);
+      setBase(selectedProduct.base || '');
     }
   }, [selectedProduct]);
 
@@ -181,6 +183,7 @@ const AddItemDialog = ({ onAddProduct, onClose, billingMode }: AddItemDialogProp
 
     const itemData = {
       colorCode,
+      base,
       quantity,
       unitQuantity,
       unitType,
@@ -216,8 +219,19 @@ const AddItemDialog = ({ onAddProduct, onClose, billingMode }: AddItemDialogProp
                   type="text"
                   value={colorCode}
                   onChange={(e) => setColorCode(e.target.value)}
-                  className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                  className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 input-focus"
                   placeholder="Enter colour or code"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Base</label>
+                <input
+                  type="text"
+                  value={base}
+                  onChange={(e) => setBase(e.target.value)}
+                  className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 input-focus"
+                  placeholder="Enter base specification"
                 />
               </div>
               
@@ -321,14 +335,22 @@ export default function EditInvoiceForm({
   const [showReturnDialog, setShowReturnDialog] = useState(false);
   const [showAddItem, setShowAddItem] = useState(false);
 
+  const [customer, setCustomer] = useState<any>(null);
+
   useEffect(() => {
-    // Load invoice items
-    const loadInvoiceItems = async () => {
+    // Load invoice items and customer data
+    const loadInvoiceData = async () => {
       try {
         const { data: invoiceItems } = await supabase
           .from("invoice_items")
           .select("*")
           .eq("invoice_id", invoice.id);
+
+        const { data: customerData } = await supabase
+          .from("customers")
+          .select("*")
+          .eq("id", invoice.customer_id)
+          .single();
 
         const mappedItems = (invoiceItems || []).map((item) => {
           const product = products.find((p) => p.id === item.product_id);
@@ -338,17 +360,22 @@ export default function EditInvoiceForm({
             quantity: item.quantity,
             unitPrice: item.price,
             total: item.quantity * item.price,
+            colorCode: item.color_code || '',
+            base: item.base || product?.base || '',
+            unitType: item.unit_type || product?.unit || 'Piece',
+            gstPercentage: item.gst_percentage || 18,
             isReturned: false
           };
         });
 
         setItems(mappedItems);
+        setCustomer(customerData);
       } catch (error) {
-        console.error('Error loading invoice items:', error);
+        console.error('Error loading invoice data:', error);
       }
     };
 
-    loadInvoiceItems();
+    loadInvoiceData();
   }, [invoice.id, products]);
 
   const addItem = () => setShowAddItem(true);
@@ -361,6 +388,7 @@ export default function EditInvoiceForm({
       unitPrice: itemData.unitPrice,
       total: itemData.quantity * itemData.unitPrice,
       colorCode: itemData.colorCode,
+      base: itemData.base || product.base || '',
       unitQuantity: itemData.unitQuantity,
       unitType: itemData.unitType,
       gstPercentage: itemData.gstPercentage,
@@ -439,9 +467,19 @@ export default function EditInvoiceForm({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-6xl max-h-screen overflow-y-auto transition-colors">
-        <h3 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Edit Invoice</h3>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-fade-in">
+      <div className="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-6xl max-h-screen overflow-y-auto transition-all duration-300 scale-in card-hover">
+        <div className="mb-6">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white animate-slide-in-left">Edit Invoice</h3>
+          {customer && (
+            <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 animate-fade-in bounce-on-hover" style={{ animationDelay: '0.2s' }}>
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                <span className="font-semibold">Customer:</span> {customer.name}
+                {customer.phone && <span className="ml-2">• {customer.phone}</span>}
+              </p>
+            </div>
+          )}
+        </div>
         <form onSubmit={handleSubmit} className="space-y-6">
           
           {/* Items Section */}
@@ -470,11 +508,11 @@ export default function EditInvoiceForm({
             
             <div className="space-y-4">
               {items.map((item, index) => (
-                <div key={item.id || index} className="bg-white dark:bg-slate-800 p-4 rounded-lg border dark:border-gray-700 card-hover">
-                  <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+                <div key={item.id || index} className="bg-white dark:bg-slate-800 p-4 rounded-lg border dark:border-gray-700 card-hover glow-on-hover transition-all duration-300">
+                  <div className="grid grid-cols-1 md:grid-cols-8 gap-4">
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium mb-1">Product</label>
-                      <div className="p-2 bg-gray-100 dark:bg-slate-900 rounded-lg">
+                      <label className="block text-sm font-medium mb-1 text-reveal">Product</label>
+                      <div className="p-2 bg-gray-100 dark:bg-slate-900 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-800 transition-colors duration-200">
                         <span className="text-sm font-medium">{item.product?.name || 'Unknown Product'}</span>
                         {item.product?.brand && (
                           <p className="text-xs text-gray-500">{item.product.brand} • {item.product.type}</p>
@@ -487,8 +525,18 @@ export default function EditInvoiceForm({
                         type="text" 
                         value={item.colorCode || ''} 
                         onChange={(e) => updateItem(index, 'colorCode', e.target.value)} 
-                        className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white" 
+                        className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white input-focus hover:shadow-md transition-all duration-200" 
                         placeholder="Color/Code"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Base</label>
+                      <input 
+                        type="text" 
+                        value={item.base || ''} 
+                        onChange={(e) => updateItem(index, 'base', e.target.value)} 
+                        className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white input-focus hover:shadow-md transition-all duration-200" 
+                        placeholder="Base"
                       />
                     </div>
                     <div>
@@ -497,7 +545,7 @@ export default function EditInvoiceForm({
                         type="number" 
                         value={item.quantity} 
                         onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 1)} 
-                        className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white" 
+                        className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white input-focus hover:shadow-md transition-all duration-200" 
                         min="1" 
                         required 
                       />
@@ -508,7 +556,7 @@ export default function EditInvoiceForm({
                         type="number" 
                         value={item.unitPrice} 
                         onChange={(e) => updateItem(index, 'unitPrice', parseFloat(e.target.value) || 0)} 
-                        className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white" 
+                        className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white input-focus hover:shadow-md transition-all duration-200" 
                         min="0" 
                         step="0.01" 
                         required 
@@ -516,7 +564,7 @@ export default function EditInvoiceForm({
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Total</label>
-                      <div className="flex items-center p-2 bg-gray-100 dark:bg-slate-900 rounded-lg h-10">
+                      <div className="flex items-center p-2 bg-gray-100 dark:bg-slate-900 rounded-lg h-10 hover:bg-gray-200 dark:hover:bg-slate-800 transition-colors duration-200">
                         <span className="text-sm font-medium dark:text-white">₹{item.total?.toFixed(2) || '0.00'}</span>
                       </div>
                     </div>
@@ -524,7 +572,7 @@ export default function EditInvoiceForm({
                       <button 
                         type="button" 
                         onClick={() => removeItem(index)} 
-                        className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900/40 p-2 rounded-lg h-10" 
+                        className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900/40 p-2 rounded-lg h-10 wobble-on-hover transition-all duration-200" 
                         disabled={items.length === 1}
                       >
                         <Trash2 className="h-4 w-4" />
