@@ -14,7 +14,11 @@ const AdminInfoDialog = () => {
       accountNumber: '',
       ifscCode: '',
       branch: ''
-    }
+    },
+    paymentTerms: companyInfo.paymentTerms || 'Cash',
+    dispatchThrough: companyInfo.dispatchThrough || '',
+    destination: companyInfo.destination || '',
+    deliveryTerms: companyInfo.deliveryTerms || ''
   });
 
   const handleSave = () => {
@@ -342,6 +346,62 @@ const AdminInfoDialog = () => {
                   placeholder="HSN/SAC codes as per GST guidelines"
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 />
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Payment & Dispatch Settings</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                      Mode/Terms of Payment
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.paymentTerms || ''}
+                      onChange={(e) => handleInputChange("paymentTerms", e.target.value)}
+                      placeholder="Cash"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                      Dispatch Through
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.dispatchThrough || ''}
+                      onChange={(e) => handleInputChange("dispatchThrough", e.target.value)}
+                      placeholder="Transport method"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                      Destination
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.destination || ''}
+                      onChange={(e) => handleInputChange("destination", e.target.value)}
+                      placeholder="Delivery destination"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                      Terms of Delivery
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.deliveryTerms || ''}
+                      onChange={(e) => handleInputChange("deliveryTerms", e.target.value)}
+                      placeholder="Delivery terms"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           )}

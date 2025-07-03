@@ -108,7 +108,7 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
         <div class="divider"></div>
         
         ${invoice.items.map(item => {
-          const itemName = `${item.product.name}${item.product.base ? ` (${item.product.base})` : ''}${item.colorCode ? ` - ${item.colorCode}` : ''}`;
+          const itemName = `${item.product.name}${item.colorCode ? ` - ${item.colorCode}` : ''}`;
           const displayName = itemName.substring(0, 15).padEnd(15);
           const qty = item.quantity.toString().padStart(3);
           const unit = item.product.name.toLowerCase().includes('inch') ? 'In' : 'Pc';
@@ -199,10 +199,10 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
           </div>
           <div style="text-align: right;">
             <strong>Date: ${escapeHTML(invoice.date)}</strong><br>
-            Mode/Terms of Payment: Cash<br>
-            Dispatch Through: <br>
-            Destination: <br>
-            Terms of Delivery:
+            Mode/Terms of Payment: ${escapeHTML(company.paymentTerms || 'Cash')}<br>
+            Dispatch Through: ${escapeHTML(company.dispatchThrough || '')}<br>
+            Destination: ${escapeHTML(company.destination || '')}<br>
+            Terms of Delivery: ${escapeHTML(company.deliveryTerms || '')}
           </div>
         </div>
 
@@ -219,7 +219,7 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
           </thead>
           <tbody>
             ${invoice.items.map((item, index) => {
-              const itemDescription = `${item.product.name}${item.product.base ? ` (${item.product.base})` : ''}${item.colorCode ? ` - ${item.colorCode}` : ''}`;
+              const itemDescription = `${item.product.name}${item.colorCode ? ` - ${item.colorCode}` : ''}`;
               const displayAmount = item.isReturned ? -Math.abs(item.total) : item.total;
               const itemClass = item.isReturned ? ' class="returned-item"' : '';
               const returnedText = item.isReturned ? ' (RETURNED)' : '';

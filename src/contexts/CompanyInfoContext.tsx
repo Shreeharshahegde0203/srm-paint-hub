@@ -35,6 +35,11 @@ interface CompanyInfo {
   authorizedSignatory: string;
   stateCode: string;
   stateName: string;
+  // Payment and dispatch settings
+  paymentTerms: string;
+  dispatchThrough: string;
+  destination: string;
+  deliveryTerms: string;
 }
 
 const defaultCompanyInfo: CompanyInfo = {
@@ -70,6 +75,10 @@ const defaultCompanyInfo: CompanyInfo = {
   authorizedSignatory: "Authorised Signatory",
   stateCode: "29",
   stateName: "Karnataka",
+  paymentTerms: "Cash",
+  dispatchThrough: "",
+  destination: "",
+  deliveryTerms: "",
 };
 
 interface CompanyInfoContextType {
