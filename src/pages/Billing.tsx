@@ -234,7 +234,8 @@ const Billing = () => {
   };
 
   const handleView = (invoice: Invoice) => {
-    console.log("View invoice:", invoice);
+    // Open the edit form for viewing
+    setEditingInvoice(invoice);
   };
 
   // Convert Supabase products to the expected format for EditInvoiceForm

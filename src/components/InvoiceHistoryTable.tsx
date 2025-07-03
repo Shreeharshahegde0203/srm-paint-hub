@@ -51,7 +51,10 @@ export const InvoiceHistoryTable = ({
         description: `Invoice status changed to ${newStatus}`,
       });
 
-      window.location.reload();
+      // Refresh the page without showing blank screen
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
       console.error('Error updating status:', error);
       toast({
@@ -118,9 +121,10 @@ export const InvoiceHistoryTable = ({
               {filteredInvoices.map((invoice, index) => (
                 <tr 
                   key={invoice.id} 
-                  className={`border-b border-gray-100 dark:border-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-gray-800 dark:hover:to-gray-700 transition-all duration-300 ${
+                  className={`border-b border-gray-100 dark:border-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-gray-800 dark:hover:to-gray-700 transition-all duration-300 cursor-pointer ${
                     index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50/50 dark:bg-gray-800/50'
                   }`}
+                  onDoubleClick={() => onEdit(invoice)}
                 >
                   <td className="p-4">
                     <span className="font-mono text-sm bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 px-3 py-1 rounded-full text-blue-800 dark:text-blue-200">

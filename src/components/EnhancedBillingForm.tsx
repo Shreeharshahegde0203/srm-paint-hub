@@ -612,7 +612,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
             <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">💰 Payment Status</h3>
             
             <div className="flex flex-wrap gap-4 mb-4">
-              {(['paid', 'unpaid', 'partially_paid'] as const).map(status => (
+              {(['paid', 'pending', 'partially_paid'] as const).map(status => (
                 <label key={status} className="flex items-center bg-gray-50 dark:bg-gray-700 p-3 rounded-lg cursor-pointer">
                   <input
                     type="radio"

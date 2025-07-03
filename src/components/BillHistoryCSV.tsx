@@ -138,24 +138,39 @@ export const BillHistoryCSV = () => {
     fetchBillData();
   }, []);
 
-  const exportToCSV = () => {
-    if (billData.length === 0) {
+  const exportToCSV = (filterType: 'all' | 'paid' | 'unpaid' = 'all') => {
+    let filteredBillData = billData;
+    let filteredSummaryData = summaryData;
+    
+    if (filterType === 'paid') {
+      filteredBillData = billData.filter(bill => bill.status === 'paid');
+      filteredSummaryData = summaryData.filter(summary => 
+        billData.some(bill => bill.invoiceNumber === summary.invoiceNumber && bill.status === 'paid')
+      );
+    } else if (filterType === 'unpaid') {
+      filteredBillData = billData.filter(bill => bill.status === 'pending');
+      filteredSummaryData = summaryData.filter(summary => 
+        billData.some(bill => bill.invoiceNumber === summary.invoiceNumber && bill.status === 'pending')
+      );
+    }
+
+    if (filteredBillData.length === 0) {
       toast({
         title: "No Data",
-        description: "No bill data available to export",
+        description: `No ${filterType === 'all' ? '' : filterType} bill data available to export`,
         variant: "destructive",
       });
       return;
     }
 
-    // Create detailed bill data CSV
+    // Create detailed bill data CSV (with numeric values only)
     const detailedHeaders = [
       'Invoice No', 'Date', 'Customer Name', 'Product Name', 'Base/Specification',
       'HSN Code', 'Quantity', 'Unit', 'Rate', 'Amount', 'CGST%', 'SGST%',
       'CGST Amount', 'SGST Amount', 'Total Amount', 'Status'
     ];
 
-    const detailedRows = billData.map(bill => [
+    const detailedRows = filteredBillData.map(bill => [
       bill.invoiceNumber,
       bill.date,
       bill.customerName,
@@ -164,34 +179,34 @@ export const BillHistoryCSV = () => {
       bill.hsnCode,
       bill.quantity,
       bill.unit,
-      `₹${bill.rate.toFixed(2)}`,
-      `₹${bill.amount.toFixed(2)}`,
-      `${bill.cgstPercent}%`,
-      `${bill.sgstPercent}%`,
-      `₹${bill.cgstAmount.toFixed(2)}`,
-      `₹${bill.sgstAmount.toFixed(2)}`,
-      `₹${bill.totalAmount.toFixed(2)}`,
+      bill.rate.toFixed(2),
+      bill.amount.toFixed(2),
+      bill.cgstPercent,
+      bill.sgstPercent,
+      bill.cgstAmount.toFixed(2),
+      bill.sgstAmount.toFixed(2),
+      bill.totalAmount.toFixed(2),
       bill.status
     ]);
 
-    // Create summary CSV
+    // Create summary CSV (with numeric values only)
     const summaryHeaders = ['Invoice No', 'Date', 'Customer', 'CGST Total', 'SGST Total', 'Invoice Total'];
-    const summaryRows = summaryData.map(summary => [
+    const summaryRows = filteredSummaryData.map(summary => [
       summary.invoiceNumber,
       summary.date,
       summary.customerName,
-      `₹${summary.cgstTotal.toFixed(2)}`,
-      `₹${summary.sgstTotal.toFixed(2)}`,
-      `₹${summary.invoiceTotal.toFixed(2)}`
+      summary.cgstTotal.toFixed(2),
+      summary.sgstTotal.toFixed(2),
+      summary.invoiceTotal.toFixed(2)
     ]);
 
     // Create combined CSV content
     const csvContent = [
-      '=== DETAILED BILL DATA ===',
+      `=== ${filterType.toUpperCase()} BILL DATA ===`,
       detailedHeaders.join(','),
       ...detailedRows.map(row => row.map(cell => `"${cell}"`).join(',')),
       '',
-      '=== INVOICE SUMMARY ===',
+      `=== ${filterType.toUpperCase()} INVOICE SUMMARY ===`,
       summaryHeaders.join(','),
       ...summaryRows.map(row => row.map(cell => `"${cell}"`).join(','))
     ].join('\n');
@@ -201,7 +216,7 @@ export const BillHistoryCSV = () => {
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `bill-history-${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `bill-history-${filterType}-${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -209,7 +224,7 @@ export const BillHistoryCSV = () => {
 
     toast({
       title: "Export Successful",
-      description: "Bill history has been exported to CSV",
+      description: `${filterType === 'all' ? 'All' : filterType === 'paid' ? 'Paid' : 'Unpaid'} bill history has been exported to CSV`,
     });
   };
 
@@ -249,14 +264,32 @@ export const BillHistoryCSV = () => {
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button 
-              onClick={exportToCSV} 
+              onClick={() => exportToCSV('all')} 
               disabled={loading || billData.length === 0}
               className="flex items-center gap-2"
             >
               <Download className="h-4 w-4" />
-              Export Bill History CSV
+              Export All Bills CSV
+            </Button>
+            <Button 
+              onClick={() => exportToCSV('paid')} 
+              disabled={loading || billData.length === 0}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Export Paid Bills CSV
+            </Button>
+            <Button 
+              onClick={() => exportToCSV('unpaid')} 
+              disabled={loading || billData.length === 0}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Export Unpaid Bills CSV
             </Button>
             <Button 
               onClick={fetchBillData} 
