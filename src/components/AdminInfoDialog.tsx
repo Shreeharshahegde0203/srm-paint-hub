@@ -1,369 +1,465 @@
+
 import React, { useState } from "react";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
-import { Button } from "./ui/button";
+import { X, Save, Upload, Palette, FileText, MapPin, Clock, Building } from "lucide-react";
 import { useCompanyInfo } from "../contexts/CompanyInfoContext";
-import InvoiceTemplatePreview from "./InvoiceTemplatePreview";
-import { Info, Settings2, Palette } from "lucide-react";
-import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "./ui/tooltip";
-import { Input } from "./ui/input";
-import { Textarea } from "./ui/textarea";
-import { Switch } from "./ui/switch";
-import { cn } from "@/lib/utils";
 
-const COLOR_PRESETS = [
-  {
-    key: "light",
-    name: "Light",
-    primary: "#2563eb",
-    accent: "#22c55e",
-    text: "#222",
-  },
-  {
-    key: "classic",
-    name: "Classic",
-    primary: "#1e3a8a",
-    accent: "#dc2626",
-    text: "#333",
-  },
-  {
-    key: "dark",
-    name: "Dark",
-    primary: "#1e293b",
-    accent: "#dc2626",
-    text: "#e5e7eb",
-  },
-  {
-    key: "custom",
-    name: "Custom",
-  }
-];
-
-function groupLabel(Icon, label: string) {
-  return (
-    <div className="flex items-center gap-2 text-lg font-semibold mb-1">
-      <Icon className="w-5 h-5 text-blue-600" />
-      <span>{label}</span>
-    </div>
-  );
+interface AdminInfoDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export default function AdminInfoDialog() {
+const AdminInfoDialog = ({ isOpen, onClose }: AdminInfoDialogProps) => {
   const { companyInfo, updateCompanyInfo } = useCompanyInfo();
-  const [open, setOpen] = useState(false);
-  const [edit, setEdit] = useState({ ...companyInfo });
-  const [previewKey, setPreviewKey] = useState(Date.now());
-  const [errors, setErrors] = useState<{ [k: string]: string }>({});
+  const [activeTab, setActiveTab] = useState("company");
+  const [formData, setFormData] = useState(companyInfo);
 
-  // Log dialog open changes for debugging
-  React.useEffect(() => {
-    console.log("[AdminInfoDialog] Dialog open state changed:", open);
-  }, [open]);
-
-  const handleChange = (field: string, value: any) => {
-    setEdit((prev: any) => ({ ...prev, [field]: value }));
-  };
-
-  const handleColors = (field: string, value: string) => {
-    setEdit((prev: any) => ({
-      ...prev,
-      invoiceColors: { ...prev.invoiceColors, [field]: value },
-      invoiceColorPreset: "custom"
-    }));
-  };
-
-  const handlePreset = (presetKey: string) => {
-    if (presetKey === "custom") {
-      setEdit((prev: any) => ({
-        ...prev,
-        invoiceColorPreset: "custom"
-      }));
-      return;
-    }
-    const found = COLOR_PRESETS.find(c => c.key === presetKey)!;
-    setEdit((prev: any) => ({
-      ...prev,
-      invoiceColors: {
-        primary: found.primary,
-        accent: found.accent,
-        text: found.text,
-      },
-      invoiceColorPreset: presetKey,
-    }));
-  };
+  if (!isOpen) return null;
 
   const handleSave = () => {
-    // Basic validation
-    const newErrors: typeof errors = {};
-    if (!edit.name?.trim()) newErrors.name = "Company name is required";
-    if (!edit.address?.trim()) newErrors.address = "Address is required";
-    if (!edit.phone?.trim()) newErrors.phone = "Phone is required";
-    if (!edit.email?.trim()) newErrors.email = "Email is required";
-    if (!edit.gstin?.trim()) newErrors.gstin = "GSTIN is required";
-    setErrors(newErrors);
-    if (Object.keys(newErrors).length > 0) return;
-
-    updateCompanyInfo(edit);
-    setOpen(false);
-    setPreviewKey(Date.now());
+    updateCompanyInfo(formData);
+    onClose();
   };
 
-  // Strengthen event prevention - do everything to block navigation
-  const handleTriggerClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // Also prevent any default blur or focus events just in case
-    if (typeof e.nativeEvent.stopImmediatePropagation === "function") {
-      e.nativeEvent.stopImmediatePropagation();
-    }
-    console.log("[AdminInfoDialog] Info button clicked");
-    setOpen(true);
-    return false;
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleNestedInputChange = (parent: string, field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [parent]: { ...prev[parent as keyof typeof prev], [field]: value }
+    }));
   };
 
   return (
-    <TooltipProvider>
-      <Dialog open={open} onOpenChange={setOpen}>
-        {/* Not inside any Link or a */}
-        <DialogTrigger asChild>
-          <Button
-            variant="outline"
-            className="ml-3 flex items-center gap-2"
-            title="Edit Company Info"
-            type="button"
-            tabIndex={0}
-            onClick={handleTriggerClick}
-            data-dialog-opener="true"
-            // No href, no navigation - only opens dialog
-          >
-            <Info className="mr-1 h-4 w-4" />
-            Info
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Store & Invoice Template</DialogTitle>
-            <DialogDescription>
-              Manage your contact, location, and customize invoice design.
-            </DialogDescription>
-          </DialogHeader>
-          <form
-            className="space-y-7"
-            onSubmit={e => {
-              e.preventDefault();
-              handleSave();
-            }}>
-            {/* Contact Section */}
-            <div>
-              {groupLabel(Info, "Contact Details")}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+        <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+            <Building className="mr-3 h-6 w-6 text-blue-600" />
+            Business Configuration
+          </h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex border-b border-gray-200 dark:border-gray-700">
+          {[
+            { id: 'company', label: 'Company Info', icon: Building },
+            { id: 'invoice', label: 'Invoice Appearance', icon: Palette },
+            { id: 'content', label: 'Invoice Content', icon: FileText },
+            { id: 'location', label: 'Location & Hours', icon: MapPin },
+            { id: 'banking', label: 'Banking Details', icon: Building }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center px-6 py-3 text-sm font-medium border-b-2 ${
+                activeTab === tab.id
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+              }`}
+            >
+              <tab.icon className="h-4 w-4 mr-2" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
+          {/* Company Info Tab */}
+          {activeTab === "company" && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block font-medium mb-1">
-                    Company Name <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                    Company Name
                   </label>
-                  <Input value={edit.name} onChange={e => handleChange("name", e.target.value)} />
-                  {errors.name && <span className="text-xs text-red-500">{errors.name}</span>}
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => handleInputChange("name", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  />
                 </div>
                 <div>
-                  <label className="block font-medium mb-1">Tagline</label>
-                  <Input value={edit.tagline} onChange={e => handleChange("tagline", e.target.value)} />
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">
-                    Address <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                    Tagline
                   </label>
-                  <Input value={edit.address} onChange={e => handleChange("address", e.target.value)} />
-                  {errors.address && <span className="text-xs text-red-500">{errors.address}</span>}
+                  <input
+                    type="text"
+                    value={formData.tagline}
+                    onChange={(e) => handleInputChange("tagline", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Address
+                </label>
+                <textarea
+                  value={formData.address}
+                  onChange={(e) => handleInputChange("address", e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block font-medium mb-1">
-                    Phone <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                    Phone
                   </label>
-                  <Input value={edit.phone} onChange={e => handleChange("phone", e.target.value)} />
-                  {errors.phone && <span className="text-xs text-red-500">{errors.phone}</span>}
+                  <input
+                    type="text"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange("phone", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  />
                 </div>
                 <div>
-                  <label className="block font-medium mb-1">
-                    Email <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                    Email
                   </label>
-                  <Input value={edit.email} onChange={e => handleChange("email", e.target.value)} type="email" />
-                  {errors.email && <span className="text-xs text-red-500">{errors.email}</span>}
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                    GSTIN
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.gstin}
+                    onChange={(e) => handleInputChange("gstin", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  />
                 </div>
                 <div>
-                  <div className="flex items-center gap-1">
-                    <label className="block font-medium mb-1">
-                      GSTIN <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                    State Code & Name
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={formData.stateCode}
+                      onChange={(e) => handleInputChange("stateCode", e.target.value)}
+                      placeholder="29"
+                      className="w-20 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    />
+                    <input
+                      type="text"
+                      value={formData.stateName}
+                      onChange={(e) => handleInputChange("stateName", e.target.value)}
+                      placeholder="Karnataka"
+                      className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Invoice Appearance Tab */}
+          {activeTab === "invoice" && (
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Color Preset
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[
+                    { id: 'light', name: 'Light', colors: { primary: '#3B82F6', accent: '#10B981', text: '#374151' } },
+                    { id: 'classic', name: 'Classic', colors: { primary: '#1e3a8a', accent: '#dc2626', text: '#333' } },
+                    { id: 'dark', name: 'Dark', colors: { primary: '#1F2937', accent: '#F59E0B', text: '#111827' } },
+                    { id: 'custom', name: 'Custom', colors: formData.invoiceColors }
+                  ].map((preset) => (
+                    <button
+                      key={preset.id}
+                      onClick={() => {
+                        handleInputChange("invoiceColorPreset", preset.id);
+                        if (preset.id !== 'custom') {
+                          handleInputChange("invoiceColors", preset.colors);
+                        }
+                      }}
+                      className={`p-3 rounded-lg border-2 ${
+                        formData.invoiceColorPreset === preset.id
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                          : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                    >
+                      <div className="flex space-x-1 mb-2">
+                        <div className="w-4 h-4 rounded" style={{ backgroundColor: preset.colors.primary }}></div>
+                        <div className="w-4 h-4 rounded" style={{ backgroundColor: preset.colors.accent }}></div>
+                        <div className="w-4 h-4 rounded" style={{ backgroundColor: preset.colors.text }}></div>
+                      </div>
+                      <span className="text-sm font-medium">{preset.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {formData.invoiceColorPreset === 'custom' && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                      Primary Color
                     </label>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="cursor-pointer text-blue-600 ml-1">?</span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        GSTIN is required and will be printed on invoices.
-                      </TooltipContent>
-                    </Tooltip>
+                    <input
+                      type="color"
+                      value={formData.invoiceColors.primary}
+                      onChange={(e) => handleNestedInputChange("invoiceColors", "primary", e.target.value)}
+                      className="w-full h-10 rounded-lg border border-gray-300 dark:border-gray-600"
+                    />
                   </div>
-                  <Input value={edit.gstin} onChange={e => handleChange("gstin", e.target.value)} />
-                  {errors.gstin && <span className="text-xs text-red-500">{errors.gstin}</span>}
-                </div>
-                <div className="md:col-span-2">
-                  <div className="flex items-center gap-1">
-                    <label className="block font-medium mb-1">Logo URL</label>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <span className="cursor-pointer text-blue-600 ml-1">?</span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Paste a direct link to your business logo image. Leave blank for default.
-                      </TooltipContent>
-                    </Tooltip>
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                      Accent Color
+                    </label>
+                    <input
+                      type="color"
+                      value={formData.invoiceColors.accent}
+                      onChange={(e) => handleNestedInputChange("invoiceColors", "accent", e.target.value)}
+                      className="w-full h-10 rounded-lg border border-gray-300 dark:border-gray-600"
+                    />
                   </div>
-                  <Input value={edit.logoUrl} onChange={e => handleChange("logoUrl", e.target.value)} />
-                  {edit.logoUrl && (
-                    <div className="mt-2">
-                      <img src={edit.logoUrl} alt="logo preview" className="h-12 border rounded bg-white p-1 inline-block" />
-                    </div>
-                  )}
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block font-medium mb-1">Business Hours</label>
-                  <Textarea rows={2} value={edit.businessHours} onChange={e => handleChange("businessHours", e.target.value)} />
-                </div>
-              </div>
-            </div>
-            {/* Location Section */}
-            <div>
-              {groupLabel(Settings2, "Location & Map")}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <div className="flex items-center gap-1">
-                    <label className="block font-medium mb-1">Map Embed URL</label>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <span className="cursor-pointer text-blue-600 ml-1">?</span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Optional: Google Maps or OpenStreetMap embed link, shown on the Contact page.
-                      </TooltipContent>
-                    </Tooltip>
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                      Text Color
+                    </label>
+                    <input
+                      type="color"
+                      value={formData.invoiceColors.text}
+                      onChange={(e) => handleNestedInputChange("invoiceColors", "text", e.target.value)}
+                      className="w-full h-10 rounded-lg border border-gray-300 dark:border-gray-600"
+                    />
                   </div>
-                  <Input
-                    placeholder="Paste Google Maps Embed URL (optional)"
-                    value={edit.mapEmbedUrl ?? ""}
-                    onChange={e => handleChange("mapEmbedUrl", e.target.value)}
-                  />
-                  <small className="text-gray-400">Leave blank to show placeholder</small>
                 </div>
-                <div>
-                  <label className="block font-medium mb-1">Map Display Text</label>
-                  <Input
-                    placeholder="Label for Find Us map"
-                    value={edit.mapDisplayText ?? ""}
-                    onChange={e => handleChange("mapDisplayText", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">Location Description</label>
-                  <Textarea
-                    rows={2}
-                    placeholder="Describe your location (street, area, city, etc.)"
-                    value={edit.locationDescription ?? ""}
-                    onChange={e => handleChange("locationDescription", e.target.value)}
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block font-medium mb-1">Directions / Landmarks</label>
-                  <Textarea
-                    rows={2}
-                    placeholder="Add custom directions or nearest landmarks"
-                    value={edit.directions ?? ""}
-                    onChange={e => handleChange("directions", e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-            {/* Invoice Appearance */}
-            <div>
-              {groupLabel(Palette, "Invoice Appearance")}
-              {/* Preset Color Picker */}
-              <div className="mb-3 flex items-center gap-2">
-                <span className="text-xs font-medium">Color Presets:</span>
-                {COLOR_PRESETS.map(preset => (
-                  <Button
-                    key={preset.key}
-                    type="button"
-                    size="sm"
-                    variant={edit.invoiceColorPreset === preset.key ? "default" : "outline"}
-                    className={cn(
-                      "h-7 text-xs px-2 py-0 mr-1",
-                      edit.invoiceColorPreset === preset.key && "ring-2 ring-primary"
-                    )}
-                    onClick={() => handlePreset(preset.key)}
-                  >
-                    {preset.name}
-                  </Button>
-                ))}
-              </div>
-              {/* Show color inputs if custom */}
-              <div className="flex gap-4 mb-2">
-                <div>
-                  <label className="block text-xs mb-1">Primary Color</label>
-                  <input type="color" value={edit.invoiceColors.primary} disabled={edit.invoiceColorPreset !== "custom"} onChange={e => handleColors("primary", e.target.value)} />
-                </div>
-                <div>
-                  <label className="block text-xs mb-1">Accent Color</label>
-                  <input type="color" value={edit.invoiceColors.accent} disabled={edit.invoiceColorPreset !== "custom"} onChange={e => handleColors("accent", e.target.value)} />
-                </div>
-                <div>
-                  <label className="block text-xs mb-1">Text Color</label>
-                  <input type="color" value={edit.invoiceColors.text} disabled={edit.invoiceColorPreset !== "custom"} onChange={e => handleColors("text", e.target.value)} />
-                </div>
-              </div>
-              {/* Watermark Toggle */}
-              <div className="flex items-center gap-2 mt-2">
-                <Switch checked={!!edit.showWatermark} onCheckedChange={v => handleChange("showWatermark", v)} id="watermark-toggle" />
-                <label htmlFor="watermark-toggle" className="text-sm">
-                  Show Company Watermark on Invoice
+              )}
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="showWatermark"
+                  checked={formData.showWatermark}
+                  onChange={(e) => handleInputChange("showWatermark", e.target.checked)}
+                  className="mr-2"
+                />
+                <label htmlFor="showWatermark" className="text-sm text-gray-700 dark:text-gray-300">
+                  Show company watermark on invoices
                 </label>
               </div>
             </div>
-            {/* Invoice Content Customization */}
-            <div>
-              {groupLabel(Palette, "Invoice Contents")}
-              <div className="mb-2">
-                <label className="block font-medium mb-1">HSN/SAC Template</label>
-                <Input
-                  value={edit.hsnTemplate ?? ""}
-                  onChange={e => handleChange("hsnTemplate", e.target.value)}
-                  placeholder="E.g., HSN/SAC: 3209 (Paints & Varnishes)"
-                />
-                <small className="text-gray-400">This info appears on every invoice. Leave blank to hide.</small>
-              </div>
-              <div className="mb-2">
-                <label className="block font-medium mb-1">Custom Footer (lines separated by \n)</label>
-                <Textarea rows={2} value={edit.footer} onChange={e => handleChange("footer", e.target.value)} />
-              </div>
+          )}
+
+          {/* Invoice Content Tab */}
+          {activeTab === "content" && (
+            <div className="space-y-6">
               <div>
-                <label className="block font-medium mb-1">Terms/Conditions (lines separated by \n)</label>
-                <Textarea rows={2} value={edit.terms} onChange={e => handleChange("terms", e.target.value)} />
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Invoice Footer Text
+                </label>
+                <input
+                  type="text"
+                  value={formData.footer}
+                  onChange={(e) => handleInputChange("footer", e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Terms & Conditions
+                </label>
+                <textarea
+                  value={formData.terms}
+                  onChange={(e) => handleInputChange("terms", e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Declaration Statement
+                </label>
+                <textarea
+                  value={formData.declaration}
+                  onChange={(e) => handleInputChange("declaration", e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Authorized Signatory
+                </label>
+                <input
+                  type="text"
+                  value={formData.authorizedSignatory}
+                  onChange={(e) => handleInputChange("authorizedSignatory", e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  HSN Code Template
+                </label>
+                <input
+                  type="text"
+                  value={formData.hsnTemplate || ''}
+                  onChange={(e) => handleInputChange("hsnTemplate", e.target.value)}
+                  placeholder="HSN/SAC codes as per GST guidelines"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                />
               </div>
             </div>
-            {/* Actions */}
-            <div className="flex justify-between gap-2 mt-4">
-              <Button type="submit" className="bg-green-600 text-white hover:bg-green-700">
-                Save & Close
-              </Button>
-              <Button type="button" variant="outline" onClick={() => setPreviewKey(Date.now())}>
-                Preview Invoice
-              </Button>
+          )}
+
+          {/* Location & Hours Tab */}
+          {activeTab === "location" && (
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Business Hours
+                </label>
+                <textarea
+                  value={formData.businessHours}
+                  onChange={(e) => handleInputChange("businessHours", e.target.value)}
+                  rows={3}
+                  placeholder="Monday - Saturday: 9:00 AM - 7:00 PM&#10;Sunday: 10:00 AM - 5:00 PM"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Location Description
+                </label>
+                <input
+                  type="text"
+                  value={formData.locationDescription || ''}
+                  onChange={(e) => handleInputChange("locationDescription", e.target.value)}
+                  placeholder="Shreeram Building, Nadigalli, SIRSI"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Directions
+                </label>
+                <textarea
+                  value={formData.directions || ''}
+                  onChange={(e) => handleInputChange("directions", e.target.value)}
+                  rows={2}
+                  placeholder="Located near Main Market, parking available."
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Google Maps Embed URL
+                </label>
+                <input
+                  type="url"
+                  value={formData.mapEmbedUrl || ''}
+                  onChange={(e) => handleInputChange("mapEmbedUrl", e.target.value)}
+                  placeholder="https://maps.google.com/embed?..."
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
             </div>
-          </form>
-          {/* Preview */}
-          <div className="mt-6">
-            <InvoiceTemplatePreview key={previewKey} />
-            {/* Will show watermark in preview if enabled & logo as well */}
-          </div>
-        </DialogContent>
-      </Dialog>
-    </TooltipProvider>
+          )}
+
+          {/* Banking Details Tab */}
+          {activeTab === "banking" && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                    Bank Name
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.bankDetails.bankName}
+                    onChange={(e) => handleNestedInputChange("bankDetails", "bankName", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                    Account Number
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.bankDetails.accountNumber}
+                    onChange={(e) => handleNestedInputChange("bankDetails", "accountNumber", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                    IFSC Code
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.bankDetails.ifscCode}
+                    onChange={(e) => handleNestedInputChange("bankDetails", "ifscCode", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                    Branch
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.bankDetails.branch}
+                    onChange={(e) => handleNestedInputChange("bankDetails", "branch", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end space-x-4 p-6 border-t border-gray-200 dark:border-gray-700">
+          <button
+            onClick={onClose}
+            className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
   );
-}
+};
+
+export default AdminInfoDialog;

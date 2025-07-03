@@ -8,7 +8,7 @@ import { useSupabaseProducts } from "../hooks/useSupabaseProducts";
 import { useNavigate } from "react-router-dom";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import EnhancedProductForm from "../components/EnhancedProductForm";
-import EnhancedRestockDialog from "../components/EnhancedRestockDialog";
+import RestockProductDialog from "../components/RestockProductDialog";
 
 const Inventory = () => {
   const { user, loading } = useSupabaseAuth();
@@ -23,7 +23,6 @@ const Inventory = () => {
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [showRestockDialog, setShowRestockDialog] = useState(false);
-  const [restockingProduct, setRestockingProduct] = useState<Product | null>(null);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState('large');
@@ -87,12 +86,12 @@ const Inventory = () => {
   };
 
   const handleRestockProduct = async (productId: string, quantity: number, newPrice?: number) => {
-    const product = products.find(p => p.id === productId);
+    const product = rawProducts?.find(p => p.id === productId);
     if (product) {
       const newStock = product.stock + quantity;
       const updateData: any = { stock: newStock };
       
-      if (newPrice !== undefined && newPrice !== product.price) {
+      if (newPrice !== undefined && newPrice !== Number(product.price)) {
         updateData.price = newPrice;
       }
       
@@ -100,12 +99,8 @@ const Inventory = () => {
         id: productId, 
         product: updateData as TablesUpdate<"products"> 
       });
-      setRestockingProduct(null);
+      setShowRestockDialog(false);
     }
-  };
-
-  const openRestockDialog = (product: Product) => {
-    setRestockingProduct(product);
   };
 
   // Filter products
@@ -230,7 +225,7 @@ const Inventory = () => {
                 viewMode={viewMode}
                 onEdit={() => setEditingProduct(product)}
                 onDelete={() => handleDeleteProduct(product.id)}
-                onRestock={() => openRestockDialog(product)}
+                onRestock={() => {}}
               />
             ))}
           </div>
@@ -255,12 +250,11 @@ const Inventory = () => {
         />
       )}
 
-      {/* Enhanced Restock Product Dialog */}
-      {restockingProduct && (
-        <EnhancedRestockDialog
-          product={restockingProduct}
+      {/* Restock Product Dialog */}
+      {showRestockDialog && (
+        <RestockProductDialog
           onRestock={handleRestockProduct}
-          onClose={() => setRestockingProduct(null)}
+          onClose={() => setShowRestockDialog(false)}
         />
       )}
     </div>

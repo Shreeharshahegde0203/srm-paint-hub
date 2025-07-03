@@ -1,43 +1,30 @@
 
 import React, { useState } from 'react';
 import { X, Package, Plus, Minus, Search } from 'lucide-react';
-import { Product } from '../data/products';
 import { toast } from "@/hooks/use-toast";
-import { useCachedProducts } from '../hooks/useCachedProducts';
+import { useSupabaseProducts } from '../hooks/useSupabaseProducts';
 
 interface RestockProductDialogProps {
-  onRestock: (productId: string, quantity: number) => Promise<void>;
+  onRestock: (productId: string, quantity: number, newPrice?: number) => Promise<void>;
   onClose: () => void;
 }
 
 const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps) => {
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [newPrice, setNewPrice] = useState(0);
+  const [priceChanged, setPriceChanged] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const { products, searchProducts } = useCachedProducts();
+  const { products } = useSupabaseProducts();
 
-  const filteredProducts = searchQuery ? searchProducts(searchQuery) : products.slice(0, 20);
-
-  // Map Supabase product to local Product type
-  const mapToProduct = (supabaseProduct: any): Product => ({
-    id: supabaseProduct.id,
-    name: supabaseProduct.name,
-    brand: supabaseProduct.brand,
-    type: supabaseProduct.type,
-    base: supabaseProduct.base,
-    price: supabaseProduct.price,
-    stock: supabaseProduct.stock,
-    gstRate: supabaseProduct.gst_rate,
-    unit: supabaseProduct.unit,
-    description: supabaseProduct.description,
-    image: supabaseProduct.image,
-    unit_quantity: supabaseProduct.unit_quantity,
-    hsn_code: supabaseProduct.hsn_code,
-    batchNumber: supabaseProduct.batch_number,
-    expiryDate: supabaseProduct.expiry_date,
-    category: supabaseProduct.category,
-  });
+  const filteredProducts = searchQuery 
+    ? (products || []).filter(product => 
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.type.toLowerCase().includes(searchQuery.toLowerCase())
+      ).slice(0, 20)
+    : (products || []).slice(0, 20);
 
   const adjustQuantity = (increment: boolean) => {
     if (increment) {
@@ -45,6 +32,17 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
     } else {
       setQuantity(prev => Math.max(1, prev - 1));
     }
+  };
+
+  const handleProductSelect = (product: any) => {
+    setSelectedProduct(product);
+    setNewPrice(Number(product.price));
+    setPriceChanged(false);
+  };
+
+  const handlePriceChange = (value: number) => {
+    setNewPrice(value);
+    setPriceChanged(selectedProduct && value !== Number(selectedProduct.price));
   };
 
   const handleRestock = async () => {
@@ -68,10 +66,10 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
 
     setLoading(true);
     try {
-      await onRestock(selectedProduct.id, quantity);
+      await onRestock(selectedProduct.id, quantity, priceChanged ? newPrice : undefined);
       toast({
         title: "Success",
-        description: `Restocked ${quantity} units of ${selectedProduct.name}`,
+        description: `Restocked ${quantity} units of ${selectedProduct.name}${priceChanged ? ` with new price ₹${newPrice}` : ''}`,
       });
       onClose();
     } catch (error) {
@@ -123,29 +121,26 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
               Select Product
             </label>
             <div className="max-h-48 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg">
-              {filteredProducts.map((product) => {
-                const mappedProduct = mapToProduct(product);
-                return (
-                  <div
-                    key={product.id}
-                    onClick={() => setSelectedProduct(mappedProduct)}
-                    className={`p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-600 last:border-b-0 ${
-                      selectedProduct?.id === product.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-white">{product.name}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">{product.brand} • {product.type}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Stock: {product.stock} {product.unit}</p>
-                      </div>
-                      {product.image && (
-                        <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded" />
-                      )}
+              {filteredProducts.map((product) => (
+                <div
+                  key={product.id}
+                  onClick={() => handleProductSelect(product)}
+                  className={`p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-600 last:border-b-0 ${
+                    selectedProduct?.id === product.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white">{product.name}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">{product.brand} • {product.type}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Stock: {product.stock} {product.unit} • Price: ₹{product.price}</p>
                     </div>
+                    {product.image && (
+                      <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded" />
+                    )}
                   </div>
-                );
-              })}
+                </div>
+              ))}
               {filteredProducts.length === 0 && (
                 <div className="p-4 text-center text-gray-500 dark:text-gray-400">
                   No products found
@@ -160,6 +155,7 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
               <h3 className="font-semibold text-gray-900 dark:text-white">{selectedProduct.name}</h3>
               <p className="text-gray-600 dark:text-gray-300">{selectedProduct.brand} • {selectedProduct.type}</p>
               <p className="text-sm text-gray-500 dark:text-gray-400">Current Stock: {selectedProduct.stock} {selectedProduct.unit}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Current Price: ₹{selectedProduct.price}</p>
             </div>
           )}
 
@@ -196,6 +192,45 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 New stock will be: {selectedProduct.stock + quantity} {selectedProduct.unit}
               </p>
+            </div>
+          )}
+
+          {/* Price Update */}
+          {selectedProduct && (
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                Price per Unit
+              </label>
+              <div className="flex items-center">
+                <button
+                  type="button"
+                  onClick={() => handlePriceChange(newPrice - 1)}
+                  className="p-2 border border-gray-300 dark:border-gray-600 rounded-l-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+                  disabled={newPrice <= 1}
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <input
+                  type="number"
+                  value={newPrice}
+                  onChange={(e) => handlePriceChange(parseFloat(e.target.value) || 0)}
+                  className="w-24 px-3 py-2 border-t border-b border-gray-300 dark:border-gray-600 text-center focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  min="0"
+                  step="0.01"
+                />
+                <button
+                  type="button"
+                  onClick={() => handlePriceChange(newPrice + 1)}
+                  className="p-2 border border-gray-300 dark:border-gray-600 rounded-r-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+              {priceChanged && (
+                <p className="text-sm text-orange-600 mt-1">
+                  Price will be updated from ₹{selectedProduct.price} to ₹{newPrice}
+                </p>
+              )}
             </div>
           )}
         </div>
