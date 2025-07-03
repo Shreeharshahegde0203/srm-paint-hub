@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter, Edit, Trash2, Package, AlertTriangle, X } from 'lucide-react';
 import { Product, UNIT_TYPES } from '../data/products';
@@ -8,7 +9,6 @@ import { useSupabaseProducts } from "../hooks/useSupabaseProducts";
 import { useNavigate } from "react-router-dom";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import EnhancedProductForm from "../components/EnhancedProductForm";
-import RestockProductDialog from "../components/RestockProductDialog";
 
 const Inventory = () => {
   const { user, loading } = useSupabaseAuth();
@@ -22,7 +22,6 @@ const Inventory = () => {
   } = useSupabaseProducts();
 
   const [showAddForm, setShowAddForm] = useState(false);
-  const [showRestockDialog, setShowRestockDialog] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState('large');
@@ -85,24 +84,6 @@ const Inventory = () => {
     }
   };
 
-  const handleRestockProduct = async (productId: string, quantity: number, newPrice?: number) => {
-    const product = rawProducts?.find(p => p.id === productId);
-    if (product) {
-      const newStock = product.stock + quantity;
-      const updateData: any = { stock: newStock };
-      
-      if (newPrice !== undefined && newPrice !== Number(product.price)) {
-        updateData.price = newPrice;
-      }
-      
-      await updateProduct({ 
-        id: productId, 
-        product: updateData as TablesUpdate<"products"> 
-      });
-      setShowRestockDialog(false);
-    }
-  };
-
   // Filter products
   const filteredProducts = products.filter(product => {
     const matchesSearch = 
@@ -132,34 +113,27 @@ const Inventory = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-6 transition-colors">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl p-6 mb-6 transition-all duration-300 hover:shadow-2xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent flex items-center">
                 <Package className="mr-3 h-8 w-8 text-blue-600" />
                 Enhanced Inventory Management
               </h1>
-              <p className="text-gray-600 dark:text-gray-300 mt-1">
+              <p className="text-gray-600 dark:text-gray-300 mt-2 text-lg">
                 Complete inventory management with HSN codes, categories, and advanced features
               </p>
             </div>
             <div className="flex space-x-3">
               <button
                 onClick={() => setShowAddForm(true)}
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center font-semibold"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 flex items-center font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
               >
                 <Plus className="mr-2 h-5 w-5" />
                 Add New Product
-              </button>
-              <button
-                onClick={() => setShowRestockDialog(true)}
-                className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 flex items-center font-semibold"
-              >
-                <Package className="mr-2 h-5 w-5" />
-                Restock Product
               </button>
             </div>
           </div>
@@ -176,14 +150,14 @@ const Inventory = () => {
                   placeholder="Search by name, brand, or base..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white transition-all duration-200"
                 />
               </div>
               
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white transition-all duration-200"
               >
                 <option value="all">All Products</option>
                 <option value="low_stock">Low Stock</option>
@@ -195,9 +169,9 @@ const Inventory = () => {
           </div>
 
           <div className="mt-4 flex items-center gap-6 text-sm text-gray-600 dark:text-gray-300">
-            <span>Total Products: {filteredProducts.length}</span>
-            <span>Low Stock: {products.filter(p => p.stock < 10 && p.stock > 0).length}</span>
-            <span>Out of Stock: {products.filter(p => p.stock === 0).length}</span>
+            <span>Total Products: <span className="font-bold text-blue-600">{filteredProducts.length}</span></span>
+            <span>Low Stock: <span className="font-bold text-orange-600">{products.filter(p => p.stock < 10 && p.stock > 0).length}</span></span>
+            <span>Out of Stock: <span className="font-bold text-red-600">{products.filter(p => p.stock === 0).length}</span></span>
           </div>
         </div>
 
@@ -225,7 +199,7 @@ const Inventory = () => {
                 viewMode={viewMode}
                 onEdit={() => setEditingProduct(product)}
                 onDelete={() => handleDeleteProduct(product.id)}
-                onRestock={() => {}}
+                onRestock={handleUpdateProduct}
               />
             ))}
           </div>
@@ -249,33 +223,48 @@ const Inventory = () => {
           isEditing
         />
       )}
-
-      {/* Restock Product Dialog */}
-      {showRestockDialog && (
-        <RestockProductDialog
-          onRestock={handleRestockProduct}
-          onClose={() => setShowRestockDialog(false)}
-        />
-      )}
     </div>
   );
 };
 
-// Product Card Component
+// Product Card Component with inline restock functionality
 interface ProductCardProps {
   product: Product;
   viewMode: string;
   onEdit: () => void;
   onDelete: () => void;
-  onRestock: () => void;
+  onRestock: (id: string, productData: Partial<Product>) => Promise<void>;
 }
 
 const ProductCard = ({ product, viewMode, onEdit, onDelete, onRestock }: ProductCardProps) => {
+  const [showRestock, setShowRestock] = useState(false);
+  const [restockQuantity, setRestockQuantity] = useState(1);
+  const [newPrice, setNewPrice] = useState(product.price);
+  const [isRestocking, setIsRestocking] = useState(false);
+
   const isListView = viewMode === 'list';
+
+  const handleRestock = async () => {
+    if (restockQuantity <= 0) return;
+    
+    setIsRestocking(true);
+    try {
+      await onRestock(product.id, {
+        stock: product.stock + restockQuantity,
+        price: newPrice
+      });
+      setShowRestock(false);
+      setRestockQuantity(1);
+    } catch (error) {
+      console.error('Error restocking:', error);
+    } finally {
+      setIsRestocking(false);
+    }
+  };
   
   if (isListView) {
     return (
-      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-4 flex items-center justify-between">
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-4 flex items-center justify-between transition-all duration-300 hover:shadow-lg">
         <div className="flex items-center space-x-4">
           {product.image && (
             <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded" />
@@ -296,22 +285,56 @@ const ProductCard = ({ product, viewMode, onEdit, onDelete, onRestock }: Product
         </div>
         <div className="flex items-center space-x-2">
           <StockLevelIcon stock={product.stock} />
-          <button onClick={onEdit} className="p-2 text-blue-600 hover:bg-blue-50 rounded">
+          <button onClick={onEdit} className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors">
             <Edit className="h-4 w-4" />
           </button>
-          <button onClick={onRestock} className="p-2 text-green-600 hover:bg-green-50 rounded">
+          <button 
+            onClick={() => setShowRestock(!showRestock)} 
+            className="p-2 text-green-600 hover:bg-green-50 rounded transition-colors"
+          >
             <Package className="h-4 w-4" />
           </button>
-          <button onClick={onDelete} className="p-2 text-red-600 hover:bg-red-50 rounded">
+          <button onClick={onDelete} className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors">
             <Trash2 className="h-4 w-4" />
           </button>
         </div>
+        
+        {showRestock && (
+          <div className="absolute z-10 mt-2 p-4 bg-white dark:bg-slate-800 border rounded-lg shadow-lg">
+            <div className="flex gap-2 items-center mb-2">
+              <input
+                type="number"
+                value={restockQuantity}
+                onChange={(e) => setRestockQuantity(parseInt(e.target.value) || 0)}
+                placeholder="Quantity"
+                className="w-20 p-2 border rounded"
+                min="1"
+              />
+              <input
+                type="number"
+                value={newPrice}
+                onChange={(e) => setNewPrice(parseFloat(e.target.value) || 0)}
+                placeholder="Price"
+                className="w-24 p-2 border rounded"
+                min="0"
+                step="0.01"
+              />
+              <button
+                onClick={handleRestock}
+                disabled={isRestocking}
+                className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+              >
+                {isRestocking ? 'Adding...' : 'Add'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md overflow-hidden">
+    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105">
       {product.image && (
         <img 
           src={product.image} 
@@ -349,35 +372,83 @@ const ProductCard = ({ product, viewMode, onEdit, onDelete, onRestock }: Product
           </p>
         )}
 
-        <div className="flex justify-between items-center">
-          <div className="flex space-x-2">
-            <button
-              onClick={onEdit}
-              className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-              title="Edit Product"
-            >
-              <Edit className="h-4 w-4" />
-            </button>
-            <button
-              onClick={onRestock}
-              className="p-1 text-green-600 hover:bg-green-50 rounded"
-              title="Restock Product"
-            >
-              <Package className="h-4 w-4" />
-            </button>
-            <button
-              onClick={onDelete}
-              className="p-1 text-red-600 hover:bg-red-50 rounded"
-              title="Delete Product"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <div className="flex space-x-2">
+              <button
+                onClick={onEdit}
+                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 hover:scale-110"
+                title="Edit Product"
+              >
+                <Edit className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setShowRestock(!showRestock)}
+                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 hover:scale-110"
+                title="Restock Product"
+              >
+                <Package className="h-4 w-4" />
+              </button>
+              <button
+                onClick={onDelete}
+                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 hover:scale-110"
+                title="Delete Product"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+            
+            {product.stock < 10 && (
+              <div className="flex items-center text-orange-600 text-xs">
+                <AlertTriangle className="h-3 w-3 mr-1" />
+                {product.stock === 0 ? 'Out of Stock' : 'Low Stock'}
+              </div>
+            )}
           </div>
-          
-          {product.stock < 10 && (
-            <div className="flex items-center text-orange-600 text-xs">
-              <AlertTriangle className="h-3 w-3 mr-1" />
-              {product.stock === 0 ? 'Out of Stock' : 'Low Stock'}
+
+          {showRestock && (
+            <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border">
+              <div className="space-y-2">
+                <div>
+                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Add Quantity</label>
+                  <input
+                    type="number"
+                    value={restockQuantity}
+                    onChange={(e) => setRestockQuantity(parseInt(e.target.value) || 0)}
+                    className="w-full p-2 text-sm border rounded focus:ring-2 focus:ring-green-500"
+                    min="1"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    New stock: {product.stock + restockQuantity}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Unit Price</label>
+                  <input
+                    type="number"
+                    value={newPrice}
+                    onChange={(e) => setNewPrice(parseFloat(e.target.value) || 0)}
+                    className="w-full p-2 text-sm border rounded focus:ring-2 focus:ring-green-500"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleRestock}
+                    disabled={isRestocking || restockQuantity <= 0}
+                    className="flex-1 px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50 transition-colors"
+                  >
+                    {isRestocking ? 'Adding...' : 'Add Stock'}
+                  </button>
+                  <button
+                    onClick={() => setShowRestock(false)}
+                    className="px-3 py-2 bg-gray-300 text-gray-700 text-sm rounded hover:bg-gray-400 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
