@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from "react";
-import { Trash2, RotateCcw, Plus } from "lucide-react";
-import EnhancedInvoiceProductSelector from "./EnhancedInvoiceProductSelector";
+import { Trash2, RotateCcw, Plus, X } from "lucide-react";
+import EnhancedProductSelector from "./EnhancedProductSelector";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Product, Invoice } from "@/hooks/useSupabaseInvoices";
@@ -51,8 +50,7 @@ const ReturnItemDialog = ({ invoiceItems, onReturn, onClose }: ReturnItemDialogP
         <div className="flex justify-between items-center p-6 border-b">
           <h3 className="text-xl font-bold">Return Item</h3>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            <span className="sr-only">Close</span>
-            ×
+            <X className="h-6 w-6" />
           </button>
         </div>
         
@@ -116,6 +114,105 @@ const ReturnItemDialog = ({ invoiceItems, onReturn, onClose }: ReturnItemDialogP
             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
           >
             Return Item
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+interface AddItemDialogProps {
+  onAddProduct: (product: Product, quantity: number, unitPrice: number) => void;
+  onClose: () => void;
+}
+
+const AddItemDialog = ({ onAddProduct, onClose }: AddItemDialogProps) => {
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [quantity, setQuantity] = useState(1);
+  const [unitPrice, setUnitPrice] = useState(0);
+
+  useEffect(() => {
+    if (selectedProduct) {
+      setUnitPrice(selectedProduct.price);
+    }
+  }, [selectedProduct]);
+
+  const handleAdd = () => {
+    if (!selectedProduct) {
+      toast({
+        title: "Error",
+        description: "Please select a product",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (quantity <= 0) {
+      toast({
+        title: "Error",
+        description: "Quantity must be greater than 0",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    onAddProduct(selectedProduct, quantity, unitPrice);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-4xl w-full mx-4 max-h-screen overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold">Add Item to Invoice</h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+        
+        <div className="space-y-4">
+          <EnhancedProductSelector
+            onProductSelect={setSelectedProduct}
+            selectedProduct={selectedProduct}
+          />
+          
+          {selectedProduct && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Quantity</label>
+                <input
+                  type="number"
+                  value={quantity}
+                  onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="w-full p-2 border rounded-lg"
+                  min="1"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Unit Price</label>
+                <input
+                  type="number"
+                  value={unitPrice}
+                  onChange={(e) => setUnitPrice(parseFloat(e.target.value) || 0)}
+                  className="w-full p-2 border rounded-lg"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end space-x-4 mt-6">
+          <button onClick={onClose} className="px-4 py-2 border rounded-lg hover:bg-gray-50">
+            Cancel
+          </button>
+          <button
+            onClick={handleAdd}
+            disabled={!selectedProduct}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          >
+            Add Item
           </button>
         </div>
       </div>
@@ -417,20 +514,10 @@ export default function EditInvoiceForm({
 
         {/* Add Item Dialog */}
         {showAddItem && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-4xl w-full mx-4 max-h-screen overflow-y-auto">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold">Add Item to Invoice</h3>
-                <button onClick={() => setShowAddItem(false)} className="text-gray-500 hover:text-gray-700">
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
-              <EnhancedInvoiceProductSelector
-                onProductSelect={handleAddProduct}
-                onClose={() => setShowAddItem(false)}
-              />
-            </div>
-          </div>
+          <AddItemDialog
+            onAddProduct={handleAddProduct}
+            onClose={() => setShowAddItem(false)}
+          />
         )}
 
         {/* Return Item Dialog */}
