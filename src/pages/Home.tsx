@@ -260,7 +260,7 @@ const Home = () => {
             <div className="group bg-slate-700/50 backdrop-blur-sm rounded-xl p-8 text-center transition-all duration-500 hover:bg-slate-600/50 transform hover:scale-105 animate-fade-in border border-white/10" style={{ animationDelay: '0.2s' }}>
               <div className="mb-6 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
                 <img 
-                  src="/src/assets/indigo-logo.svg" 
+                  src="/lovable-uploads/fb81abf5-1bd4-4130-b332-949337944ab1.png" 
                   alt="Indigo Paints" 
                   className="h-20 mx-auto rounded shadow-lg"
                 />

@@ -352,7 +352,7 @@ export default function EditInvoiceForm({
           .eq("id", invoice.customer_id)
           .single();
 
-        const mappedItems = (invoiceItems || []).map((item) => {
+          const mappedItems = (invoiceItems || []).map((item) => {
           const product = products.find((p) => p.id === item.product_id);
           return {
             id: item.id,
@@ -362,6 +362,7 @@ export default function EditInvoiceForm({
             total: item.quantity * item.price,
             colorCode: item.color_code || '',
             base: item.base || product?.base || '',
+            unitQuantity: product?.unit_quantity || 1,
             unitType: item.unit_type || product?.unit || 'Piece',
             gstPercentage: item.gst_percentage || 18,
             isReturned: false
@@ -509,7 +510,7 @@ export default function EditInvoiceForm({
             <div className="space-y-4">
               {items.map((item, index) => (
                 <div key={item.id || index} className="bg-white dark:bg-slate-800 p-4 rounded-lg border dark:border-gray-700 card-hover glow-on-hover transition-all duration-300">
-                  <div className="grid grid-cols-1 md:grid-cols-8 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-9 gap-4">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1 text-reveal">Product</label>
                       <div className="p-2 bg-gray-100 dark:bg-slate-900 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-800 transition-colors duration-200">
@@ -537,6 +538,17 @@ export default function EditInvoiceForm({
                         onChange={(e) => updateItem(index, 'base', e.target.value)} 
                         className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white input-focus hover:shadow-md transition-all duration-200" 
                         placeholder="Base"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Unit Quantity</label>
+                      <input 
+                        type="number" 
+                        value={item.unitQuantity || 1} 
+                        onChange={(e) => updateItem(index, 'unitQuantity', parseFloat(e.target.value) || 1)} 
+                        className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white input-focus hover:shadow-md transition-all duration-200" 
+                        min="0.1"
+                        step="0.1"
                       />
                     </div>
                     <div>
