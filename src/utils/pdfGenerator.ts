@@ -219,7 +219,8 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
           </thead>
           <tbody>
             ${invoice.items.map((item, index) => {
-              const itemDescription = `${item.product.name}${item.colorCode ? ` - ${item.colorCode}` : ''}`;
+              const colorCode = item.colorCode || '';
+              const itemDescription = `${item.product.name}${colorCode ? ` - ${colorCode}` : ''}`;
               const displayAmount = item.isReturned ? -Math.abs(item.total) : item.total;
               const itemClass = item.isReturned ? ' class="returned-item"' : '';
               const returnedText = item.isReturned ? ' (RETURNED)' : '';

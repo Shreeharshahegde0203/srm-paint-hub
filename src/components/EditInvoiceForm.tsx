@@ -509,7 +509,7 @@ export default function EditInvoiceForm({
             
             <div className="space-y-4">
               {items.map((item, index) => (
-                <div key={item.id || index} className="bg-white dark:bg-slate-800 p-4 rounded-lg border dark:border-gray-700 card-hover glow-on-hover transition-all duration-300">
+                <div key={item.id || index} className="bg-white dark:bg-slate-800 p-4 rounded-lg border dark:border-gray-700">
                   <div className="grid grid-cols-1 md:grid-cols-9 gap-4">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium mb-1 text-reveal">Product</label>
