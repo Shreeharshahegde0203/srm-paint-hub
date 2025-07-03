@@ -64,12 +64,19 @@ export function useSupabaseInvoices() {
     // Update/delete/add items: for simplicity, remove all and re-insert (best for UI/logic)
     await supabase.from("invoice_items").delete().eq("invoice_id", id);
     for (let item of items) {
-      await supabase.from("invoice_items").insert({
-        invoice_id: id,
-        product_id: item.product.id,
-        price: item.unitPrice,
-        quantity: item.quantity
-      });
+      if (!item.isReturned) {
+        await supabase.from("invoice_items").insert({
+          invoice_id: id,
+          product_id: item.product.id,
+          price: item.unitPrice,
+          quantity: item.quantity,
+          color_code: item.colorCode || null,
+          base: item.base || null,
+          unit_type: item.unitType || 'Piece',
+          gst_percentage: item.gstPercentage || 18,
+          price_excluding_gst: item.priceExcludingGst || item.unitPrice
+        });
+      }
     }
     await fetchInvoices();
   };

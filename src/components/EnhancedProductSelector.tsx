@@ -52,7 +52,7 @@ const EnhancedProductSelector = ({ onProductSelect, selectedProduct }: EnhancedP
       setFilteredProducts([]);
       setBrandSuggestions([]);
     }
-  }, [searchTerm, searchProducts, getBrandSuggestions]);
+  }, [searchTerm]); // Removed problematic dependencies
 
   const handleProductSelect = (product: Product) => {
     onProductSelect(product);
