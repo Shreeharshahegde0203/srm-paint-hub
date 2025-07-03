@@ -3,7 +3,15 @@ import { Trash2, RotateCcw, Plus, X } from "lucide-react";
 import EnhancedProductSelector from "./EnhancedProductSelector";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import type { Product, Invoice } from "@/hooks/useSupabaseInvoices";
+import type { Product } from "@/data/products";
+
+// Define the Invoice type locally to avoid circular imports
+interface Invoice {
+  id: string;
+  status: string;
+  billing_mode: string;
+  total: number;
+}
 
 interface ReturnItemDialogProps {
   invoiceItems: any[];
