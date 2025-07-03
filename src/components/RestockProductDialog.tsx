@@ -16,7 +16,6 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
   const [priceChanged, setPriceChanged] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showFields, setShowFields] = useState(false);
   const { products } = useSupabaseProducts();
 
   const filteredProducts = searchQuery 
@@ -44,17 +43,10 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
   };
 
   const handleProductSelect = (product: any) => {
-    if (selectedProduct?.id === product.id && !showFields) {
-      // Second click - show fields
-      setShowFields(true);
-      setNewPrice(Number(product.price));
-      setPriceChanged(false);
-      setQuantity(1);
-    } else {
-      // First click - select product
-      setSelectedProduct(product);
-      setShowFields(false);
-    }
+    setSelectedProduct(product);
+    setNewPrice(Number(product.price));
+    setPriceChanged(false);
+    setQuantity(1);
   };
 
   const handlePriceChange = (value: number) => {
@@ -135,7 +127,7 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
           {/* Product Selection */}
           <div>
             <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-              Select Product (Click twice to show restock fields)
+              Select Product
             </label>
             <div className="max-h-48 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg">
               {filteredProducts.map((product) => (
@@ -143,7 +135,7 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
                   key={product.id}
                   onClick={() => handleProductSelect(product)}
                   className={`p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-600 last:border-b-0 ${
-                    selectedProduct?.id === product.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                    selectedProduct?.id === product.id ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200' : ''
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -166,8 +158,8 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
             </div>
           </div>
 
-          {/* Restock Fields - Only show when product is double-clicked */}
-          {selectedProduct && showFields && (
+          {/* Restock Fields - Show when product is selected */}
+          {selectedProduct && (
             <>
               <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                 <h3 className="font-semibold text-gray-900 dark:text-white">{selectedProduct.name}</h3>
@@ -259,7 +251,7 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
           </button>
           <button
             onClick={handleRestock}
-            disabled={loading || !selectedProduct || !showFields}
+            disabled={loading || !selectedProduct}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center"
           >
             {loading ? (

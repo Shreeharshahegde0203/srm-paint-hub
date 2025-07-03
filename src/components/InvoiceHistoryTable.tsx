@@ -50,7 +50,6 @@ export const InvoiceHistoryTable = ({
         description: `Invoice status changed to ${newStatus}`,
       });
 
-      // Refresh the page or update local state
       window.location.reload();
     } catch (error) {
       console.error('Error updating status:', error);
@@ -65,51 +64,60 @@ export const InvoiceHistoryTable = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'paid':
-        return 'bg-green-100 text-green-800 hover:bg-green-200';
+        return 'bg-green-500 text-white hover:bg-green-600';
       case 'overdue':
-        return 'bg-red-100 text-red-800 hover:bg-red-200';
+        return 'bg-red-500 text-white hover:bg-red-600';
       default:
-        return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
+        return 'bg-yellow-500 text-white hover:bg-yellow-600';
     }
   };
 
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
-        <CardTitle>Invoice History</CardTitle>
+        <CardTitle className="text-xl font-semibold">Invoice History</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full border-collapse">
             <thead>
-              <tr className="border-b">
-                <th className="text-left p-3">Invoice ID</th>
-                <th className="text-left p-3">Date</th>
-                <th className="text-left p-3">Total</th>
-                <th className="text-left p-3">Status</th>
-                <th className="text-left p-3">Type</th>
-                <th className="text-left p-3">Actions</th>
+              <tr className="border-b-2 border-gray-200 bg-gray-50 dark:bg-gray-800">
+                <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Invoice ID</th>
+                <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Date</th>
+                <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Total</th>
+                <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Status</th>
+                <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Type</th>
+                <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {invoices.map((invoice) => (
-                <tr key={invoice.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <td className="p-3 font-mono text-xs">
-                    {invoice.id.slice(0, 8)}
+              {invoices.map((invoice, index) => (
+                <tr 
+                  key={invoice.id} 
+                  className={`border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
+                    index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800'
+                  }`}
+                >
+                  <td className="p-4">
+                    <span className="font-mono text-sm bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                      {invoice.id.slice(0, 8)}
+                    </span>
                   </td>
-                  <td className="p-3">
+                  <td className="p-4 text-gray-600 dark:text-gray-300">
                     {invoice.created_at ? new Date(invoice.created_at).toLocaleDateString() : 'N/A'}
                   </td>
-                  <td className="p-3">
+                  <td className="p-4">
                     <div className="flex items-center gap-2">
                       {hiddenAmounts.has(invoice.id) ? (
-                        <span className="text-gray-400">****</span>
+                        <span className="text-gray-400 font-medium">****</span>
                       ) : (
-                        <span>₹{invoice.total.toLocaleString()}</span>
+                        <span className="font-semibold text-gray-900 dark:text-white">
+                          ₹{invoice.total.toLocaleString()}
+                        </span>
                       )}
                       <button
                         onClick={() => toggleAmountVisibility(invoice.id)}
-                        className="text-gray-400 hover:text-gray-600"
+                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                         title={hiddenAmounts.has(invoice.id) ? "Show amount" : "Hide amount"}
                       >
                         {hiddenAmounts.has(invoice.id) ? (
@@ -120,53 +128,56 @@ export const InvoiceHistoryTable = ({
                       </button>
                     </div>
                   </td>
-                  <td className="p-3">
+                  <td className="p-4">
                     <button
                       onClick={() => handleStatusChange(invoice)}
-                      className={`px-2 py-1 rounded text-xs font-medium transition-colors ${getStatusColor(invoice.status)}`}
+                      className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${getStatusColor(invoice.status)}`}
                     >
-                      {invoice.status}
+                      {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
                     </button>
                   </td>
-                  <td className="p-3">
-                    <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                  <td className="p-4">
+                    <span className="px-2 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-sm rounded-full font-medium">
                       {invoice.bill_type || 'GST'}
                     </span>
                   </td>
-                  <td className="p-3">
-                    <div className="flex gap-2">
+                  <td className="p-4">
+                    <div className="flex gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => onView(invoice)}
                         title="View"
+                        className="h-8 w-8 p-0 hover:bg-blue-100 dark:hover:bg-blue-900"
                       >
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-4 w-4 text-blue-600" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => onEdit(invoice)}
                         title="Edit"
+                        className="h-8 w-8 p-0 hover:bg-green-100 dark:hover:bg-green-900"
                       >
-                        <Edit className="h-4 w-4" />
+                        <Edit className="h-4 w-4 text-green-600" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => onDownloadPDF(invoice)}
                         title="Download PDF"
+                        className="h-8 w-8 p-0 hover:bg-purple-100 dark:hover:bg-purple-900"
                       >
-                        <Download className="h-4 w-4" />
+                        <Download className="h-4 w-4 text-purple-600" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => onDelete(invoice)}
                         title="Delete"
-                        className="text-red-600 hover:text-red-700"
+                        className="h-8 w-8 p-0 hover:bg-red-100 dark:hover:bg-red-900"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4 text-red-600" />
                       </Button>
                     </div>
                   </td>
@@ -176,8 +187,13 @@ export const InvoiceHistoryTable = ({
           </table>
           
           {invoices.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
-              No invoices found
+            <div className="text-center py-12">
+              <div className="text-gray-500 dark:text-gray-400 text-lg">
+                No invoices found
+              </div>
+              <div className="text-gray-400 dark:text-gray-500 text-sm mt-2">
+                Create your first invoice to get started
+              </div>
             </div>
           )}
         </div>
