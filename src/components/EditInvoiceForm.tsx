@@ -137,6 +137,10 @@ const AddItemDialog = ({ onAddProduct, onClose }: AddItemDialogProps) => {
     }
   }, [selectedProduct]);
 
+  const handleProductSelect = (product: Product) => {
+    setSelectedProduct(product);
+  };
+
   const handleAdd = () => {
     if (!selectedProduct) {
       toast({
@@ -157,6 +161,7 @@ const AddItemDialog = ({ onAddProduct, onClose }: AddItemDialogProps) => {
     }
 
     onAddProduct(selectedProduct, quantity, unitPrice);
+    onClose();
   };
 
   return (
@@ -171,7 +176,7 @@ const AddItemDialog = ({ onAddProduct, onClose }: AddItemDialogProps) => {
         
         <div className="space-y-4">
           <EnhancedProductSelector
-            onProductSelect={setSelectedProduct}
+            onProductSelect={handleProductSelect}
             selectedProduct={selectedProduct}
           />
           
