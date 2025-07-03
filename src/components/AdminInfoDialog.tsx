@@ -1,23 +1,17 @@
 
 import React, { useState } from "react";
-import { X, Save, Upload, Palette, FileText, MapPin, Clock, Building } from "lucide-react";
+import { X, Save, Upload, Palette, FileText, MapPin, Clock, Building, Info } from "lucide-react";
 import { useCompanyInfo } from "../contexts/CompanyInfoContext";
 
-interface AdminInfoDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-const AdminInfoDialog = ({ isOpen, onClose }: AdminInfoDialogProps) => {
+const AdminInfoDialog = () => {
   const { companyInfo, updateCompanyInfo } = useCompanyInfo();
+  const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("company");
   const [formData, setFormData] = useState(companyInfo);
 
-  if (!isOpen) return null;
-
   const handleSave = () => {
     updateCompanyInfo(formData);
-    onClose();
+    setIsOpen(false);
   };
 
   const handleInputChange = (field: string, value: any) => {
@@ -27,9 +21,24 @@ const AdminInfoDialog = ({ isOpen, onClose }: AdminInfoDialogProps) => {
   const handleNestedInputChange = (parent: string, field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
-      [parent]: { ...prev[parent as keyof typeof prev], [field]: value }
+      [parent]: { 
+        ...(prev[parent as keyof typeof prev] as object || {}), 
+        [field]: value 
+      }
     }));
   };
+
+  if (!isOpen) {
+    return (
+      <button
+        onClick={() => setIsOpen(true)}
+        className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors flex items-center dark:bg-blue-700 dark:hover:bg-blue-600"
+      >
+        <Info className="h-4 w-4 mr-2" />
+        Business Info
+      </button>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -39,7 +48,7 @@ const AdminInfoDialog = ({ isOpen, onClose }: AdminInfoDialogProps) => {
             <Building className="mr-3 h-6 w-6 text-blue-600" />
             Business Configuration
           </h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+          <button onClick={() => setIsOpen(false)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
             <X className="h-6 w-6" />
           </button>
         </div>
@@ -444,7 +453,7 @@ const AdminInfoDialog = ({ isOpen, onClose }: AdminInfoDialogProps) => {
 
         <div className="flex justify-end space-x-4 p-6 border-t border-gray-200 dark:border-gray-700">
           <button
-            onClick={onClose}
+            onClick={() => setIsOpen(false)}
             className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
           >
             Cancel
