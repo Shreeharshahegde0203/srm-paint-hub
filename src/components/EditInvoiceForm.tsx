@@ -1,11 +1,127 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Trash2, RotateCcw, Plus } from "lucide-react";
-import ProductSelector from "./ProductSelector";
-import ReturnItemDialog from "./ReturnItemDialog";
+import EnhancedInvoiceProductSelector from "./EnhancedInvoiceProductSelector";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Product, Invoice } from "@/hooks/useSupabaseInvoices";
+
+interface ReturnItemDialogProps {
+  invoiceItems: any[];
+  onReturn: (returnData: any) => void;
+  onClose: () => void;
+}
+
+const ReturnItemDialog = ({ invoiceItems, onReturn, onClose }: ReturnItemDialogProps) => {
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [returnQuantity, setReturnQuantity] = useState(1);
+  const [returnReason, setReturnReason] = useState('');
+
+  const handleReturn = () => {
+    if (!selectedItem) {
+      toast({
+        title: "Error",
+        description: "Please select an item to return",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (returnQuantity <= 0 || returnQuantity > selectedItem.quantity) {
+      toast({
+        title: "Error",
+        description: "Invalid return quantity",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    onReturn({
+      product: selectedItem.product,
+      quantity: returnQuantity,
+      returnReason: returnReason || 'Customer return',
+      originalQuantity: selectedItem.quantity
+    });
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full">
+        <div className="flex justify-between items-center p-6 border-b">
+          <h3 className="text-xl font-bold">Return Item</h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <span className="sr-only">Close</span>
+            ×
+          </button>
+        </div>
+        
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Select Item to Return</label>
+            <select
+              value={selectedItem?.id || ''}
+              onChange={(e) => {
+                const item = invoiceItems.find(i => i.id === e.target.value);
+                setSelectedItem(item);
+                setReturnQuantity(1);
+              }}
+              className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+            >
+              <option value="">Select an item...</option>
+              {invoiceItems.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.product.name} - Qty: {item.quantity} - ₹{item.unitPrice}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {selectedItem && (
+            <>
+              <div>
+                <label className="block text-sm font-medium mb-2">Return Quantity</label>
+                <input
+                  type="number"
+                  value={returnQuantity}
+                  onChange={(e) => setReturnQuantity(Math.max(1, Math.min(selectedItem.quantity, parseInt(e.target.value) || 1)))}
+                  className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                  min="1"
+                  max={selectedItem.quantity}
+                />
+                <p className="text-sm text-gray-500 mt-1">Max: {selectedItem.quantity}</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Return Reason</label>
+                <input
+                  type="text"
+                  value={returnReason}
+                  onChange={(e) => setReturnReason(e.target.value)}
+                  className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                  placeholder="Enter reason for return..."
+                />
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="flex justify-end space-x-4 p-6 border-t">
+          <button onClick={onClose} className="px-4 py-2 border rounded-lg hover:bg-gray-50">
+            Cancel
+          </button>
+          <button
+            onClick={handleReturn}
+            disabled={!selectedItem}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+          >
+            Return Item
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function EditInvoiceForm({
   invoice,
@@ -18,23 +134,59 @@ export default function EditInvoiceForm({
   onSave: (newData: { items: any[]; status: string; discount: number; total: number }) => Promise<void>;
   onCancel: () => void;
 }) {
-  // Pre-load invoice items as editable array
-  const [items, setItems] = useState<any[]>(invoice.items?.map((item) => ({
-    product: products.find((p) => p.id === item.product_id),
-    quantity: item.quantity,
-    unitPrice: item.price,
-    total: (item.quantity || 0) * (item.price || 0),
-    isReturned: false
-  })) ?? []);
-  
+  const [items, setItems] = useState<any[]>([]);
   const [returnedItems, setReturnedItems] = useState<any[]>([]);
   const [discount, setDiscount] = useState(0);
   const [status, setStatus] = useState(invoice.status);
   const [showReturnDialog, setShowReturnDialog] = useState(false);
+  const [showAddItem, setShowAddItem] = useState(false);
 
-  const addItem = () =>
-    setItems([...items, { product: undefined, quantity: 1, unitPrice: 0, total: 0, isReturned: false }]);
+  useEffect(() => {
+    // Load invoice items
+    const loadInvoiceItems = async () => {
+      try {
+        const { data: invoiceItems } = await supabase
+          .from("invoice_items")
+          .select("*")
+          .eq("invoice_id", invoice.id);
+
+        const mappedItems = (invoiceItems || []).map((item) => {
+          const product = products.find((p) => p.id === item.product_id);
+          return {
+            id: item.id,
+            product,
+            quantity: item.quantity,
+            unitPrice: item.price,
+            total: item.quantity * item.price,
+            isReturned: false
+          };
+        });
+
+        setItems(mappedItems);
+      } catch (error) {
+        console.error('Error loading invoice items:', error);
+      }
+    };
+
+    loadInvoiceItems();
+  }, [invoice.id, products]);
+
+  const addItem = () => setShowAddItem(true);
   
+  const handleAddProduct = (product: Product, quantity: number, unitPrice: number) => {
+    const newItem = {
+      id: Date.now().toString(),
+      product,
+      quantity,
+      unitPrice,
+      total: quantity * unitPrice,
+      isReturned: false,
+      isNew: true
+    };
+    setItems([...items, newItem]);
+    setShowAddItem(false);
+  };
+
   const updateItem = (idx: number, field: string, value: any) => {
     const arr = [...items];
     arr[idx] = { ...arr[idx], [field]: value };
@@ -46,26 +198,15 @@ export default function EditInvoiceForm({
     setItems(arr);
   };
 
-  const handleProductSelect = (idx: number, product: any) => {
-    const arr = [...items];
-    arr[idx] = {
-      ...arr[idx],
-      product,
-      unitPrice: product.price,
-      total: (arr[idx].quantity || 1) * product.price
-    };
-    setItems(arr);
-  };
-
   const removeItem = (idx: number) => {
     if (items.length > 1) setItems(items.filter((_, i) => i !== idx));
   };
 
   const handleReturnItem = async (returnData: any) => {
-    // Add to returned items list
     const newReturnedItem = {
       ...returnData,
-      total: -(returnData.quantity * returnData.product.price) // Negative for return
+      total: -(returnData.quantity * returnData.product.price),
+      id: Date.now().toString()
     };
     setReturnedItems([...returnedItems, newReturnedItem]);
 
@@ -80,15 +221,10 @@ export default function EditInvoiceForm({
 
       toast({
         title: "Return Processed",
-        description: `${returnData.quantity} units of ${returnData.product.name} returned and added back to stock`,
+        description: `${returnData.quantity} units of ${returnData.product.name} returned`,
       });
     } catch (error) {
       console.error('Error updating stock:', error);
-      toast({
-        title: "Warning",
-        description: "Return recorded but stock update failed",
-        variant: "destructive",
-      });
     }
   };
 
@@ -150,13 +286,16 @@ export default function EditInvoiceForm({
             
             <div className="space-y-4">
               {items.map((item, index) => (
-                <div key={index} className="bg-white dark:bg-slate-800 p-4 rounded-lg border dark:border-gray-700">
+                <div key={item.id || index} className="bg-white dark:bg-slate-800 p-4 rounded-lg border dark:border-gray-700">
                   <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                     <div className="md:col-span-2">
-                      <ProductSelector
-                        onProductSelect={(product) => handleProductSelect(index, product)}
-                        selectedProduct={item.product ?? undefined}
-                      />
+                      <label className="block text-sm font-medium mb-1">Product</label>
+                      <div className="p-2 bg-gray-100 dark:bg-slate-900 rounded-lg">
+                        <span className="text-sm font-medium">{item.product?.name || 'Unknown Product'}</span>
+                        {item.product?.brand && (
+                          <p className="text-xs text-gray-500">{item.product.brand} • {item.product.type}</p>
+                        )}
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Quantity</label>
@@ -232,7 +371,7 @@ export default function EditInvoiceForm({
             </div>
           )}
 
-          {/* Status */}
+          {/* Status and Totals */}
           <div className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -247,25 +386,6 @@ export default function EditInvoiceForm({
                   <option value="partially_paid">Partially Paid</option>
                   <option value="overdue">Overdue</option>
                 </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Totals */}
-          <div className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg">
-            <h4 className="font-semibold mb-4 text-gray-800 dark:text-gray-100">Invoice Summary</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Discount (%)</label>
-                <input 
-                  type="number" 
-                  value={discount} 
-                  onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)} 
-                  className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white" 
-                  min="0" 
-                  max="100" 
-                  step="0.1" 
-                />
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between"><span>Subtotal:</span><span>₹{subtotal.toFixed(2)}</span></div>
@@ -295,12 +415,30 @@ export default function EditInvoiceForm({
           </div>
         </form>
 
+        {/* Add Item Dialog */}
+        {showAddItem && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-4xl w-full mx-4 max-h-screen overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold">Add Item to Invoice</h3>
+                <button onClick={() => setShowAddItem(false)} className="text-gray-500 hover:text-gray-700">
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              <EnhancedInvoiceProductSelector
+                onProductSelect={handleAddProduct}
+                onClose={() => setShowAddItem(false)}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Return Item Dialog */}
         {showReturnDialog && (
           <ReturnItemDialog
+            invoiceItems={items}
             onReturn={handleReturnItem}
             onClose={() => setShowReturnDialog(false)}
-            availableProducts={products}
           />
         )}
       </div>

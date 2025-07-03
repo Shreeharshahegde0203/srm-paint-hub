@@ -8,7 +8,7 @@ import { useSupabaseProducts } from "../hooks/useSupabaseProducts";
 import { useNavigate } from "react-router-dom";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import EnhancedProductForm from "../components/EnhancedProductForm";
-import RestockProductDialog from "../components/RestockProductDialog";
+import EnhancedRestockDialog from "../components/EnhancedRestockDialog";
 
 const Inventory = () => {
   const { user, loading } = useSupabaseAuth();
@@ -86,13 +86,19 @@ const Inventory = () => {
     }
   };
 
-  const handleRestockProduct = async (productId: string, quantity: number) => {
+  const handleRestockProduct = async (productId: string, quantity: number, newPrice?: number) => {
     const product = products.find(p => p.id === productId);
     if (product) {
       const newStock = product.stock + quantity;
+      const updateData: any = { stock: newStock };
+      
+      if (newPrice !== undefined && newPrice !== product.price) {
+        updateData.price = newPrice;
+      }
+      
       await updateProduct({ 
         id: productId, 
-        product: { stock: newStock } as TablesUpdate<"products"> 
+        product: updateData as TablesUpdate<"products"> 
       });
       setRestockingProduct(null);
     }
@@ -100,7 +106,6 @@ const Inventory = () => {
 
   const openRestockDialog = (product: Product) => {
     setRestockingProduct(product);
-    setShowRestockDialog(false);
   };
 
   // Filter products
@@ -250,11 +255,12 @@ const Inventory = () => {
         />
       )}
 
-      {/* Restock Product Dialog */}
-      {showRestockDialog && (
-        <RestockProductDialog
+      {/* Enhanced Restock Product Dialog */}
+      {restockingProduct && (
+        <EnhancedRestockDialog
+          product={restockingProduct}
           onRestock={handleRestockProduct}
-          onClose={() => setShowRestockDialog(false)}
+          onClose={() => setRestockingProduct(null)}
         />
       )}
     </div>

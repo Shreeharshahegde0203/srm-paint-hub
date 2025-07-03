@@ -24,31 +24,52 @@ interface CompanyInfo {
   hsnTemplate?: string;
   showWatermark?: boolean; // New: watermark toggle
   invoiceColorPreset?: "light" | "classic" | "dark" | "custom"; // New: color preset
+  // New invoice appearance settings
+  bankDetails: {
+    bankName: string;
+    accountNumber: string;
+    ifscCode: string;
+    branch: string;
+  };
+  declaration: string;
+  authorizedSignatory: string;
+  stateCode: string;
+  stateName: string;
 }
 
 const defaultCompanyInfo: CompanyInfo = {
   name: "SHREERAM MARKETING",
   tagline: "Premium Paints & Coatings Dealer",
-  address: "[Your Address Here]",
-  phone: "[Your Phone]",
-  email: "[Your Email]",
-  gstin: "[Your GSTIN Number]",
+  address: "Shreeram Building, Nadigalli, SIRSI-581401 (U.K.)",
+  phone: "M: 9448376055",
+  email: "shreeram@example.com",
+  gstin: "29ABCDE1234F1Z5",
   logoUrl: "",
-  footer: "Thank you for your business!\nVisit us again for all your paint needs.",
-  terms: "This is a computer generated invoice and does not require signature.\nTerms & Conditions: Payment due within 30 days. All disputes subject to local jurisdiction.",
+  footer: "This is a Computer Generated Invoice",
+  terms: "Payment due within 30 days. All disputes subject to local jurisdiction.",
   businessHours: "Monday - Saturday: 9:00 AM - 7:00 PM\nSunday: 10:00 AM - 5:00 PM",
   mapEmbedUrl: "",
   mapDisplayText: "Google Maps Integration",
-  locationDescription: "123 Paint Street, Mumbai",
-  directions: "Located near Landmark Mall, parking available beside the showroom.",
+  locationDescription: "Shreeram Building, Nadigalli, SIRSI",
+  directions: "Located near Main Market, parking available.",
   invoiceColors: {
-    primary: "#1e3a8a", // blue
-    accent: "#dc2626", // red
+    primary: "#1e3a8a",
+    accent: "#dc2626",
     text: "#333",
   },
-  hsnTemplate: "HSN/SAC: [Insert your standard codes here]",
+  hsnTemplate: "HSN/SAC codes as per GST guidelines",
   showWatermark: false,
   invoiceColorPreset: "classic",
+  bankDetails: {
+    bankName: "Karnataka Bank",
+    accountNumber: "707200010040901",
+    ifscCode: "KARB0000707",
+    branch: "Sirsi",
+  },
+  declaration: "We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.",
+  authorizedSignatory: "Authorised Signatory",
+  stateCode: "29",
+  stateName: "Karnataka",
 };
 
 interface CompanyInfoContextType {

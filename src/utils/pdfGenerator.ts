@@ -41,13 +41,13 @@ export function setCompanyInfoForPDF(companyInfo: any) {
 export const generateInvoicePDF = (invoice: InvoiceData) => {
   const company = _companyInfo || {
     name: "SHREERAM MARKETING",
-    tagline: "Shreeram Building, Nadigalli, SIRSI-581401 (U.K.)",
-    address: "Dealers in: ICI, Dulux Paints, Indigo Paints and Painting Assessories",
+    tagline: "Premium Paints & Coatings Dealer",
+    address: "Shreeram Building, Nadigalli, SIRSI-581401 (U.K.)",
     phone: "M: 9448376055",
-    email: "",
-    gstin: "",
+    email: "shreeram@example.com",
+    gstin: "29ABCDE1234F1Z5",
     logoUrl: "",
-    footer: "* Goods once sold cannot be taken back or exchanged.\n* All disputes are Subject to Sirsi Jurisdiction.",
+    footer: "This is a Computer Generated Invoice",
     terms: "",
     invoiceColors: { primary: "#1e3a8a", accent: "#dc2626", text: "#333" }
   };
@@ -133,101 +133,111 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
       </html>
     `;
   } else {
-    // GST Bill Format - Updated to include returned items
+    // Enhanced GST Bill Format
+    const totalQuantity = invoice.items.reduce((sum, item) => sum + (item.isReturned ? 0 : item.quantity), 0);
+    const returnedQuantity = invoice.items.reduce((sum, item) => sum + (item.isReturned ? item.quantity : 0), 0);
+    
     invoiceHTML = `
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Invoice ${invoice.invoiceNumber}</title>
+        <title>Tax Invoice ${invoice.invoiceNumber}</title>
         <style>
-          body { font-family: Arial, sans-serif; margin: 20px; font-size: 12px; line-height: 1.3; }
-          .header { text-align: center; border: 2px solid #000; padding: 10px; margin-bottom: 20px; }
-          .company-name { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
-          .company-details { font-size: 11px; margin-bottom: 10px; }
-          .bill-type { font-size: 12px; font-weight: bold; border: 1px solid #000; padding: 2px 8px; display: inline-block; }
-          .invoice-details { margin: 15px 0; }
-          .customer-details { margin: 15px 0; }
-          .table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-          .table th, .table td { border: 1px solid #000; padding: 8px 4px; text-align: left; font-size: 11px; }
+          body { font-family: Arial, sans-serif; margin: 20px; font-size: 11px; line-height: 1.2; }
+          .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
+          .company-name { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+          .gstin { font-size: 12px; font-weight: bold; margin: 5px 0; }
+          .address { font-size: 11px; margin: 3px 0; }
+          .invoice-title { font-size: 16px; font-weight: bold; margin: 15px 0; text-align: center; border: 2px solid #000; padding: 8px; }
+          .divider { border-top: 1px dashed #000; margin: 10px 0; }
+          .invoice-details { display: flex; justify-content: space-between; margin: 15px 0; }
+          .customer-section { margin: 15px 0; }
+          .customer-title { font-weight: bold; margin-bottom: 5px; }
+          .table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+          .table th, .table td { border: 1px solid #000; padding: 6px 4px; text-align: left; font-size: 10px; }
           .table th { background-color: #f0f0f0; font-weight: bold; text-align: center; }
           .text-right { text-align: right; }
           .text-center { text-align: center; }
-          .totals { margin-top: 20px; }
-          .total-row { display: flex; justify-content: space-between; padding: 3px 0; }
-          .grand-total { font-weight: bold; font-size: 14px; border-top: 2px solid #000; padding-top: 8px; }
-          .footer { margin-top: 30px; font-size: 10px; }
-          .bank-details { margin-top: 15px; font-size: 10px; }
+          .summary-section { margin-top: 20px; display: flex; justify-content: space-between; }
+          .summary-left { width: 48%; }
+          .summary-right { width: 48%; }
+          .totals-table { width: 100%; }
+          .totals-table td { padding: 4px 8px; border-bottom: 1px solid #ccc; }
+          .grand-total { font-weight: bold; font-size: 14px; border-top: 2px solid #000; }
+          .bank-details { border: 1px solid #000; padding: 8px; margin-top: 10px; font-size: 10px; }
+          .declaration { margin-top: 15px; font-size: 10px; }
           .signature-section { margin-top: 30px; display: flex; justify-content: space-between; }
-          .rupees-in-words { margin-top: 15px; border: 1px solid #000; padding: 5px; }
-          .returned-item { color: red; font-style: italic; }
+          .returned-item { color: red; text-decoration: line-through; }
+          .footer-note { text-align: center; margin-top: 20px; font-size: 10px; font-style: italic; }
           @media print { body { margin: 0; } }
         </style>
       </head>
       <body>
         <div class="header">
-          <div class="company-name">SHREERAM MARKETING</div>
-          <div class="company-details">
-            Shreeram Building, Nadigalli, SIRSI-581401 (U.K.)<br>
-            Dealers in: ICI, Dulux Paints, Indigo Paints and Painting Assessories
-          </div>
-          <div style="margin-top: 10px;">
-            <span class="bill-type">${invoice.billType === 'non_gst' ? 'NON-GST BILL' : 'CASH / CREDIT BILL'}</span>
-            <span style="float: right; font-weight: bold;">M: 9448376055</span>
-          </div>
+          <div class="company-name">${escapeHTML(company.name)}</div>
+          <div class="gstin">GSTIN: ${escapeHTML(company.gstin)}</div>
+          <div class="address">${escapeHTML(company.address)}</div>
+          <div class="address">Phone: ${escapeHTML(company.phone)} | Email: ${escapeHTML(company.email)}</div>
         </div>
+
+        <div class="divider"></div>
+
+        <div class="invoice-title">TAX INVOICE</div>
+
+        <div class="divider"></div>
 
         <div class="invoice-details">
-          <div style="float: left;">
-            <strong>No. ${escapeHTML(invoice.invoiceNumber)}</strong>
+          <div>
+            <strong>Invoice No.: ${escapeHTML(invoice.invoiceNumber)}</strong><br>
+            Delivery Note: <br>
+            <strong>Buyer (Bill To):</strong><br>
+            <strong>${escapeHTML(invoice.customer.name)}</strong><br>
+            ${invoice.customer.address ? `Address: ${escapeHTML(invoice.customer.address)}<br>` : ''}
+            ${invoice.customer.phone ? `Phone: ${escapeHTML(invoice.customer.phone)}<br>` : ''}
+            ${invoice.customer.gstin ? `GSTIN: ${escapeHTML(invoice.customer.gstin)}<br>` : ''}
+            State: Karnataka, Code: 29
           </div>
-          <div style="float: right;">
-            <strong>Date: ${escapeHTML(invoice.date)}</strong>
+          <div style="text-align: right;">
+            <strong>Date: ${escapeHTML(invoice.date)}</strong><br>
+            Mode/Terms of Payment: Cash<br>
+            Dispatch Through: <br>
+            Destination: <br>
+            Terms of Delivery:
           </div>
-          <div style="clear: both;"></div>
-        </div>
-
-        <div class="customer-details">
-          <div><strong>To: ${escapeHTML(invoice.customer.name)}</strong></div>
-          ${invoice.customer.address ? `<div>${escapeHTML(invoice.customer.address)}</div>` : ''}
-          ${invoice.customer.phone ? `<div>Phone: ${escapeHTML(invoice.customer.phone)}</div>` : ''}
-          ${invoice.billType === 'gst' && invoice.customer.gstin ? `<div><strong>GST of Buyer: ${escapeHTML(invoice.customer.gstin)}</strong></div>` : ''}
         </div>
 
         <table class="table">
           <thead>
             <tr>
-              <th style="width: 35%;">Description Of Goods</th>
-              <th style="width: 12%;">HSN Code</th>
-              <th style="width: 10%;">Quantity</th>
-              <th style="width: 10%;">Rate</th>
-              <th style="width: 15%;">Amount</th>
-              <th style="width: 8%;">Rs.</th>
-              <th style="width: 10%;">Ps.</th>
+              <th style="width: 8%;">S.No</th>
+              <th style="width: 40%;">Description of Goods</th>
+              <th style="width: 12%;">HSN/SAC</th>
+              <th style="width: 10%;">Qty</th>
+              <th style="width: 15%;">Rate</th>
+              <th style="width: 15%;">Amt</th>
             </tr>
           </thead>
           <tbody>
-            ${invoice.items.map(item => {
+            ${invoice.items.map((item, index) => {
               const itemDescription = `${item.product.name}${item.product.base ? ` (${item.product.base})` : ''}${item.colorCode ? ` - ${item.colorCode}` : ''}`;
-              const displayAmount = item.isReturned ? -item.total : item.total;
-              const returnedClass = item.isReturned ? ' class="returned-item"' : '';
+              const displayAmount = item.isReturned ? -Math.abs(item.total) : item.total;
+              const itemClass = item.isReturned ? ' class="returned-item"' : '';
               const returnedText = item.isReturned ? ' (RETURNED)' : '';
               
               return `
-                <tr${returnedClass}>
+                <tr${itemClass}>
+                  <td class="text-center">${index + 1}</td>
                   <td>${escapeHTML(itemDescription)}${returnedText}</td>
                   <td class="text-center">${escapeHTML(item.product.hsn_code || '')}</td>
                   <td class="text-center">${item.quantity}</td>
                   <td class="text-right">₹${item.unitPrice.toFixed(2)}</td>
                   <td class="text-right">₹${displayAmount.toFixed(2)}</td>
-                  <td class="text-right">${Math.floor(Math.abs(displayAmount))}</td>
-                  <td class="text-right">${Math.round((Math.abs(displayAmount) % 1) * 100)}</td>
                 </tr>
               `;
             }).join('')}
-            ${Array.from({ length: Math.max(0, 8 - invoice.items.length) }, () => `
+            ${Array.from({ length: Math.max(0, 8 - invoice.items.length) }, (_, i) => `
               <tr>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
+                <td class="text-center">${invoice.items.length + i + 1}</td>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
@@ -238,57 +248,63 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
           </tbody>
         </table>
 
-        <div style="display: flex; justify-content: space-between;">
-          <div style="width: 48%;">
-            <div class="rupees-in-words">
-              <strong>Rupees in words:</strong><br>
+        <div style="margin: 15px 0;">
+          <strong>Total Quantity: ${totalQuantity} units</strong>
+          ${returnedQuantity > 0 ? ` | Returned: ${returnedQuantity} units` : ''}
+        </div>
+
+        <div class="summary-section">
+          <div class="summary-left">
+            <div style="border: 1px solid #000; padding: 8px; margin-bottom: 15px;">
+              <strong>In Words:</strong><br>
               ${numberToWords(Math.abs(invoice.total))} Only
             </div>
             
             <div class="bank-details">
-              <strong>Karnataka Bank, Sirsi</strong><br>
-              A/c. No. 707200010040901<br>
-              IFSC: KARB0000707<br>
-              A/c. Holder Name: GAJANAN N. HEGDE
+              <strong>Bank Details:</strong><br>
+              Bank Name: Karnataka Bank<br>
+              A/c No.: 707200010040901<br>
+              IFSC Code: KARB0000707<br>
+              Branch: Sirsi
             </div>
           </div>
           
-          <div style="width: 48%;">
-            <div class="totals">
-              <div class="total-row">
-                <span>Sub Total</span>
-                <span>₹${invoice.subtotal.toFixed(2)}</span>
-              </div>
-              <div class="total-row">
-                <span>Net Value</span>
-                <span>₹${invoice.subtotal.toFixed(2)}</span>
-              </div>
+          <div class="summary-right">
+            <table class="totals-table">
+              <tr>
+                <td>Subtotal (Excl. GST):</td>
+                <td class="text-right">₹${invoice.subtotal.toFixed(2)}</td>
+              </tr>
               ${invoice.billType === 'gst' ? `
-              <div class="total-row">
-                <span>CGST@</span>
-                <span>₹${(invoice.tax / 2).toFixed(2)}</span>
-              </div>
-              <div class="total-row">
-                <span>SGST@</span>
-                <span>₹${(invoice.tax / 2).toFixed(2)}</span>
-              </div>
+              <tr>
+                <td>Taxes:</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>&nbsp;&nbsp;- CGST @ 9%:</td>
+                <td class="text-right">₹${(invoice.tax / 2).toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td>&nbsp;&nbsp;- SGST @ 9%:</td>
+                <td class="text-right">₹${(invoice.tax / 2).toFixed(2)}</td>
+              </tr>
               ` : ''}
-              <div class="total-row">
-                <span>Freight</span>
-                <span>-</span>
-              </div>
-              <div class="total-row grand-total">
-                <span>GRAND TOTAL</span>
-                <span>₹${invoice.total.toFixed(2)}</span>
-              </div>
-            </div>
+              <tr>
+                <td>Round Off:</td>
+                <td class="text-right">₹0.00</td>
+              </tr>
+              <tr class="grand-total">
+                <td><strong>Total Amount:</strong></td>
+                <td class="text-right"><strong>₹${invoice.total.toFixed(2)}</strong></td>
+              </tr>
+            </table>
           </div>
         </div>
 
-        <div class="footer">
-          <div style="text-align: right; margin-bottom: 20px;">
-            <strong>For Shreeram Marketing</strong>
-          </div>
+        <div class="declaration">
+          <strong>Declaration:</strong><br>
+          We declare that this invoice shows the actual price of the goods 
+          described and that all particulars are true and correct.
         </div>
 
         <div class="signature-section">
@@ -296,13 +312,12 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
             <strong>Customer's Signature</strong>
           </div>
           <div>
-            <strong>Signature</strong>
+            <strong>Authorised Signatory: ___________________</strong>
           </div>
         </div>
 
-        <div style="margin-top: 20px; font-size: 10px; text-align: center;">
-          * Goods once sold cannot be taken back or exchanged.<br>
-          * All disputes are Subject to Sirsi Jurisdiction.
+        <div class="footer-note">
+          ${escapeHTML(company.footer)}
         </div>
       </body>
       </html>
