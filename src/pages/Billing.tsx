@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, FileText } from 'lucide-react';
 import { generateInvoicePDF } from '../utils/pdfGenerator';
@@ -227,7 +226,6 @@ const Billing = () => {
       tax: gstAmount,
       total,
       billType: invoice.bill_type as 'gst' | 'non_gst' | 'casual',
-      returnTotal: returnTotal > 0 ? returnTotal : undefined,
     });
   };
 
