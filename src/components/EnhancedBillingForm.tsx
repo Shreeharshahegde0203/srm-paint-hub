@@ -616,7 +616,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
             <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">💰 Payment Status</h3>
             
             <div className="flex flex-wrap gap-4 mb-4">
-              {(['paid', 'pending'] as const).map(status => (
+              {(['paid', 'pending', 'partially_paid'] as const).map(status => (
                 <label key={status} className="flex items-center bg-gray-50 dark:bg-gray-700 p-3 rounded-lg cursor-pointer">
                   <input
                     type="radio"
@@ -631,6 +631,32 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                 </label>
               ))}
             </div>
+            
+            {/* Partial Payment Amount */}
+            {paymentStatus === 'partially_paid' && (
+              <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Amount Paid <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max={total}
+                  value={partialAmount}
+                  onChange={(e) => setPartialAmount(parseFloat(e.target.value) || 0)}
+                  className="w-full px-3 py-2 border-2 border-yellow-300 dark:border-yellow-700 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 dark:bg-gray-800 dark:text-white"
+                  placeholder="Enter amount paid"
+                />
+                <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                  <p>Total Bill: ₹{total.toFixed(2)}</p>
+                  <p>Amount Paid: ₹{partialAmount.toFixed(2)}</p>
+                  <p className="font-semibold text-red-600 dark:text-red-400">
+                    Remaining: ₹{(total - partialAmount).toFixed(2)}
+                  </p>
+                </div>
+              </div>
+            )}
             
           </div>
 

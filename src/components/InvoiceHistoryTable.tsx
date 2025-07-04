@@ -75,6 +75,8 @@ export const InvoiceHistoryTable = ({
     switch (status) {
       case 'paid':
         return 'bg-green-500 text-white hover:bg-green-600';
+      case 'partially_paid':
+        return 'bg-orange-500 text-white hover:bg-orange-600';
       case 'overdue':
         return 'bg-red-500 text-white hover:bg-red-600';
       default:
