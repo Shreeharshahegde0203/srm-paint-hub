@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, FileText } from 'lucide-react';
 import { generateInvoicePDF } from '../utils/pdfGenerator';
@@ -210,10 +209,10 @@ const Billing = () => {
     
     let gstAmount = 0;
     if (invoice.billing_mode === 'with_gst') {
-      gstAmount = netSubtotal * 0.18;
+      gstAmount = netSubtotal * 0.18 / 1.18;
     }
     
-    const total = netSubtotal + gstAmount;
+    const total = netSubtotal;
 
     generateInvoicePDF({
       invoiceNumber,
