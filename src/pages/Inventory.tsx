@@ -21,6 +21,8 @@ const Inventory = () => {
     deleteProduct
   } = useSupabaseProducts();
 
+  // Real-time subscription effect is now handled in useSupabaseProducts hook
+
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -59,23 +61,32 @@ const Inventory = () => {
   };
 
   const handleUpdateProduct = async (id: string, productData: Partial<Product> & { hsn_code?: string }) => {
-    const payload: any = {
-      name: productData.name,
-      brand: productData.brand,
-      type: productData.type,
-      base: productData.base || null,
-      price: productData.price,
-      gst_rate: productData.gstRate,
-      unit: `${productData.unit_quantity || 1} ${productData.unit || 'Piece'}`,
-      description: productData.description,
-      image: productData.image,
-      hsn_code: productData.hsn_code || null,
-      category: (productData as any).category || null,
-      unit_quantity: productData.unit_quantity || 1,
-    };
+    try {
+      const payload: any = {
+        name: productData.name,
+        brand: productData.brand,
+        type: productData.type,
+        base: productData.base || null,
+        price: productData.price,
+        gst_rate: productData.gstRate,
+        unit: `${productData.unit_quantity || 1} ${productData.unit || 'Piece'}`,
+        description: productData.description,
+        image: productData.image,
+        hsn_code: productData.hsn_code || null,
+        category: (productData as any).category || null,
+        unit_quantity: productData.unit_quantity || 1,
+      };
 
-    await updateProduct({ id, product: payload as TablesUpdate<"products"> });
-    setEditingProduct(null);
+      // Include stock update
+      if (productData.stock !== undefined) {
+        payload.stock = productData.stock;
+      }
+
+      await updateProduct({ id, product: payload as TablesUpdate<"products"> });
+      setEditingProduct(null);
+    } catch (error) {
+      console.error('Error updating product:', error);
+    }
   };
 
   const handleDeleteProduct = async (id: string) => {

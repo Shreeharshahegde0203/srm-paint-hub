@@ -1,5 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate, Tables } from "@/integrations/supabase/types";
 
@@ -10,11 +11,30 @@ export function useSupabaseProducts() {
   const productsQuery = useQuery({
     queryKey: ["products"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("products").select("*");
+      const { data, error } = await supabase.from("products").select("*").order("name");
       if (error) throw error;
       return data as Tables<"products">[];
     }
   });
+
+  // Real-time subscription for products
+  useEffect(() => {
+    const channel = supabase
+      .channel('products-changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'products'
+      }, () => {
+        console.log('Products changed, invalidating cache...');
+        queryClient.invalidateQueries({ queryKey: ["products"] });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   // 2. Add product
   const addMutation = useMutation({
