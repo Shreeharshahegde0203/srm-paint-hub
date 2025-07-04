@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -95,6 +94,22 @@ export const InvoiceHistoryTable = ({
         return 'bg-red-500 text-white hover:bg-red-600';
       default:
         return 'bg-yellow-500 text-white hover:bg-yellow-600';
+    }
+  };
+
+  // Helper to get user-friendly status label
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'partially_paid':
+        return 'Partially Paid';
+      case 'paid':
+        return 'Paid';
+      case 'pending':
+        return 'Pending';
+      case 'overdue':
+        return 'Overdue';
+      default:
+        return status;
     }
   };
 
@@ -207,7 +222,7 @@ export const InvoiceHistoryTable = ({
                       onClick={() => handleStatusChange(invoice)}
                       className={`px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 transform hover:scale-105 shadow-md ${getStatusColor(invoice.status)}`}
                     >
-                      {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+                      {getStatusLabel(invoice.status)}
                     </button>
                   </td>
                   <td className="p-4">
