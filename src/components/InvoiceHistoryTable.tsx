@@ -22,7 +22,11 @@ export const InvoiceHistoryTable = ({
   onDownloadPDF, 
   onView 
 }: InvoiceHistoryTableProps) => {
-  const [hiddenAmounts, setHiddenAmounts] = useState<Set<string>>(new Set());
+  // Load hidden amounts from localStorage on component mount
+  const [hiddenAmounts, setHiddenAmounts] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem('hiddenInvoiceAmounts');
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  });
   const [searchTerm, setSearchTerm] = useState('');
 
   const toggleAmountVisibility = (invoiceId: string) => {
@@ -33,6 +37,8 @@ export const InvoiceHistoryTable = ({
       newHidden.add(invoiceId);
     }
     setHiddenAmounts(newHidden);
+    // Save to localStorage
+    localStorage.setItem('hiddenInvoiceAmounts', JSON.stringify(Array.from(newHidden)));
   };
 
   const handleStatusChange = async (invoice: Invoice) => {
