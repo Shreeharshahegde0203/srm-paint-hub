@@ -103,8 +103,8 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
   const subtotal = items.reduce((sum, item) => 
     sum + (item.isReturned ? -item.total : item.total), 0
   );
-  const gstAmount = billType === 'gst' ? subtotal * 0.18 : 0;
-  const total = subtotal + gstAmount;
+  const gstAmount = billType === 'gst' ? subtotal * 0.18 / 1.18 : 0;
+  const total = subtotal;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -349,7 +349,7 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
                       <th className="border border-gray-300 px-4 py-2 text-center">Unit</th>
                       {billType !== 'casual' && (
                         <th className="border border-gray-300 px-4 py-2 text-right">
-                          {billType === 'gst' ? 'Price (Ex-GST)' : 'Unit Price'}
+                          {billType === 'gst' ? 'Unit Price (Incl. GST)' : 'Unit Price'}
                         </th>
                       )}
                       {billType !== 'casual' && (
