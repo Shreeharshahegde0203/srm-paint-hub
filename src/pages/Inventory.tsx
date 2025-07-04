@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter, Edit, Trash2, Package, AlertTriangle, X } from 'lucide-react';
 import { Product, UNIT_TYPES } from '../data/products';
@@ -39,7 +38,7 @@ const Inventory = () => {
     base: product.base,
   }));
 
-  const handleAddProduct = async (productData: Omit<Product, 'id'> & { hsn_code?: string }) => {
+  const handleAddProduct = async (productData: Omit<Product, 'id'> & { hsn_code?: string, hsnCode?: string }) => {
     const payload: any = {
       name: productData.name,
       brand: productData.brand,
@@ -51,7 +50,7 @@ const Inventory = () => {
       unit: `${productData.unit_quantity || 1} ${productData.unit || 'Piece'}`,
       description: productData.description,
       image: productData.image,
-      hsn_code: productData.hsn_code || null,
+      hsn_code: productData.hsn_code || productData.hsnCode || null,
       category: (productData as any).category || null,
       unit_quantity: productData.unit_quantity || 1,
     };
@@ -60,7 +59,7 @@ const Inventory = () => {
     setShowAddForm(false);
   };
 
-  const handleUpdateProduct = async (id: string, productData: Partial<Product> & { hsn_code?: string }) => {
+  const handleUpdateProduct = async (id: string, productData: Partial<Product> & { hsn_code?: string, hsnCode?: string }) => {
     try {
       const payload: any = {
         name: productData.name,
@@ -72,7 +71,7 @@ const Inventory = () => {
         unit: `${productData.unit_quantity || 1} ${productData.unit || 'Piece'}`,
         description: productData.description,
         image: productData.image,
-        hsn_code: productData.hsn_code || null,
+        hsn_code: productData.hsn_code || productData.hsnCode || null,
         category: (productData as any).category || null,
         unit_quantity: productData.unit_quantity || 1,
       };
