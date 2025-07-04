@@ -103,7 +103,26 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
   const subtotal = items.reduce((sum, item) => 
     sum + (item.isReturned ? -item.total : item.total), 0
   );
-  const gstAmount = billType === 'gst' ? subtotal * 0.18 / 1.18 : 0;
+
+  // Determine if all GST rates are the same
+  let gstLabel = 'GST';
+  if (billType === 'gst' && items.length > 0) {
+    const uniqueRates = Array.from(new Set(items.map(item => item.product.gstRate)));
+    if (uniqueRates.length === 1) {
+      gstLabel = `GST (${uniqueRates[0]}%)`;
+    }
+  }
+
+  // GST calculation, including returned items
+  let gstAmount = 0;
+  if (billType === 'gst') {
+    gstAmount = items.reduce((sum, item) => {
+      const rate = item.product.gstRate || 0;
+      const sign = item.isReturned ? -1 : 1;
+      return sum + (sign * item.total * rate / (100 + rate));
+    }, 0);
+  }
+
   const total = subtotal;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -379,7 +398,7 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
                 <div className="mt-4 text-right">
                   <p className="text-lg">Subtotal: ₹{subtotal.toFixed(2)}</p>
                   {billType === 'gst' && (
-                    <p className="text-lg">GST (18%): ₹{gstAmount.toFixed(2)}</p>
+                    <p className="text-lg">{gstLabel}: ₹{gstAmount.toFixed(2)}</p>
                   )}
                   <p className="text-xl font-bold">Total: ₹{total.toFixed(2)}</p>
                 </div>
