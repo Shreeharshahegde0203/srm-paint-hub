@@ -50,7 +50,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [billType, setBillType] = useState<BillType>('gst');
-  const [paymentStatus, setPaymentStatus] = useState<'paid' | 'unpaid' | 'partially_paid'>('unpaid');
+  const [paymentStatus, setPaymentStatus] = useState<'paid' | 'pending' | 'partially_paid'>('pending');
   const [partialAmount, setPartialAmount] = useState<number>(0);
   const [showReturnDialog, setShowReturnDialog] = useState(false);
   
@@ -197,6 +197,12 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
     
     if (items.length === 0) {
       alert('Please add at least one item');
+      return;
+    }
+
+    // For casual bills, validate payment status
+    if (billType === 'casual' && paymentStatus !== 'pending') {
+      alert('Casual bills can only be created with pending status');
       return;
     }
 
@@ -384,14 +390,16 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                 <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">Selected: {selectedProduct.name}</h4>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                  <div>
+                <div>
                     <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Base</label>
                     <input
-                      type="text"
+                      type="number"
                       value={currentBase}
                       onChange={(e) => setCurrentBase(e.target.value)}
                       className="w-full px-3 py-2 border rounded-lg dark:bg-gray-600 dark:text-white dark:border-gray-500"
                       placeholder="Base"
+                      min="0"
+                      step="0.01"
                     />
                   </div>
                   
@@ -612,7 +620,9 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
             <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">💰 Payment Status</h3>
             
             <div className="flex flex-wrap gap-4 mb-4">
-              {(['paid', 'pending', 'partially_paid'] as const).map(status => (
+              {(['paid', 'pending', 'partially_paid'] as const).filter(status => 
+                billType !== 'casual' || status === 'pending'
+              ).map(status => (
                 <label key={status} className="flex items-center bg-gray-50 dark:bg-gray-700 p-3 rounded-lg cursor-pointer">
                   <input
                     type="radio"

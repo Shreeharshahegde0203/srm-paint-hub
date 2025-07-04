@@ -200,6 +200,7 @@ const Inventory = () => {
                 onEdit={() => setEditingProduct(product)}
                 onDelete={() => handleDeleteProduct(product.id)}
                 onRestock={handleUpdateProduct}
+                onDoubleClick={() => setEditingProduct(product)}
               />
             ))}
           </div>
@@ -234,9 +235,10 @@ interface ProductCardProps {
   onEdit: () => void;
   onDelete: () => void;
   onRestock: (id: string, productData: Partial<Product>) => Promise<void>;
+  onDoubleClick: () => void;
 }
 
-const ProductCard = ({ product, viewMode, onEdit, onDelete, onRestock }: ProductCardProps) => {
+const ProductCard = ({ product, viewMode, onEdit, onDelete, onRestock, onDoubleClick }: ProductCardProps) => {
   const [showRestock, setShowRestock] = useState(false);
   const [restockQuantity, setRestockQuantity] = useState(1);
   const [newPrice, setNewPrice] = useState(product.price);
@@ -264,7 +266,7 @@ const ProductCard = ({ product, viewMode, onEdit, onDelete, onRestock }: Product
   
   if (isListView) {
     return (
-      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-4 flex items-center justify-between transition-all duration-300 hover:shadow-lg">
+      <div onDoubleClick={onDoubleClick} className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-4 flex items-center justify-between transition-all duration-300 hover:shadow-lg cursor-pointer">
         <div className="flex items-center space-x-4">
           {product.image && (
             <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded" />
@@ -334,7 +336,7 @@ const ProductCard = ({ product, viewMode, onEdit, onDelete, onRestock }: Product
   }
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105">
+    <div onDoubleClick={onDoubleClick} className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105 cursor-pointer">
       {product.image && (
         <img 
           src={product.image} 

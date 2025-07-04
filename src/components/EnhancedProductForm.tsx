@@ -253,11 +253,13 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
           <div>
             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Base</label>
             <input
-              type="text"
+              type="number"
               value={formData.base}
               onChange={(e) => setFormData(prev => ({ ...prev, base: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 rounded-lg dark:bg-gray-600 dark:text-white"
-              placeholder="e.g., White, Deep Base"
+              placeholder="e.g., 0.5, 1.0"
+              min="0"
+              step="0.01"
             />
           </div>
 

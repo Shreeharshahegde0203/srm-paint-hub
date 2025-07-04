@@ -206,8 +206,8 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
               onChange={e => setFormData(fd => ({ ...fd, brand: e.target.value }))} />
             <input type="text" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" placeholder="Type" value={formData.type} required
               onChange={e => setFormData(fd => ({ ...fd, type: e.target.value }))} />
-            <input type="text" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" placeholder="Base (optional)" value={formData.base}
-              onChange={e => setFormData(fd => ({ ...fd, base: e.target.value }))} />
+            <input type="number" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" placeholder="Base (optional)" value={formData.base}
+              onChange={e => setFormData(fd => ({ ...fd, base: e.target.value }))} min="0" step="0.01" />
             <div className="flex gap-2">
               <div className="flex-1">
                 <input type="number" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"

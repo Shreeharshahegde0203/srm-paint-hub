@@ -226,12 +226,14 @@ const AddItemDialog = ({ onAddProduct, onClose, billingMode }: AddItemDialogProp
               
               <div>
                 <label className="block text-sm font-medium mb-1">Base</label>
-                <input
-                  type="text"
-                  value={base}
+                <input 
+                  type="number" 
+                  value={base} 
                   onChange={(e) => setBase(e.target.value)}
                   className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 input-focus"
                   placeholder="Enter base specification"
+                  min="0"
+                  step="0.01"
                 />
               </div>
               
@@ -533,11 +535,13 @@ export default function EditInvoiceForm({
                     <div>
                       <label className="block text-sm font-medium mb-1">Base</label>
                       <input 
-                        type="text" 
+                        type="number" 
                         value={item.base || ''} 
                         onChange={(e) => updateItem(index, 'base', e.target.value)} 
                         className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white input-focus hover:shadow-md transition-all duration-200" 
                         placeholder="Base"
+                        min="0"
+                        step="0.01"
                       />
                     </div>
                     <div>
