@@ -103,26 +103,7 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
   const subtotal = items.reduce((sum, item) => 
     sum + (item.isReturned ? -item.total : item.total), 0
   );
-
-  // Determine if all GST rates are the same
-  let gstLabel = 'GST';
-  if (billType === 'gst' && items.length > 0) {
-    const uniqueRates = Array.from(new Set(items.map(item => item.product.gstRate)));
-    if (uniqueRates.length === 1) {
-      gstLabel = `GST (${uniqueRates[0]}%)`;
-    }
-  }
-
-  // GST calculation, including returned items
-  let gstAmount = 0;
-  if (billType === 'gst') {
-    gstAmount = items.reduce((sum, item) => {
-      const rate = item.product.gstRate || 0;
-      const sign = item.isReturned ? -1 : 1;
-      return sum + (sign * item.total * rate / (100 + rate));
-    }, 0);
-  }
-
+  const gstAmount = billType === 'gst' ? subtotal * 0.18 / 1.18 : 0;
   const total = subtotal;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -329,26 +310,9 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
                   min="0.5"
                 />
               </div>
-              {billType === 'gst' && (
-                <div>
-                  <label className="block text-sm font-medium mb-1">GST%</label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={selectedProduct?.gstRate || 0}
-                    onChange={e => {
-                      if (selectedProduct) {
-                        setSelectedProduct({ ...selectedProduct, gstRate: parseFloat(e.target.value) || 0 });
-                      }
-                    }}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
-                </div>
-              )}
               {billType !== 'casual' && (
                 <div>
-                  <label className="block text-sm font-medium mb-1">{billType === 'gst' ? 'Unit Price (Inc-GST)' : 'Unit Price'}</label>
+                  <label className="block text-sm font-medium mb-1">Unit Price</label>
                   <input
                     type="number"
                     step="0.01"
@@ -415,7 +379,7 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
                 <div className="mt-4 text-right">
                   <p className="text-lg">Subtotal: ₹{subtotal.toFixed(2)}</p>
                   {billType === 'gst' && (
-                    <p className="text-lg">{gstLabel}: ₹{gstAmount.toFixed(2)}</p>
+                    <p className="text-lg">GST (18%): ₹{gstAmount.toFixed(2)}</p>
                   )}
                   <p className="text-xl font-bold">Total: ₹{total.toFixed(2)}</p>
                 </div>
