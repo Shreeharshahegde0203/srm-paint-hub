@@ -20,7 +20,7 @@ export function useSupabaseProducts() {
   // Real-time subscription for products
   useEffect(() => {
     const channel = supabase
-      .channel('products-changes')
+      .channel(`products-changes-${Math.random()}`) // Unique channel name to prevent conflicts
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
