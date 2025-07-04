@@ -313,6 +313,7 @@ export type Database = {
           customer_id: string | null
           deleted_at: string | null
           id: string
+          partial_amount_paid: number | null
           project_reference: string | null
           status: string
           total: number
@@ -325,6 +326,7 @@ export type Database = {
           customer_id?: string | null
           deleted_at?: string | null
           id?: string
+          partial_amount_paid?: number | null
           project_reference?: string | null
           status?: string
           total: number
@@ -337,6 +339,7 @@ export type Database = {
           customer_id?: string | null
           deleted_at?: string | null
           id?: string
+          partial_amount_paid?: number | null
           project_reference?: string | null
           status?: string
           total?: number

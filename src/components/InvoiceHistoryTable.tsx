@@ -42,19 +42,33 @@ export const InvoiceHistoryTable = ({
   };
 
   const handleStatusChange = async (invoice: Invoice) => {
-    const newStatus = invoice.status === 'paid' ? 'pending' : 'paid';
+    let newStatus: string;
+    let updates: any = {};
+    
+    if (invoice.status === 'paid') {
+      newStatus = 'pending';
+      updates.partial_amount_paid = 0;
+    } else if (invoice.status === 'partially_paid') {
+      newStatus = 'paid';
+      updates.partial_amount_paid = invoice.total;
+    } else {
+      newStatus = 'paid';
+      updates.partial_amount_paid = invoice.total;
+    }
+    
+    updates.status = newStatus;
     
     try {
       const { error } = await supabase
         .from('invoices')
-        .update({ status: newStatus })
+        .update(updates)
         .eq('id', invoice.id);
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: `Invoice status changed to ${newStatus}`,
+        description: `Invoice status changed to ${newStatus.replace('_', ' ')}`,
       });
 
       // Refresh the page without showing blank screen
@@ -161,9 +175,19 @@ export const InvoiceHistoryTable = ({
                       {hiddenAmounts.has(invoice.id) ? (
                         <span className="text-gray-400 font-medium">****</span>
                       ) : (
-                        <span className="font-bold text-lg bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                          ₹{invoice.total.toLocaleString('en-IN')}
-                        </span>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-lg bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                            ₹{invoice.total.toLocaleString('en-IN')}
+                          </span>
+                          {invoice.status === 'partially_paid' && (invoice as any).partial_amount_paid && (
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              <div>Paid: ₹{((invoice as any).partial_amount_paid || 0).toLocaleString('en-IN')}</div>
+                              <div className="text-red-500 font-medium">
+                                Due: ₹{(invoice.total - ((invoice as any).partial_amount_paid || 0)).toLocaleString('en-IN')}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       )}
                       <button
                         onClick={() => toggleAmountVisibility(invoice.id)}

@@ -63,7 +63,8 @@ const Billing = () => {
           total: billData.total,
           bill_type: billData.billType,
           billing_mode: billData.billType === 'gst' ? 'with_gst' : billData.billType === 'non_gst' ? 'without_gst' : 'casual',
-          status: billData.paymentStatus
+          status: billData.paymentStatus,
+          partial_amount_paid: billData.paymentStatus === 'partially_paid' ? billData.partialAmount : 0
         })
         .select()
         .single();

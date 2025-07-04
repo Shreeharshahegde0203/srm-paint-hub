@@ -55,10 +55,19 @@ export function useSupabaseInvoices() {
   }, [fetchInvoices]);
 
   // Edit invoice (only updates invoice and its items, not customer)
-  const editInvoice = async (id: string, { items, status, discount, total }: { items: any[]; status: string; discount: number; total: number; }) => {
+  const editInvoice = async (id: string, { items, status, discount, total, partialAmount }: { items: any[]; status: string; discount: number; total: number; partialAmount?: number; }) => {
     // Update invoice fields
+    const updates: any = { status, total };
+    if (status === 'partially_paid' && partialAmount !== undefined) {
+      updates.partial_amount_paid = partialAmount;
+    } else if (status === 'paid') {
+      updates.partial_amount_paid = total; // Full amount when marked as paid
+    } else {
+      updates.partial_amount_paid = 0; // Reset when pending
+    }
+    
     const { error: invErr } = await supabase
-      .from("invoices").update({ status, total }).eq("id", id);
+      .from("invoices").update(updates).eq("id", id);
     if (invErr) throw new Error(invErr.message);
 
     // Update/delete/add items: for simplicity, remove all and re-insert (best for UI/logic)

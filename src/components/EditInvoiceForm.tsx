@@ -334,6 +334,7 @@ export default function EditInvoiceForm({
   const [returnedItems, setReturnedItems] = useState<any[]>([]);
   const [discount, setDiscount] = useState(0);
   const [status, setStatus] = useState(invoice.status);
+  const [partialAmount, setPartialAmount] = useState((invoice as any).partial_amount_paid || 0);
   const [showReturnDialog, setShowReturnDialog] = useState(false);
   const [showAddItem, setShowAddItem] = useState(false);
 
@@ -462,7 +463,8 @@ export default function EditInvoiceForm({
         status,
         discount: discountAmount,
         total,
-      });
+        partialAmount: status === 'partially_paid' ? partialAmount : 0
+      } as any);
       toast({ title: "Success", description: "Invoice updated!" });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -632,18 +634,46 @@ export default function EditInvoiceForm({
           {/* Status and Totals */}
           <div className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Status</label>
-                <select 
-                  value={status} 
-                  onChange={e => setStatus(e.target.value)} 
-                  className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white"
-                >
-                  <option value="pending">Pending</option>
-                  <option value="paid">Paid</option>
-                  <option value="partially_paid">Partially Paid</option>
-                  <option value="overdue">Overdue</option>
-                </select>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Status</label>
+                  <select 
+                    value={status} 
+                    onChange={e => setStatus(e.target.value)} 
+                    className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="paid">Paid</option>
+                    <option value="partially_paid">Partially Paid</option>
+                    <option value="overdue">Overdue</option>
+                  </select>
+                </div>
+                
+                {/* Partial Payment Amount */}
+                {status === 'partially_paid' && (
+                  <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                      Amount Paid <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max={total}
+                      value={partialAmount}
+                      onChange={(e) => setPartialAmount(parseFloat(e.target.value) || 0)}
+                      className="w-full px-3 py-2 border-2 border-yellow-300 dark:border-yellow-700 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 dark:bg-gray-800 dark:text-white"
+                      placeholder="Enter amount paid"
+                    />
+                    <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                      <p>Total Bill: ₹{total.toFixed(2)}</p>
+                      <p>Amount Paid: ₹{partialAmount.toFixed(2)}</p>
+                      <p className="font-semibold text-red-600 dark:text-red-400">
+                        Remaining: ₹{(total - partialAmount).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between"><span>Subtotal:</span><span>₹{subtotal.toFixed(2)}</span></div>
