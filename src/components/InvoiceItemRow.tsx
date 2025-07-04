@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Trash2, RotateCcw, Edit3, Check, X } from 'lucide-react';
 import { InvoiceItem, isValidQuantity, UNIT_TYPES } from '../data/products';
@@ -58,8 +57,6 @@ const InvoiceItemRow = ({
     const reason = prompt('Return reason (optional):');
     onReturnItem(index, reason || undefined);
   };
-
-  const priceExcludingGST = billType === 'gst' ? item.unitPrice / (1 + item.product.gstRate / 100) : item.unitPrice;
 
   return (
     <tr className={`${item.isReturned ? 'bg-red-50 text-red-800' : ''}`}>
@@ -144,7 +141,7 @@ const InvoiceItemRow = ({
               className="w-24 px-2 py-1 border rounded text-right"
             />
           ) : (
-            `₹${billType === 'gst' ? priceExcludingGST.toFixed(2) : item.unitPrice.toFixed(2)}`
+            `₹${item.unitPrice.toFixed(2)}`
           )}
         </td>
       )}
