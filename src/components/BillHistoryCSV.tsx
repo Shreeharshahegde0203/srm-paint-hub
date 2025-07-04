@@ -28,6 +28,7 @@ interface InvoiceSummary {
   invoiceNumber: string;
   date: string;
   customerName: string;
+  hsnCode: string;
   cgstTotal: number;
   sgstTotal: number;
   invoiceTotal: number;
@@ -110,10 +111,15 @@ export const BillHistoryCSV = () => {
           });
         });
 
+        // Get unique HSN codes for this invoice
+        const hsnCodes = invoice.invoice_items?.map(item => item.product?.hsn_code || '').filter(Boolean);
+        const uniqueHsnCode = [...new Set(hsnCodes)].join(', ') || '';
+
         processedSummaryData.push({
           invoiceNumber,
           date,
           customerName,
+          hsnCode: uniqueHsnCode,
           cgstTotal: invoiceCGSTTotal,
           sgstTotal: invoiceSGSTTotal,
           invoiceTotal: invoice.total
@@ -190,11 +196,12 @@ export const BillHistoryCSV = () => {
     ]);
 
     // Create summary CSV (with numeric values only)
-    const summaryHeaders = ['Invoice No', 'Date', 'Customer', 'CGST Total', 'SGST Total', 'Invoice Total'];
+    const summaryHeaders = ['Invoice No', 'Date', 'Customer', 'HSN Code', 'CGST Total', 'SGST Total', 'Invoice Total'];
     const summaryRows = filteredSummaryData.map(summary => [
       summary.invoiceNumber,
       summary.date,
       summary.customerName,
+      summary.hsnCode,
       summary.cgstTotal.toFixed(2),
       summary.sgstTotal.toFixed(2),
       summary.invoiceTotal.toFixed(2)

@@ -194,15 +194,6 @@ export const InvoiceHistoryTable = ({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onView(invoice)}
-                        title="View"
-                        className="h-9 w-9 p-0 hover:bg-blue-100 dark:hover:bg-blue-900 transition-all duration-200 hover:scale-110"
-                      >
-                        <Eye className="h-4 w-4 text-blue-600" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
                         onClick={() => onEdit(invoice)}
                         title="Edit"
                         className="h-9 w-9 p-0 hover:bg-green-100 dark:hover:bg-green-900 transition-all duration-200 hover:scale-110"
