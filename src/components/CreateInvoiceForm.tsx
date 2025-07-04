@@ -329,9 +329,26 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
                   min="0.5"
                 />
               </div>
+              {billType === 'gst' && (
+                <div>
+                  <label className="block text-sm font-medium mb-1">GST%</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={selectedProduct?.gstRate || 0}
+                    onChange={e => {
+                      if (selectedProduct) {
+                        setSelectedProduct({ ...selectedProduct, gstRate: parseFloat(e.target.value) || 0 });
+                      }
+                    }}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                </div>
+              )}
               {billType !== 'casual' && (
                 <div>
-                  <label className="block text-sm font-medium mb-1">Unit Price</label>
+                  <label className="block text-sm font-medium mb-1">{billType === 'gst' ? 'Unit Price (Inc-GST)' : 'Unit Price'}</label>
                   <input
                     type="number"
                     step="0.01"
