@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
-import { BarChart3, TrendingUp, Package, Users, DollarSign, FileText } from 'lucide-react';
+import { BarChart3, TrendingUp, Package, Users, DollarSign, FileText, Download } from 'lucide-react';
 import SalesReport from '../components/SalesReport';
 import InventoryReport from '../components/InventoryReport';
 import EnhancedBalanceSheetReport from '../components/EnhancedBalanceSheetReport';
 import { BillHistoryCSV } from '../components/BillHistoryCSV';
+import { BillsPDFExporter } from '../components/BillsPDFExporter';
 
 const Reports = () => {
   const [activeTab, setActiveTab] = useState('sales');
@@ -14,6 +15,7 @@ const Reports = () => {
     { id: 'inventory', label: 'Inventory Analytics', icon: Package },
     { id: 'balance', label: 'Balance Sheet', icon: DollarSign },
     { id: 'bills', label: 'Bill History CSV', icon: FileText },
+    { id: 'export', label: 'Export Bills PDF', icon: Download },
   ];
 
   return (
@@ -60,6 +62,7 @@ const Reports = () => {
           {activeTab === 'inventory' && <InventoryReport />}
           {activeTab === 'balance' && <EnhancedBalanceSheetReport />}
           {activeTab === 'bills' && <BillHistoryCSV />}
+          {activeTab === 'export' && <BillsPDFExporter />}
         </div>
       </div>
     </div>
