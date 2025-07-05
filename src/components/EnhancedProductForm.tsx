@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { X, Upload, Camera } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
@@ -46,6 +45,7 @@ const CATEGORIES = [
   'Other Accessories'
 ];
 const UNIT_TYPES = ['Litre', 'Kg', 'Inch', 'Number', 'Piece'];
+const NON_MANDATORY_HSN_CATEGORIES = ['Brush', 'Roller', 'Other Accessories'];
 
 const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: EnhancedProductFormProps) => {
   const [formData, setFormData] = useState<ProductFormData>({
@@ -87,11 +87,11 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
       newErrors.name = 'Product name is required';
     }
     
-    if (!formData.brand) {
+    if (!formData.brand && !NON_MANDATORY_HSN_CATEGORIES.includes(formData.category)) {
       newErrors.brand = 'Brand is required';
     }
     
-    if (!formData.hsnCode.trim()) {
+    if (!formData.hsnCode.trim() && !NON_MANDATORY_HSN_CATEGORIES.includes(formData.category)) {
       newErrors.hsnCode = 'HSN Code is required';
     }
     
@@ -222,18 +222,27 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Brand *</label>
-            <select
-              value={formData.brand}
-              onChange={(e) => setFormData(prev => ({ ...prev, brand: e.target.value }))}
-              className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-600 dark:text-white ${
-                errors.brand ? 'border-red-500' : 'border-gray-300 dark:border-gray-500'
-              }`}
-            >
-              {BRANDS.map(brand => (
-                <option key={brand} value={brand}>{brand}</option>
-              ))}
-            </select>
+            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Brand</label>
+            {NON_MANDATORY_HSN_CATEGORIES.includes(formData.category) ? (
+              <input
+                type="text"
+                value={formData.brand}
+                onChange={e => setFormData(prev => ({ ...prev, brand: e.target.value }))}
+                className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-600 dark:text-white ${errors.brand ? 'border-red-500' : 'border-gray-300 dark:border-gray-500'}`}
+                placeholder="Enter brand (optional)"
+              />
+            ) : (
+              <select
+                value={formData.brand}
+                onChange={(e) => setFormData(prev => ({ ...prev, brand: e.target.value }))}
+                className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-600 dark:text-white ${errors.brand ? 'border-red-500' : 'border-gray-300 dark:border-gray-500'}`}
+              >
+                <option value="">Select Brand</option>
+                {BRANDS.map(brand => (
+                  <option key={brand} value={brand}>{brand}</option>
+                ))}
+              </select>
+            )}
             {errors.brand && <p className="text-red-500 text-sm mt-1">{errors.brand}</p>}
           </div>
 
@@ -419,14 +428,12 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
         <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">Additional Details</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">HSN Code *</label>
+            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">HSN Code{!NON_MANDATORY_HSN_CATEGORIES.includes(formData.category) && ' *'}</label>
             <input
               type="text"
               value={formData.hsnCode}
               onChange={(e) => setFormData(prev => ({ ...prev, hsnCode: e.target.value }))}
-              className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-600 dark:text-white ${
-                errors.hsnCode ? 'border-red-500' : 'border-gray-300 dark:border-gray-500'
-              }`}
+              className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-600 dark:text-white ${errors.hsnCode ? 'border-red-500' : 'border-gray-300 dark:border-gray-500'}`}
               placeholder="e.g., 3208"
             />
             {errors.hsnCode && <p className="text-red-500 text-sm mt-1">{errors.hsnCode}</p>}
