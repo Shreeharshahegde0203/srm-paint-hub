@@ -12,7 +12,7 @@ interface BillingItem {
   unitQuantity: number;
   quantityType: string;
   unitPrice: number;
-  priceExcludingGst: number;
+  // priceExcludingGst removed
   gstPercentage: number;
   colorCode?: string;
   base?: string;
@@ -120,8 +120,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
       return;
     }
 
-    const priceExcludingGst = currentUnitPrice / (1 + currentGstPercentage / 100);
-    const total = currentQuantity * priceExcludingGst;
+    const total = currentQuantity * currentUnitPrice;
 
     const newItem: BillingItem = {
       id: Date.now().toString(),
@@ -130,7 +129,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
       unitQuantity: currentUnitQuantity,
       quantityType: currentQuantityType,
       unitPrice: currentUnitPrice,
-      priceExcludingGst,
+      // priceExcludingGst removed
       gstPercentage: currentGstPercentage,
       colorCode: currentColorCode,
       base: currentBase,
@@ -155,12 +154,11 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
     setItems(prev => prev.map(item => {
       if (item.id === itemId) {
         const updated = { ...item, ...updates };
-        
-        if (updates.quantity !== undefined || updates.priceExcludingGst !== undefined || updates.gstPercentage !== undefined) {
-          const priceExGst = updates.priceExcludingGst || item.priceExcludingGst;
-          updated.total = (updates.quantity || item.quantity) * priceExGst;
+        if (updates.quantity !== undefined || updates.unitPrice !== undefined) {
+          const quantity = updates.quantity !== undefined ? updates.quantity : item.quantity;
+          const unitPrice = updates.unitPrice !== undefined ? updates.unitPrice : item.unitPrice;
+          updated.total = quantity * unitPrice;
         }
-        
         return updated;
       }
       return item;
@@ -178,14 +176,9 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
 
   const calculateTotals = () => {
     const subtotal = items.reduce((sum, item) => sum + (item.isReturned ? -item.total : item.total), 0);
-    let gstAmount = 0;
-    
-    if (billType === 'gst') {
-      gstAmount = subtotal * 0.18;
-    }
-    
-    const total = subtotal + gstAmount;
-    
+    // GST amount is not calculated separately anymore
+    const gstAmount = 0;
+    const total = subtotal;
     return { subtotal, gstAmount, total };
   };
 
@@ -507,7 +500,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                   
                    {billType !== 'casual' && (
                      <div>
-                       <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Unit Price (Ex-GST)</label>
+                       <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Unit Price (including GST)</label>
                        <div className="flex items-center">
                          <button
                            type="button"
@@ -565,7 +558,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                       <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">Qty</th>
                       <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">Unit</th>
                        {billType !== 'casual' && <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">GST%</th>}
-                       {billType !== 'casual' && <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">Price (Ex-GST)</th>}
+                       {/* Removed Price (Ex-GST) column */}
                        {billType !== 'casual' && <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">Total</th>}
                       <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">Actions</th>
                     </tr>
@@ -583,7 +576,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                         <td className="px-4 py-3 text-center text-gray-900 dark:text-white font-medium">{item.quantity}</td>
                         <td className="px-4 py-3 text-center text-gray-900 dark:text-white">{item.quantityType}</td>
                          {billType !== 'casual' && <td className="px-4 py-3 text-center text-gray-900 dark:text-white font-medium">{item.gstPercentage}%</td>}
-                         {billType !== 'casual' && <td className="px-4 py-3 text-center text-gray-900 dark:text-white font-medium">₹{item.priceExcludingGst.toFixed(2)}</td>}
+                         {/* Removed Price (Ex-GST) cell */}
                          {billType !== 'casual' && <td className="px-4 py-3 text-center font-bold text-lg text-green-600">₹{item.total.toFixed(2)}</td>}
                         <td className="px-4 py-3">
                            <div className="flex items-center justify-center space-x-2">
@@ -669,12 +662,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                     <span className="font-medium text-gray-700 dark:text-gray-300">Subtotal:</span>
                     <span className="font-semibold text-gray-900 dark:text-white">₹{subtotal.toFixed(2)}</span>
                   </div>
-                   {billType === 'gst' && (
-                     <div className="flex justify-between text-lg">
-                       <span className="font-medium text-gray-700 dark:text-gray-300">GST (18%):</span>
-                       <span className="font-semibold text-gray-900 dark:text-white">₹{gstAmount.toFixed(2)}</span>
-                     </div>
-                   )}
+                   {/* GST amount removed from summary */}
                   <div className="flex justify-between font-bold text-xl border-t pt-3 text-green-600">
                     <span>Total:</span>
                     <span>₹{total.toFixed(2)}</span>
@@ -713,7 +701,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
               unitQuantity: 1,
               quantityType: 'Piece',
               unitPrice: 0,
-              priceExcludingGst: 0,
+              // priceExcludingGst removed
               gstPercentage: 0,
               total: 0,
               isReturned: true,
