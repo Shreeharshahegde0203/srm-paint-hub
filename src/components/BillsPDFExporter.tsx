@@ -35,6 +35,7 @@ export const BillsPDFExporter = () => {
             color_code,
             base,
             unit_type,
+            unit_quantity,
             product:products!invoice_items_product_id_fkey(
               name,
               hsn_code,
@@ -148,7 +149,11 @@ export const BillsPDFExporter = () => {
                     <td class="text-center">${itemIndex + 1}</td>
                     <td>${itemDescription}</td>
                     <td class="text-center">${item.product?.hsn_code || ''}</td>
-                    <td class="text-center">${item.quantity}</td>
+                    <td class="text-center">${
+  (item.unit_quantity && item.unit_type)
+    ? `${item.unit_quantity} ${item.unit_type} x ${item.quantity}`
+    : item.quantity
+}</td>
                     <td class="text-right">₹${item.price.toFixed(2)}</td>
                     <td class="text-right">₹${itemTotal.toFixed(2)}</td>
                   </tr>
