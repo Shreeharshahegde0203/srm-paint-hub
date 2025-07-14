@@ -233,7 +233,7 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
                   <td class="text-center">${index + 1}</td>
                   <td>${escapeHTML(itemDescription)}${returnedText}</td>
                   <td class="text-center">${escapeHTML(item.product.hsn_code || '')}</td>
-                  <td class="text-center">$${
+                  <td class="text-center">${
                     (typeof item.unitQuantity === 'number' && item.unitType)
                       ? `${item.unitQuantity} ${item.unitType} x ${item.quantity}`
                       : item.quantity
