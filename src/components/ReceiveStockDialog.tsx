@@ -20,8 +20,8 @@ const ReceiveStockDialog: React.FC<ReceiveStockDialogProps> = ({ products, onRec
   const [open, setOpen] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string>("");
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>("");
-  const [quantity, setQuantity] = useState(1);
-  const [costPrice, setCostPrice] = useState<number>(0);
+  const [quantity, setQuantity] = useState("");
+  const [costPrice, setCostPrice] = useState("");
   const [billDueDate, setBillDueDate] = useState<string>("");
   const [billFile, setBillFile] = useState<File | null>(null);
   const [receivingDate, setReceivingDate] = useState("");
@@ -31,11 +31,21 @@ const ReceiveStockDialog: React.FC<ReceiveStockDialogProps> = ({ products, onRec
     setOpen(false);
     setSelectedProductId("");
     setSelectedSupplierId("");
-    setQuantity(1);
-    setCostPrice(0);
+    setQuantity("1");
+    setCostPrice("0");
     setBillDueDate("");
     setBillFile(null);
     setReceivingDate("");
+  };
+
+  // Add generic increment/decrement handlers
+  const handleIncrement = (value: string, setValue: (v: string) => void) => {
+    const num = value === "" ? 0 : parseFloat(value);
+    setValue(String(num + 1));
+  };
+  const handleDecrement = (value: string, setValue: (v: string) => void) => {
+    const num = value === "" ? 0 : parseFloat(value);
+    setValue(String(Math.max(0, num - 1)));
   };
 
   async function handleReceiveStock(e: React.FormEvent) {
@@ -44,13 +54,16 @@ const ReceiveStockDialog: React.FC<ReceiveStockDialogProps> = ({ products, onRec
 
     try {
       // Insert into inventory_receipts
+      const safeQuantity = quantity === "" ? 0 : parseFloat(quantity);
+      const safeCostPrice = costPrice === "" ? 0 : parseFloat(costPrice);
+
       const { data: receipt, error: recErr } = await supabase
         .from("inventory_receipts")
         .insert({
           product_id: selectedProductId,
           supplier_id: selectedSupplierId,
-          quantity,
-          cost_price: costPrice,
+          quantity: safeQuantity,
+          cost_price: safeCostPrice,
           receiving_date: receivingDate || new Date().toISOString().substring(0, 10),
           bill_due_date: billDueDate || null,
         })
@@ -69,7 +82,7 @@ const ReceiveStockDialog: React.FC<ReceiveStockDialogProps> = ({ products, onRec
       if (fetchStockError) throw fetchStockError;
 
       const prevStock = currentProduct?.stock || 0;
-      const newStock = prevStock + quantity;
+      const newStock = prevStock + safeQuantity;
 
       // 2. Update product's stock and last_received_date
       await supabase
@@ -77,7 +90,7 @@ const ReceiveStockDialog: React.FC<ReceiveStockDialogProps> = ({ products, onRec
         .update({
           stock: newStock,
           last_received_date: receivingDate || new Date().toISOString().substring(0, 10),
-          cost_price: costPrice,
+          cost_price: safeCostPrice,
           supplier_id: selectedSupplierId,
         })
         .eq("id", selectedProductId);
@@ -86,7 +99,7 @@ const ReceiveStockDialog: React.FC<ReceiveStockDialogProps> = ({ products, onRec
       await supabase.from("inventory_movements").insert({
         product_id: selectedProductId,
         movement_type: "in",
-        quantity,
+        quantity: safeQuantity,
         reason: "Received via stock entry",
         related_receipt_id: receipt.id,
       });
@@ -149,11 +162,19 @@ const ReceiveStockDialog: React.FC<ReceiveStockDialogProps> = ({ products, onRec
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block mb-1 font-medium">Quantity</label>
-              <input type="number" min={1} value={quantity} onChange={e => setQuantity(Number(e.target.value))} className="w-full border rounded p-2" required />
+              <div className="flex items-center border rounded p-2">
+                <button type="button" onClick={() => handleDecrement(quantity, setQuantity)} className="p-1">-</button>
+                <input type="number" min={1} value={quantity} onChange={e => setQuantity(e.target.value)} className="w-full text-center" />
+                <button type="button" onClick={() => handleIncrement(quantity, setQuantity)} className="p-1">+</button>
+              </div>
             </div>
             <div>
               <label className="block mb-1 font-medium">Cost Price (Confidential)</label>
-              <input type="number" min={0} value={costPrice} onChange={e => setCostPrice(Number(e.target.value))} className="w-full border rounded p-2" required />
+              <div className="flex items-center border rounded p-2">
+                <button type="button" onClick={() => handleDecrement(costPrice, setCostPrice)} className="p-1">-</button>
+                <input type="number" min={0} value={costPrice} onChange={e => setCostPrice(e.target.value)} className="w-full text-center" />
+                <button type="button" onClick={() => handleIncrement(costPrice, setCostPrice)} className="p-1">+</button>
+              </div>
             </div>
           </div>
           <div>
