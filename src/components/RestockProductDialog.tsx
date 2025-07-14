@@ -11,7 +11,7 @@ interface RestockProductDialogProps {
 
 const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps) => {
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState("");
   const [newPrice, setNewPrice] = useState(0);
   const [priceChanged, setPriceChanged] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -26,27 +26,20 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
       ).slice(0, 20)
     : (products || []).slice(0, 20);
 
-  const adjustQuantity = (increment: boolean) => {
-    if (increment) {
-      setQuantity(prev => prev + 1);
-    } else {
-      setQuantity(prev => Math.max(1, prev - 1));
-    }
+  const handleIncrement = (value: string, setValue: (v: string) => void) => {
+    const num = value === "" ? 0 : parseFloat(value);
+    setValue(String(num + 1));
   };
-
-  const adjustPrice = (increment: boolean) => {
-    if (increment) {
-      setNewPrice(prev => prev + 1);
-    } else {
-      setNewPrice(prev => Math.max(0, prev - 1));
-    }
+  const handleDecrement = (value: string, setValue: (v: string) => void) => {
+    const num = value === "" ? 0 : parseFloat(value);
+    setValue(String(Math.max(0, num - 1)));
   };
 
   const handleProductSelect = (product: any) => {
     setSelectedProduct(product);
     setNewPrice(Number(product.price));
     setPriceChanged(false);
-    setQuantity(1);
+    setQuantity(String(1));
   };
 
   const handlePriceChange = (value: number) => {
@@ -64,7 +57,8 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
       return;
     }
 
-    if (quantity <= 0) {
+    const safeQuantity = quantity === "" ? 0 : parseFloat(quantity);
+    if (safeQuantity <= 0) {
       toast({
         title: "Error",
         description: "Quantity must be greater than 0",
@@ -75,10 +69,10 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
 
     setLoading(true);
     try {
-      await onRestock(selectedProduct.id, quantity, priceChanged ? newPrice : undefined);
+      await onRestock(selectedProduct.id, safeQuantity, priceChanged ? newPrice : undefined);
       toast({
         title: "Success",
-        description: `Restocked ${quantity} units of ${selectedProduct.name}${priceChanged ? ` with new price ₹${newPrice}` : ''}`,
+        description: `Restocked ${safeQuantity} units of ${selectedProduct.name}${priceChanged ? ` with new price ₹${newPrice}` : ''}`,
       });
       onClose();
     } catch (error) {
@@ -176,29 +170,29 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
                 <div className="flex items-center">
                   <button
                     type="button"
-                    onClick={() => adjustQuantity(false)}
+                    onClick={() => handleDecrement(quantity, setQuantity)}
                     className="p-2 border border-gray-300 dark:border-gray-600 rounded-l-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-                    disabled={quantity <= 1}
+                    disabled={quantity === "0"}
                   >
                     <Minus className="h-4 w-4" />
                   </button>
                   <input
                     type="number"
                     value={quantity}
-                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                    onChange={e => setQuantity(e.target.value)}
                     className="w-20 px-3 py-2 border-t border-b border-gray-300 dark:border-gray-600 text-center focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     min="1"
                   />
                   <button
                     type="button"
-                    onClick={() => adjustQuantity(true)}
+                    onClick={() => handleIncrement(quantity, setQuantity)}
                     className="p-2 border border-gray-300 dark:border-gray-600 rounded-r-lg hover:bg-gray-100 dark:hover:bg-gray-600"
                   >
                     <Plus className="h-4 w-4" />
                   </button>
                 </div>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  New stock will be: {selectedProduct.stock + quantity} {selectedProduct.unit}
+                  New stock will be: {selectedProduct.stock + (quantity === "" ? 0 : parseFloat(quantity))} {selectedProduct.unit}
                 </p>
               </div>
 
@@ -210,23 +204,23 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
                 <div className="flex items-center">
                   <button
                     type="button"
-                    onClick={() => adjustPrice(false)}
+                    onClick={() => handleDecrement(quantity, setQuantity)}
                     className="p-2 border border-gray-300 dark:border-gray-600 rounded-l-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-                    disabled={newPrice <= 0}
+                    disabled={quantity === "0"}
                   >
                     <Minus className="h-4 w-4" />
                   </button>
                   <input
                     type="number"
-                    value={newPrice}
-                    onChange={(e) => handlePriceChange(parseFloat(e.target.value) || 0)}
+                    value={quantity}
+                    onChange={e => setQuantity(e.target.value)}
                     className="flex-1 px-3 py-2 border-t border-b border-gray-300 dark:border-gray-600 text-center focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     min="0"
                     step="0.01"
                   />
                   <button
                     type="button"
-                    onClick={() => adjustPrice(true)}
+                    onClick={() => handleIncrement(quantity, setQuantity)}
                     className="p-2 border border-gray-300 dark:border-gray-600 rounded-r-lg hover:bg-gray-100 dark:hover:bg-gray-600"
                   >
                     <Plus className="h-4 w-4" />
@@ -234,7 +228,7 @@ const RestockProductDialog = ({ onRestock, onClose }: RestockProductDialogProps)
                 </div>
                 {priceChanged && (
                   <p className="text-sm text-orange-600 mt-1">
-                    Price will be updated from ₹{selectedProduct.price} to ₹{newPrice}
+                    Price will be updated from ₹{selectedProduct.price} to ₹{quantity === "" ? 0 : parseFloat(quantity)}
                   </p>
                 )}
               </div>
