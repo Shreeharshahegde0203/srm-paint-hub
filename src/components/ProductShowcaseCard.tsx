@@ -15,6 +15,7 @@ interface ProductShowcaseCardProps {
     description?: string; // <--- Make description optional
     stock: number;
     code: string;
+    unit: string; // Added unit property
   };
   index?: number;
 }
@@ -56,7 +57,7 @@ const ProductShowcaseCard: React.FC<ProductShowcaseCardProps> = ({ product, inde
               ? "bg-green-200 text-green-800 group-hover:bg-green-300"
               : "bg-red-200 text-red-800 group-hover:bg-red-300"
           )}>
-            Stock: {product.stock}
+            Stock: {product.stock} {product.unit}
           </span>
         </div>
         <h3 className="text-lg font-extrabold mb-1 text-blue-900 group-hover:text-blue-700 transition-colors whitespace-nowrap text-ellipsis overflow-hidden">
