@@ -180,6 +180,7 @@ const Billing = () => {
         total: item.quantity * item.price,
         colorCode: item.color_code || "",
         unitType: item.unit_type,
+        unitQuantity: item.unit_quantity, // <-- Added this line
         isReturned: false,
       };
     });
