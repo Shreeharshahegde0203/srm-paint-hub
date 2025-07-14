@@ -31,18 +31,28 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
     type: "",
     base: "",
     stock: 1,
-    price: 0,
+    price: "",
     gst_rate: 18,
     unit: "Litre",
     description: "",
-    cost_price: 0,
+    cost_price: "",
     supplier_id: "",
   });
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState("");
   const [supplierId, setSupplierId] = useState("");
-  const [costPrice, setCostPrice] = useState<number>(0);
+  const [costPrice, setCostPrice] = useState("");
   const [billFile, setBillFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Add generic increment/decrement handlers
+  const handleIncrement = (value: string, setValue: (v: string) => void) => {
+    const num = value === "" ? 0 : parseFloat(value);
+    setValue(String(num + 1));
+  };
+  const handleDecrement = (value: string, setValue: (v: string) => void) => {
+    const num = value === "" ? 0 : parseFloat(value);
+    setValue(String(Math.max(0, num - 1)));
+  };
 
   // Find product by name
   function handleNameSearch() {
@@ -60,6 +70,10 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
     setLoading(true);
     try {
       // Insert new product
+      const safeQuantity = quantity === "" ? 0 : parseFloat(quantity);
+      const safeCostPrice = costPrice === "" ? 0 : parseFloat(costPrice);
+      const safePrice = formData.price === "" ? 0 : parseFloat(formData.price);
+
       const { data: inserted, error: insErr } = await supabase
         .from("products")
         .insert({
@@ -67,13 +81,13 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
           brand: formData.brand,
           type: formData.type,
           base: formData.base,
-          price: formData.price,
+          price: safePrice,
           gst_rate: formData.gst_rate ?? 18,
           unit: formData.unit ?? "Litre",
           description: formData.description || "",
           supplier_id: supplierId || null,
-          cost_price: costPrice,
-          stock: quantity,
+          cost_price: safeCostPrice,
+          stock: safeQuantity,
         })
         .select("*")
         .single();
@@ -81,14 +95,14 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
       if (insErr || !inserted) throw insErr || new Error("Product add failed");
 
       // Add inventory_receipt for opening stock
-      if (quantity > 0) {
+      if (safeQuantity > 0) {
         const { data: receipt, error: recErr } = await supabase
           .from("inventory_receipts")
           .insert({
             product_id: inserted.id,
             supplier_id: supplierId || null,
-            quantity,
-            cost_price: costPrice,
+            quantity: safeQuantity,
+            cost_price: safeCostPrice,
             receiving_date: new Date().toISOString().slice(0, 10),
           })
           .select("*")
@@ -98,7 +112,7 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
         await supabase.from("inventory_movements").insert({
           product_id: inserted.id,
           movement_type: "in",
-          quantity,
+          quantity: safeQuantity,
           reason: "Opening stock",
           related_receipt_id: receipt.id,
         });
@@ -131,18 +145,21 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
     setLoading(true);
     try {
       await supabase.from("products").update({
-        stock: (foundProduct.stock ?? 0) + quantity,
-        cost_price: costPrice,
+        stock: (foundProduct.stock ?? 0) + (quantity === "" ? 0 : parseFloat(quantity)),
+        cost_price: costPrice === "" ? 0 : parseFloat(costPrice),
         supplier_id: supplierId || null,
       }).eq("id", foundProduct.id);
+
+      const safeQuantity = quantity === "" ? 0 : parseFloat(quantity);
+      const safeCostPrice = costPrice === "" ? 0 : parseFloat(costPrice);
 
       const { data: receipt, error: recErr } = await supabase
         .from("inventory_receipts")
         .insert({
           product_id: foundProduct.id,
           supplier_id: supplierId || null,
-          quantity,
-          cost_price: costPrice,
+          quantity: safeQuantity,
+          cost_price: safeCostPrice,
           receiving_date: new Date().toISOString().slice(0, 10),
         })
         .select("*")
@@ -152,7 +169,7 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
       await supabase.from("inventory_movements").insert({
         product_id: foundProduct.id,
         movement_type: "in",
-        quantity,
+        quantity: safeQuantity,
         reason: "Stock received",
         related_receipt_id: receipt.id,
       });
@@ -212,19 +229,19 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
               <div className="flex-1">
                 <input type="number" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder="Unit Price (₹)" value={formData.price} min={0} step={0.01} required
-                  onChange={e => setFormData(fd => ({ ...fd, price: parseFloat(e.target.value) || 0 }))} />
+                  onChange={e => setFormData(fd => ({ ...fd, price: e.target.value }))} />
               </div>
               <div className="flex-1">
                 <input type="number" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder="Opening Qty" value={quantity} min={0} required
-                  onChange={e => setQuantity(parseInt(e.target.value) || 0)} />
+                  onChange={e => setQuantity(e.target.value)} />
               </div>
             </div>
             <div className="flex gap-2">
               <div className="flex-1">
                 <input type="number" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder="Cost Price" value={costPrice} min={0} step={0.01}
-                  onChange={e => setCostPrice(parseFloat(e.target.value) || 0)} />
+                  onChange={e => setCostPrice(e.target.value)} />
               </div>
               <div className="flex-1">
                 <SupplierSelector value={supplierId} onChange={setSupplierId} />
@@ -274,13 +291,13 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
               <div className="flex gap-2">
                 <input type="number" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder="Received Quantity" value={quantity} min={1} required
-                  onChange={e => setQuantity(parseInt(e.target.value) || 0)} />
+                  onChange={e => setQuantity(e.target.value)} />
               </div>
               <div className="flex gap-2">
                 <div className="flex-1">
                   <input type="number" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
                     placeholder="Cost Price" value={costPrice} min={0} step={0.01}
-                    onChange={e => setCostPrice(parseFloat(e.target.value) || 0)} />
+                    onChange={e => setCostPrice(e.target.value)} />
                 </div>
                 <div className="flex-1">
                   <SupplierSelector value={supplierId} onChange={setSupplierId} />
