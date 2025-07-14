@@ -87,6 +87,16 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
     }
   }, [formData.image]);
 
+  // Add useEffect to sync local state with formData on mount/edit
+  useEffect(() => {
+    setPrice(formData.price !== undefined ? String(formData.price) : "");
+    setCostPrice(formData.costPrice !== undefined ? String(formData.costPrice) : "");
+    setStock(formData.stock !== undefined ? String(formData.stock) : "");
+    setGstRate(formData.gstRate !== undefined ? String(formData.gstRate) : "");
+    setReorderLevel(formData.reorderLevel !== undefined ? String(formData.reorderLevel) : "");
+    setUnitQuantity(formData.unitQuantity !== undefined ? String(formData.unitQuantity) : "");
+  }, [product]);
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     
@@ -377,7 +387,10 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
               <input
                 type="text"
                 value={costPrice}
-                onChange={e => setCostPrice(e.target.value)}
+                onChange={e => {
+                  setCostPrice(e.target.value);
+                  setFormData(prev => ({ ...prev, costPrice: e.target.value === "" ? 0 : parseFloat(e.target.value) }));
+                }}
                 className="flex-1 px-3 py-2 text-center border-none dark:bg-gray-600 dark:text-white"
                 placeholder="0.00"
               />
@@ -404,7 +417,10 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
               <input
                 type="text"
                 value={price}
-                onChange={e => setPrice(e.target.value)}
+                onChange={e => {
+                  setPrice(e.target.value);
+                  setFormData(prev => ({ ...prev, price: e.target.value === "" ? 0 : parseFloat(e.target.value) }));
+                }}
                 className={`flex-1 px-3 py-2 text-center border-none dark:bg-gray-600 dark:text-white ${
                   errors.price ? 'border-red-500' : 'border-gray-300 dark:border-gray-500'
                 }`}
@@ -434,7 +450,10 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
               <input
                 type="text"
                 value={stock}
-                onChange={e => setStock(e.target.value)}
+                onChange={e => {
+                  setStock(e.target.value);
+                  setFormData(prev => ({ ...prev, stock: e.target.value === "" ? 0 : parseFloat(e.target.value) }));
+                }}
                 className={`flex-1 px-3 py-2 text-center border-none dark:bg-gray-600 dark:text-white ${
                   errors.stock ? 'border-red-500' : 'border-gray-300 dark:border-gray-500'
                 }`}
@@ -464,7 +483,10 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
               <input
                 type="text"
                 value={gstRate}
-                onChange={e => setGstRate(e.target.value)}
+                onChange={e => {
+                  setGstRate(e.target.value);
+                  setFormData(prev => ({ ...prev, gstRate: e.target.value === "" ? 0 : parseFloat(e.target.value) }));
+                }}
                 className="flex-1 px-3 py-2 text-center border-none dark:bg-gray-600 dark:text-white"
                 placeholder="18"
               />
@@ -491,7 +513,10 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
               <input
                 type="text"
                 value={reorderLevel}
-                onChange={e => setReorderLevel(e.target.value)}
+                onChange={e => {
+                  setReorderLevel(e.target.value);
+                  setFormData(prev => ({ ...prev, reorderLevel: e.target.value === "" ? 0 : parseFloat(e.target.value) }));
+                }}
                 className="flex-1 px-3 py-2 text-center border-none dark:bg-gray-600 dark:text-white"
                 placeholder="10"
               />
@@ -518,7 +543,10 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
                <input
                  type="text"
                  value={unitQuantity}
-                 onChange={e => setUnitQuantity(e.target.value)}
+                 onChange={e => {
+                   setUnitQuantity(e.target.value);
+                   setFormData(prev => ({ ...prev, unitQuantity: e.target.value === "" ? 0 : parseFloat(e.target.value) }));
+                 }}
                  className="flex-1 px-3 py-2 text-center border-none dark:bg-gray-600 dark:text-white"
                  placeholder="1"
                />
