@@ -25,6 +25,8 @@ interface InvoiceData {
     colorCode?: string;
     isReturned?: boolean;
     returnReason?: string;
+    unitQuantity?: number;
+    unitType?: string;
   }>;
   subtotal: number;
   discount: number;
@@ -230,7 +232,11 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
                   <td class="text-center">${index + 1}</td>
                   <td>${escapeHTML(itemDescription)}${returnedText}</td>
                   <td class="text-center">${escapeHTML(item.product.hsn_code || '')}</td>
-                  <td class="text-center">${item.quantity}</td>
+                  <td class="text-center">${
+  (item.unitQuantity && item.unitType)
+    ? `${item.unitQuantity} ${item.unitType} x ${item.quantity}`
+    : item.quantity
+}</td>
                   <td class="text-right">₹${item.unitPrice.toFixed(2)}</td>
                   <td class="text-right">₹${displayAmount.toFixed(2)}</td>
                 </tr>
