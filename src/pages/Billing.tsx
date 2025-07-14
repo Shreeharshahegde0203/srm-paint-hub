@@ -216,6 +216,9 @@ const Billing = () => {
     
     const total = netSubtotal;
 
+    // Debug: Log items to check unitQuantity and unitType
+    console.log('PDF Items:', allItems);
+
     generateInvoicePDF({
       invoiceNumber,
       date,
