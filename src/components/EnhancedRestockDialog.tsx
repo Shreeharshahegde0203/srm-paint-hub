@@ -22,17 +22,20 @@ interface EnhancedRestockDialogProps {
 }
 
 const EnhancedRestockDialog = ({ product, onRestock, onClose }: EnhancedRestockDialogProps) => {
-  const [quantity, setQuantity] = useState(1);
+  // State changes: use string for all number fields
+  const [quantity, setQuantity] = useState("");
   const [newPrice, setNewPrice] = useState(product.price);
   const [priceChanged, setPriceChanged] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const adjustQuantity = (increment: boolean) => {
-    if (increment) {
-      setQuantity(prev => prev + 1);
-    } else {
-      setQuantity(prev => Math.max(1, prev - 1));
-    }
+  // Add generic increment/decrement handlers
+  const handleIncrement = (value: string, setValue: (v: string) => void) => {
+    const num = value === "" ? 0 : parseFloat(value);
+    setValue(String(num + 1));
+  };
+  const handleDecrement = (value: string, setValue: (v: string) => void) => {
+    const num = value === "" ? 0 : parseFloat(value);
+    setValue(String(Math.max(0, num - 1)));
   };
 
   const handlePriceChange = (value: number) => {
@@ -41,7 +44,9 @@ const EnhancedRestockDialog = ({ product, onRestock, onClose }: EnhancedRestockD
   };
 
   const handleRestock = async () => {
-    if (quantity <= 0) {
+    // On submit, convert blank to 0:
+    const safeQuantity = quantity === "" ? 0 : parseFloat(quantity);
+    if (safeQuantity <= 0) {
       toast({
         title: "Error",
         description: "Quantity must be greater than 0",
@@ -52,10 +57,10 @@ const EnhancedRestockDialog = ({ product, onRestock, onClose }: EnhancedRestockD
 
     setLoading(true);
     try {
-      await onRestock(product.id, quantity, priceChanged ? newPrice : undefined);
+      await onRestock(product.id, safeQuantity, priceChanged ? newPrice : undefined);
       toast({
         title: "Success",
-        description: `Restocked ${quantity} units of ${product.name}${priceChanged ? ` with new price ₹${newPrice}` : ''}`,
+        description: `Restocked ${safeQuantity} units of ${product.name}${priceChanged ? ` with new price ₹${newPrice}` : ''}`,
       });
       onClose();
     } catch (error) {
@@ -101,29 +106,29 @@ const EnhancedRestockDialog = ({ product, onRestock, onClose }: EnhancedRestockD
             <div className="flex items-center">
               <button
                 type="button"
-                onClick={() => adjustQuantity(false)}
+                onClick={() => handleDecrement(quantity, setQuantity)}
                 className="p-2 border border-gray-300 dark:border-gray-600 rounded-l-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-                disabled={quantity <= 1}
+                disabled={quantity === "" || parseFloat(quantity) <= 0}
               >
                 <Minus className="h-4 w-4" />
               </button>
               <input
                 type="number"
                 value={quantity}
-                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                onChange={e => setQuantity(e.target.value)}
                 className="w-20 px-3 py-2 border-t border-b border-gray-300 dark:border-gray-600 text-center focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 min="1"
               />
               <button
                 type="button"
-                onClick={() => adjustQuantity(true)}
+                onClick={() => handleIncrement(quantity, setQuantity)}
                 className="p-2 border border-gray-300 dark:border-gray-600 rounded-r-lg hover:bg-gray-100 dark:hover:bg-gray-600"
               >
                 <Plus className="h-4 w-4" />
               </button>
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              New stock will be: {product.stock + quantity} {product.unit}
+              New stock will be: {product.stock + (quantity === "" ? 0 : parseFloat(quantity))} {product.unit}
             </p>
           </div>
 
