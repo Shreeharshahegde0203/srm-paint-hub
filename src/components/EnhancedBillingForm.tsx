@@ -470,7 +470,8 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                     </div>
                   </div>
                   
-                   {billType !== 'casual' && (
+                   {/* GST % field should only show for GST bills */}
+                   {billType === 'gst' && (
                      <div>
                        <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">GST %</label>
                        <div className="flex items-center">
@@ -557,7 +558,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                       <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">Color/Code</th>
                       <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">Qty</th>
                       <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">Unit</th>
-                       {billType !== 'casual' && <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">GST%</th>}
+                       {billType === 'gst' && <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">GST%</th>}
                        {/* Removed Price (Ex-GST) column */}
                        {billType !== 'casual' && <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">Total</th>}
                       <th className="px-4 py-3 text-center font-semibold text-gray-900 dark:text-white">Actions</th>
@@ -575,7 +576,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                         <td className="px-4 py-3 text-center text-gray-900 dark:text-white">{item.colorCode || '-'}</td>
                         <td className="px-4 py-3 text-center text-gray-900 dark:text-white font-medium">{item.quantity}</td>
                         <td className="px-4 py-3 text-center text-gray-900 dark:text-white">{item.quantityType}</td>
-                         {billType !== 'casual' && <td className="px-4 py-3 text-center text-gray-900 dark:text-white font-medium">{item.gstPercentage}%</td>}
+                         {billType === 'gst' && <td className="px-4 py-3 text-center text-gray-900 dark:text-white font-medium">{item.gstPercentage}%</td>}
                          {/* Removed Price (Ex-GST) cell */}
                          {billType !== 'casual' && <td className="px-4 py-3 text-center font-bold text-lg text-green-600">₹{item.total.toFixed(2)}</td>}
                         <td className="px-4 py-3">
