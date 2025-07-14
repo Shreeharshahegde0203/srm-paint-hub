@@ -180,6 +180,16 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
     return isValidQuantity(newValue) ? newValue : value;
   };
 
+  // Add generic increment/decrement handlers
+  const handleIncrement = (value: string, setValue: (v: string) => void) => {
+    const num = value === "" ? 0 : parseFloat(value);
+    setValue(String(num + 1));
+  };
+  const handleDecrement = (value: string, setValue: (v: string) => void) => {
+    const num = value === "" ? 0 : parseFloat(value);
+    setValue(String(Math.max(0, num - 1)));
+  };
+
   const calculateTotals = () => {
     const subtotal = items.reduce((sum, item) => sum + (item.isReturned ? -item.total : item.total), 0);
     // GST amount is not calculated separately anymore
@@ -414,21 +424,21 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                     <div className="flex items-center">
                       <button
                         type="button"
-                        onClick={() => setCurrentUnitQuantity(adjustQuantity(currentUnitQuantity, false))}
+                        onClick={() => handleDecrement(currentUnitQuantity, setCurrentUnitQuantity)}
                         className="p-1 border rounded-l hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-500"
                       >
                         <Minus className="h-4 w-4" />
                       </button>
                       <input
                         type="number"
-                        step="0.5"
+                        step="1"
                         value={currentUnitQuantity}
                         onChange={e => setCurrentUnitQuantity(e.target.value)}
                         className="w-16 px-2 py-1 border-t border-b text-center dark:bg-gray-600 dark:text-white dark:border-gray-500"
                       />
                       <button
                         type="button"
-                        onClick={() => setCurrentUnitQuantity(adjustQuantity(currentUnitQuantity, true))}
+                        onClick={() => handleIncrement(currentUnitQuantity, setCurrentUnitQuantity)}
                         className="p-1 border rounded-r hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-500"
                       >
                         <Plus className="h-4 w-4" />
@@ -454,7 +464,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                     <div className="flex items-center">
                       <button
                         type="button"
-                        onClick={() => setCurrentQuantity(adjustQuantity(currentQuantity, false))}
+                        onClick={() => handleDecrement(currentQuantity, setCurrentQuantity)}
                         className="p-1 border rounded-l hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-500"
                       >
                         <Minus className="h-4 w-4" />
@@ -468,7 +478,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                       />
                       <button
                         type="button"
-                        onClick={() => setCurrentQuantity(adjustQuantity(currentQuantity, true))}
+                        onClick={() => handleIncrement(currentQuantity, setCurrentQuantity)}
                         className="p-1 border rounded-r hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-500"
                       >
                         <Plus className="h-4 w-4" />
@@ -483,7 +493,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                        <div className="flex items-center">
                          <button
                            type="button"
-                           onClick={() => setCurrentGstPercentage(Math.max(0, currentGstPercentage - 1))}
+                           onClick={() => handleDecrement(currentGstPercentage, setCurrentGstPercentage)}
                            className="p-1 border rounded-l hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-500"
                          >
                            <Minus className="h-4 w-4" />
@@ -496,7 +506,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                          />
                          <button
                            type="button"
-                           onClick={() => setCurrentGstPercentage(currentGstPercentage + 1)}
+                           onClick={() => handleIncrement(currentGstPercentage, setCurrentGstPercentage)}
                            className="p-1 border rounded-r hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-500"
                          >
                            <Plus className="h-4 w-4" />
@@ -511,7 +521,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                        <div className="flex items-center">
                          <button
                            type="button"
-                           onClick={() => setCurrentUnitPrice(Math.max(0, currentUnitPrice - 10))}
+                           onClick={() => handleDecrement(currentUnitPrice, setCurrentUnitPrice)}
                            className="p-1 border rounded-l hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-500"
                          >
                            <Minus className="h-4 w-4" />
@@ -525,7 +535,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                          />
                          <button
                            type="button"
-                           onClick={() => setCurrentUnitPrice(currentUnitPrice + 10)}
+                           onClick={() => handleIncrement(currentUnitPrice, setCurrentUnitPrice)}
                            className="p-1 border rounded-r hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-500"
                          >
                            <Plus className="h-4 w-4" />
