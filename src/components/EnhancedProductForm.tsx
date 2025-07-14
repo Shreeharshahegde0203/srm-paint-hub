@@ -80,7 +80,7 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
   const [gstRate, setGstRate] = useState("");
   const [reorderLevel, setReorderLevel] = useState("");
   const [unitQuantity, setUnitQuantity] = useState("");
-  const [unit, setUnit] = useState(formData.unit || "Litre");
+  const [unit, setUnit] = useState(product?.unit || formData.unit || "Litre");
   const [hsnCode, setHsnCode] = useState(formData.hsnCode || "");
 
   useEffect(() => {
@@ -97,7 +97,7 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
     setGstRate(formData.gstRate !== undefined ? String(formData.gstRate) : "");
     setReorderLevel(formData.reorderLevel !== undefined ? String(formData.reorderLevel) : "");
     setUnitQuantity(formData.unitQuantity !== undefined ? String(formData.unitQuantity) : "");
-    setUnit(formData.unit || "Litre");
+    setUnit(product?.unit || formData.unit || "Litre");
     setHsnCode(formData.hsnCode || "");
   }, [product]);
 
