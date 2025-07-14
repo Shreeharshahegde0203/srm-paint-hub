@@ -80,8 +80,11 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
   const [gstRate, setGstRate] = useState("");
   const [reorderLevel, setReorderLevel] = useState("");
   const [unitQuantity, setUnitQuantity] = useState("");
-  const [unit, setUnit] = useState(product?.unit || formData.unit || "Litre");
+  const [unit, setUnit] = useState(product?.unit || "Litre");
   const [hsnCode, setHsnCode] = useState(formData.hsnCode || "");
+
+  // Debug: Log the product object to check unit value
+  console.log('Edit ProductForm product:', product);
 
   useEffect(() => {
     if (formData.image) {
@@ -97,7 +100,7 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
     setGstRate(formData.gstRate !== undefined ? String(formData.gstRate) : "");
     setReorderLevel(formData.reorderLevel !== undefined ? String(formData.reorderLevel) : "");
     setUnitQuantity(formData.unitQuantity !== undefined ? String(formData.unitQuantity) : "");
-    setUnit(product?.unit || formData.unit || "Litre");
+    setUnit(product?.unit || "Litre");
     setHsnCode(formData.hsnCode || "");
   }, [product]);
 
