@@ -168,6 +168,13 @@ const Billing = () => {
     // Process regular items
     const regularItems = (items || []).map((item) => {
       const prod = products?.find((p) => p.id === item.product_id);
+      // Extract just the unit type (e.g., 'Kg') from unit_type or product.unit
+      let unitType = '';
+      if (item.unit_type) {
+        unitType = item.unit_type.split(' ').slice(-1)[0];
+      } else if (prod?.unit) {
+        unitType = prod.unit.split(' ').slice(-1)[0];
+      }
       return {
         product: {
           name: prod?.name || "",
@@ -179,7 +186,7 @@ const Billing = () => {
         unitPrice: item.price,
         total: item.quantity * item.price,
         colorCode: item.color_code || "",
-        unitType: item.unit_type || prod?.unit_type || prod?.unit || "Unit", // <-- fallback logic
+        unitType,
         unitQuantity: item.unit_quantity, // already present
         isReturned: false,
       };
