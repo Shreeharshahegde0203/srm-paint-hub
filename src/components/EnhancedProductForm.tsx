@@ -80,7 +80,7 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
   const [gstRate, setGstRate] = useState("");
   const [reorderLevel, setReorderLevel] = useState("");
   const [unitQuantity, setUnitQuantity] = useState("");
-  const [unit, setUnit] = useState(product?.unit || "Litre");
+  const [unitType, setUnitType] = useState(product?.unit_type || "Litre");
   const [hsnCode, setHsnCode] = useState(formData.hsnCode || "");
 
   // Debug: Log the product object to check unit value
@@ -100,7 +100,7 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
     setGstRate(formData.gstRate !== undefined ? String(formData.gstRate) : "");
     setReorderLevel(formData.reorderLevel !== undefined ? String(formData.reorderLevel) : "");
     setUnitQuantity(formData.unitQuantity !== undefined ? String(formData.unitQuantity) : "");
-    setUnit(product?.unit || "Litre");
+    setUnitType(product?.unit_type || "Litre");
     setHsnCode(formData.hsnCode || "");
   }, [product]);
 
@@ -242,7 +242,7 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
         gstRate: safeGstRate,
         reorderLevel: safeReorderLevel,
         unitQuantity: safeUnitQuantity,
-        unit: unit, // Save just the unit type
+        unit_type: unitType, // Save the correct unit type
       });
     }
   };
@@ -568,15 +568,15 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
            <div>
              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Unit Type</label>
              <select
-               value={unit}
+               value={unitType}
                onChange={e => {
-                 setUnit(e.target.value);
-                 setFormData(prev => ({ ...prev, unit: e.target.value }));
+                 setUnitType(e.target.value);
+                 setFormData(prev => ({ ...prev, unit_type: e.target.value }));
                }}
                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 rounded-lg dark:bg-gray-600 dark:text-white"
              >
-               {UNIT_TYPES.map(unitType => (
-                 <option key={unitType} value={unitType}>{unitType}</option>
+               {UNIT_TYPES.map(unitTypeOption => (
+                 <option key={unitTypeOption} value={unitTypeOption}>{unitTypeOption}</option>
                ))}
              </select>
            </div>
