@@ -56,13 +56,13 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
   
   // Current item being added
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [currentBase, setCurrentBase] = useState('');
+  const [currentBase, setCurrentBase] = useState("");
   const [currentColorCode, setCurrentColorCode] = useState('');
-  const [currentUnitQuantity, setCurrentUnitQuantity] = useState(1);
+  const [currentUnitQuantity, setCurrentUnitQuantity] = useState("");
   const [currentQuantityType, setCurrentQuantityType] = useState('Litre');
-  const [currentQuantity, setCurrentQuantity] = useState(1);
-  const [currentGstPercentage, setCurrentGstPercentage] = useState(18);
-  const [currentUnitPrice, setCurrentUnitPrice] = useState(0);
+  const [currentQuantity, setCurrentQuantity] = useState("");
+  const [currentGstPercentage, setCurrentGstPercentage] = useState("");
+  const [currentUnitPrice, setCurrentUnitPrice] = useState("");
   
   const { products, isLoading } = useSupabaseProducts();
 
@@ -120,19 +120,25 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
       return;
     }
 
-    const total = currentQuantity * currentUnitPrice;
+    const safeBase = currentBase === "" ? 0 : parseFloat(currentBase);
+    const safeUnitQuantity = currentUnitQuantity === "" ? 0 : parseFloat(currentUnitQuantity);
+    const safeQuantity = currentQuantity === "" ? 0 : parseFloat(currentQuantity);
+    const safeGstPercentage = currentGstPercentage === "" ? 0 : parseFloat(currentGstPercentage);
+    const safeUnitPrice = currentUnitPrice === "" ? 0 : parseFloat(currentUnitPrice);
+
+    const total = safeQuantity * safeUnitPrice;
 
     const newItem: BillingItem = {
       id: Date.now().toString(),
       product: selectedProduct,
-      quantity: currentQuantity,
-      unitQuantity: currentUnitQuantity,
+      quantity: safeQuantity,
+      unitQuantity: safeUnitQuantity,
       quantityType: currentQuantityType,
-      unitPrice: currentUnitPrice,
+      unitPrice: safeUnitPrice,
       // priceExcludingGst removed
-      gstPercentage: currentGstPercentage,
+      gstPercentage: safeGstPercentage,
       colorCode: currentColorCode,
-      base: currentBase,
+      base: safeBase,
       total,
       isReturned: false
     };
@@ -384,7 +390,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                     <input
                       type="number"
                       value={currentBase}
-                      onChange={(e) => setCurrentBase(e.target.value)}
+                      onChange={e => setCurrentBase(e.target.value)}
                       className="w-full px-3 py-2 border rounded-lg dark:bg-gray-600 dark:text-white dark:border-gray-500"
                       placeholder="Base"
                       min="0"
@@ -417,7 +423,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                         type="number"
                         step="0.5"
                         value={currentUnitQuantity}
-                        onChange={(e) => setCurrentUnitQuantity(parseFloat(e.target.value) || 0)}
+                        onChange={e => setCurrentUnitQuantity(e.target.value)}
                         className="w-16 px-2 py-1 border-t border-b text-center dark:bg-gray-600 dark:text-white dark:border-gray-500"
                       />
                       <button
@@ -457,7 +463,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                         type="number"
                         step="0.5"
                         value={currentQuantity}
-                        onChange={(e) => setCurrentQuantity(parseFloat(e.target.value) || 0)}
+                        onChange={e => setCurrentQuantity(e.target.value)}
                         className="w-16 px-2 py-1 border-t border-b text-center dark:bg-gray-600 dark:text-white dark:border-gray-500"
                       />
                       <button
@@ -485,7 +491,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                          <input
                            type="number"
                            value={currentGstPercentage}
-                           onChange={(e) => setCurrentGstPercentage(parseInt(e.target.value) || 0)}
+                           onChange={e => setCurrentGstPercentage(e.target.value)}
                            className="w-16 px-2 py-1 border-t border-b text-center dark:bg-gray-600 dark:text-white dark:border-gray-500"
                          />
                          <button
@@ -514,7 +520,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                            type="number"
                            step="0.01"
                            value={currentUnitPrice}
-                           onChange={(e) => setCurrentUnitPrice(parseFloat(e.target.value) || 0)}
+                           onChange={e => setCurrentUnitPrice(e.target.value)}
                            className="w-20 px-2 py-1 border-t border-b text-center dark:bg-gray-600 dark:text-white dark:border-gray-500"
                          />
                          <button
