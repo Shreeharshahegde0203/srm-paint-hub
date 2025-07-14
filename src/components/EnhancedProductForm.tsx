@@ -80,6 +80,8 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
   const [gstRate, setGstRate] = useState("");
   const [reorderLevel, setReorderLevel] = useState("");
   const [unitQuantity, setUnitQuantity] = useState("");
+  const [unit, setUnit] = useState(formData.unit || "Litre");
+  const [hsnCode, setHsnCode] = useState(formData.hsnCode || "");
 
   useEffect(() => {
     if (formData.image) {
@@ -95,6 +97,8 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
     setGstRate(formData.gstRate !== undefined ? String(formData.gstRate) : "");
     setReorderLevel(formData.reorderLevel !== undefined ? String(formData.reorderLevel) : "");
     setUnitQuantity(formData.unitQuantity !== undefined ? String(formData.unitQuantity) : "");
+    setUnit(formData.unit || "Litre");
+    setHsnCode(formData.hsnCode || "");
   }, [product]);
 
   const validateForm = () => {
@@ -108,10 +112,7 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
       newErrors.brand = 'Brand is required';
     }
     
-    if (!formData.hsnCode.trim() && !NON_MANDATORY_HSN_CATEGORIES.includes(formData.category)) {
-      newErrors.hsnCode = 'HSN Code is required';
-    }
-    
+    // HSN Code is no longer mandatory
     if (formData.price <= 0) {
       newErrors.price = 'Price must be greater than 0';
     }
@@ -563,12 +564,15 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
            <div>
              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Unit Type</label>
              <select
-               value={formData.unit}
-               onChange={(e) => setFormData(prev => ({ ...prev, unit: e.target.value }))}
+               value={unit}
+               onChange={e => {
+                 setUnit(e.target.value);
+                 setFormData(prev => ({ ...prev, unit: e.target.value }));
+               }}
                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 rounded-lg dark:bg-gray-600 dark:text-white"
              >
-               {UNIT_TYPES.map(unit => (
-                 <option key={unit} value={unit}>{unit}</option>
+               {UNIT_TYPES.map(unitType => (
+                 <option key={unitType} value={unitType}>{unitType}</option>
                ))}
              </select>
            </div>
@@ -583,8 +587,11 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">HSN Code{!NON_MANDATORY_HSN_CATEGORIES.includes(formData.category) && ' *'}</label>
             <input
               type="text"
-              value={formData.hsnCode}
-              onChange={(e) => setFormData(prev => ({ ...prev, hsnCode: e.target.value }))}
+              value={hsnCode}
+              onChange={e => {
+                setHsnCode(e.target.value);
+                setFormData(prev => ({ ...prev, hsnCode: e.target.value }));
+              }}
               className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-600 dark:text-white ${errors.hsnCode ? 'border-red-500' : 'border-gray-300 dark:border-gray-500'}`}
               placeholder="e.g., 3208"
             />
