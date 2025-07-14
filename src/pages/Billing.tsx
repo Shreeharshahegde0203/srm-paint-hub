@@ -179,8 +179,8 @@ const Billing = () => {
         unitPrice: item.price,
         total: item.quantity * item.price,
         colorCode: item.color_code || "",
-        unitType: item.unit_type,
-        unitQuantity: item.unit_quantity, // <-- Added this line
+        unitType: item.unit_type || prod?.unit_type || prod?.unit || "Unit", // <-- fallback logic
+        unitQuantity: item.unit_quantity, // already present
         isReturned: false,
       };
     });
