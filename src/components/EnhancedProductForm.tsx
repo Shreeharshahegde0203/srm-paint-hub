@@ -74,6 +74,13 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
 
+  const [costPrice, setCostPrice] = useState("");
+  const [price, setPrice] = useState("");
+  const [stock, setStock] = useState("");
+  const [gstRate, setGstRate] = useState("");
+  const [reorderLevel, setReorderLevel] = useState("");
+  const [unitQuantity, setUnitQuantity] = useState("");
+
   useEffect(() => {
     if (formData.image) {
       setImagePreview(formData.image);
@@ -194,10 +201,34 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
     }
   };
 
+  const handleIncrement = (value: string, setValue: (v: string) => void) => {
+    const num = value === "" ? 0 : parseFloat(value);
+    setValue(String(num + 1));
+  };
+  const handleDecrement = (value: string, setValue: (v: string) => void) => {
+    const num = value === "" ? 0 : parseFloat(value);
+    setValue(String(Math.max(0, num - 1)));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      onSave(formData);
+      const safeCostPrice = costPrice === "" ? 0 : parseFloat(costPrice);
+      const safePrice = price === "" ? 0 : parseFloat(price);
+      const safeStock = stock === "" ? 0 : parseFloat(stock);
+      const safeGstRate = gstRate === "" ? 0 : parseFloat(gstRate);
+      const safeReorderLevel = reorderLevel === "" ? 0 : parseFloat(reorderLevel);
+      const safeUnitQuantity = unitQuantity === "" ? 0 : parseFloat(unitQuantity);
+
+      onSave({
+        ...formData,
+        costPrice: safeCostPrice,
+        price: safePrice,
+        stock: safeStock,
+        gstRate: safeGstRate,
+        reorderLevel: safeReorderLevel,
+        unitQuantity: safeUnitQuantity,
+      });
     }
   };
 
@@ -335,77 +366,170 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Cost Price</label>
-            <input
-              type="number"
-              step="0.01"
-              value={formData.costPrice}
-              onChange={(e) => setFormData(prev => ({ ...prev, costPrice: parseFloat(e.target.value) || 0 }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 rounded-lg dark:bg-gray-600 dark:text-white"
-              placeholder="0.00"
-            />
+            <div className="flex items-center border border-gray-300 dark:border-gray-500 rounded-lg dark:bg-gray-600 dark:text-white">
+              <button
+                type="button"
+                onClick={() => handleDecrement(costPrice, setCostPrice)}
+                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                -
+              </button>
+              <input
+                type="text"
+                value={costPrice}
+                onChange={e => setCostPrice(e.target.value)}
+                className="flex-1 px-3 py-2 text-center border-none dark:bg-gray-600 dark:text-white"
+                placeholder="0.00"
+              />
+              <button
+                type="button"
+                onClick={() => handleIncrement(costPrice, setCostPrice)}
+                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                +
+              </button>
+            </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Selling Price *</label>
-            <input
-              type="number"
-              step="0.01"
-              value={formData.price}
-              onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
-              className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-600 dark:text-white ${
-                errors.price ? 'border-red-500' : 'border-gray-300 dark:border-gray-500'
-              }`}
-              placeholder="0.00"
-            />
+            <div className="flex items-center border border-gray-300 dark:border-gray-500 rounded-lg dark:bg-gray-600 dark:text-white">
+              <button
+                type="button"
+                onClick={() => handleDecrement(price, setPrice)}
+                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                -
+              </button>
+              <input
+                type="text"
+                value={price}
+                onChange={e => setPrice(e.target.value)}
+                className={`flex-1 px-3 py-2 text-center border-none dark:bg-gray-600 dark:text-white ${
+                  errors.price ? 'border-red-500' : 'border-gray-300 dark:border-gray-500'
+                }`}
+                placeholder="0.00"
+              />
+              <button
+                type="button"
+                onClick={() => handleIncrement(price, setPrice)}
+                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                +
+              </button>
+            </div>
             {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Current Stock *</label>
-            <input
-              type="number"
-              value={formData.stock}
-              onChange={(e) => setFormData(prev => ({ ...prev, stock: parseInt(e.target.value) || 0 }))}
-              className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-600 dark:text-white ${
-                errors.stock ? 'border-red-500' : 'border-gray-300 dark:border-gray-500'
-              }`}
-              placeholder="0"
-            />
+            <div className="flex items-center border border-gray-300 dark:border-gray-500 rounded-lg dark:bg-gray-600 dark:text-white">
+              <button
+                type="button"
+                onClick={() => handleDecrement(stock, setStock)}
+                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                -
+              </button>
+              <input
+                type="text"
+                value={stock}
+                onChange={e => setStock(e.target.value)}
+                className={`flex-1 px-3 py-2 text-center border-none dark:bg-gray-600 dark:text-white ${
+                  errors.stock ? 'border-red-500' : 'border-gray-300 dark:border-gray-500'
+                }`}
+                placeholder="0"
+              />
+              <button
+                type="button"
+                onClick={() => handleIncrement(stock, setStock)}
+                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                +
+              </button>
+            </div>
             {errors.stock && <p className="text-red-500 text-sm mt-1">{errors.stock}</p>}
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">GST Rate (%)</label>
-            <input
-              type="number"
-              value={formData.gstRate}
-              onChange={(e) => setFormData(prev => ({ ...prev, gstRate: parseInt(e.target.value) || 0 }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 rounded-lg dark:bg-gray-600 dark:text-white"
-              placeholder="18"
-            />
+            <div className="flex items-center border border-gray-300 dark:border-gray-500 rounded-lg dark:bg-gray-600 dark:text-white">
+              <button
+                type="button"
+                onClick={() => handleDecrement(gstRate, setGstRate)}
+                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                -
+              </button>
+              <input
+                type="text"
+                value={gstRate}
+                onChange={e => setGstRate(e.target.value)}
+                className="flex-1 px-3 py-2 text-center border-none dark:bg-gray-600 dark:text-white"
+                placeholder="18"
+              />
+              <button
+                type="button"
+                onClick={() => handleIncrement(gstRate, setGstRate)}
+                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                +
+              </button>
+            </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Reorder Level</label>
-            <input
-              type="number"
-              value={formData.reorderLevel}
-              onChange={(e) => setFormData(prev => ({ ...prev, reorderLevel: parseInt(e.target.value) || 0 }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 rounded-lg dark:bg-gray-600 dark:text-white"
-              placeholder="10"
-            />
+            <div className="flex items-center border border-gray-300 dark:border-gray-500 rounded-lg dark:bg-gray-600 dark:text-white">
+              <button
+                type="button"
+                onClick={() => handleDecrement(reorderLevel, setReorderLevel)}
+                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                -
+              </button>
+              <input
+                type="text"
+                value={reorderLevel}
+                onChange={e => setReorderLevel(e.target.value)}
+                className="flex-1 px-3 py-2 text-center border-none dark:bg-gray-600 dark:text-white"
+                placeholder="10"
+              />
+              <button
+                type="button"
+                onClick={() => handleIncrement(reorderLevel, setReorderLevel)}
+                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                +
+              </button>
+            </div>
           </div>
 
            <div>
              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Unit Quantity</label>
-             <input
-               type="number"
-               step="0.01"
-               value={formData.unitQuantity}
-               onChange={(e) => setFormData(prev => ({ ...prev, unitQuantity: parseFloat(e.target.value) || 1 }))}
-               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 rounded-lg dark:bg-gray-600 dark:text-white"
-               placeholder="1"
-             />
+             <div className="flex items-center border border-gray-300 dark:border-gray-500 rounded-lg dark:bg-gray-600 dark:text-white">
+               <button
+                 type="button"
+                 onClick={() => handleDecrement(unitQuantity, setUnitQuantity)}
+                 className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+               >
+                 -
+               </button>
+               <input
+                 type="text"
+                 value={unitQuantity}
+                 onChange={e => setUnitQuantity(e.target.value)}
+                 className="flex-1 px-3 py-2 text-center border-none dark:bg-gray-600 dark:text-white"
+                 placeholder="1"
+               />
+               <button
+                 type="button"
+                 onClick={() => handleIncrement(unitQuantity, setUnitQuantity)}
+                 className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+               >
+                 +
+               </button>
+             </div>
            </div>
 
            <div>
