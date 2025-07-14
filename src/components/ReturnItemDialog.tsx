@@ -19,16 +19,17 @@ const RETURN_REASONS = [
 
 const ReturnItemDialog = ({ onReturn, onClose, availableProducts }: ReturnItemDialogProps) => {
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
-  const [quantity, setQuantity] = useState(0.5);
+  const [quantity, setQuantity] = useState("");
   const [returnReason, setReturnReason] = useState('');
   const [customReason, setCustomReason] = useState('');
 
-  const adjustQuantity = (increment: boolean) => {
-    if (increment) {
-      setQuantity(prev => prev + 0.5);
-    } else {
-      setQuantity(prev => Math.max(0.5, prev - 0.5));
-    }
+  const handleIncrement = (value: string, setValue: (v: string) => void) => {
+    const num = value === "" ? 0 : parseFloat(value);
+    setValue(String(num + 1));
+  };
+  const handleDecrement = (value: string, setValue: (v: string) => void) => {
+    const num = value === "" ? 0 : parseFloat(value);
+    setValue(String(Math.max(0, num - 1)));
   };
 
   const handleReturn = () => {
@@ -59,9 +60,11 @@ const ReturnItemDialog = ({ onReturn, onClose, availableProducts }: ReturnItemDi
       return;
     }
 
+    const safeQuantity = quantity === "" ? 0 : parseFloat(quantity);
+
     const returnData = {
       product: selectedProduct,
-      quantity,
+      quantity: safeQuantity,
       returnReason: returnReason === 'Other' ? customReason : returnReason,
       isReturned: true
     };
@@ -114,9 +117,9 @@ const ReturnItemDialog = ({ onReturn, onClose, availableProducts }: ReturnItemDi
             <div className="flex items-center">
               <button
                 type="button"
-                onClick={() => adjustQuantity(false)}
+                onClick={() => handleDecrement(quantity, setQuantity)}
                 className="p-2 border border-gray-300 dark:border-gray-600 rounded-l-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-                disabled={quantity <= 0.5}
+                disabled={quantity === "" || parseFloat(quantity) <= 0.5}
               >
                 <Minus className="h-4 w-4" />
               </button>
@@ -124,13 +127,13 @@ const ReturnItemDialog = ({ onReturn, onClose, availableProducts }: ReturnItemDi
                 type="number"
                 step="0.5"
                 value={quantity}
-                onChange={(e) => setQuantity(Math.max(0.5, parseFloat(e.target.value) || 0.5))}
+                onChange={e => setQuantity(e.target.value)}
                 className="w-20 px-3 py-2 border-t border-b border-gray-300 dark:border-gray-600 text-center focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 min="0.5"
               />
               <button
                 type="button"
-                onClick={() => adjustQuantity(true)}
+                onClick={() => handleIncrement(quantity, setQuantity)}
                 className="p-2 border border-gray-300 dark:border-gray-600 rounded-r-lg hover:bg-gray-100 dark:hover:bg-gray-600"
               >
                 <Plus className="h-4 w-4" />
