@@ -228,6 +228,13 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
               const itemClass = item.isReturned ? ' class="returned-item"' : '';
               const returnedText = item.isReturned ? ' (RETURNED)' : '';
               
+              // Calculate GST-exclusive rate and total for GST bills
+              let exGstRate = item.unitPrice;
+              let exGstTotal = item.total;
+              if (invoice.billType === 'gst') {
+                exGstRate = (item.unitPrice / 1.18);
+                exGstTotal = item.quantity * exGstRate;
+              }
               return `
                 <tr${itemClass}>
                   <td class="text-center">${index + 1}</td>
@@ -238,8 +245,8 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
                       ? `${item.unitQuantity} ${item.unitType} x ${item.quantity}`
                       : item.quantity
                   }</td>
-                  <td class="text-right">₹${item.unitPrice.toFixed(2)}</td>
-                  <td class="text-right">₹${displayAmount.toFixed(2)}</td>
+                  <td class="text-right">₹${exGstRate.toFixed(2)}</td>
+                  <td class="text-right">₹${exGstTotal.toFixed(2)}</td>
                 </tr>
               `;
             }).join('')}
