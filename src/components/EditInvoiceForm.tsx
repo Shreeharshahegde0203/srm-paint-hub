@@ -240,7 +240,8 @@ const AddItemDialog = ({ onAddProduct, onClose, billingMode }: AddItemDialogProp
                 <input
                   type="number"
                   value={quantity}
-                  onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                  onChange={(e) => setQuantity(e.target.value)}
+                  onBlur={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
                   className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
                   min="1"
                   step="1"
@@ -294,7 +295,8 @@ const AddItemDialog = ({ onAddProduct, onClose, billingMode }: AddItemDialogProp
                 <input
                   type="number"
                   value={unitPrice}
-                  onChange={(e) => setUnitPrice(parseInt(e.target.value) || 0)}
+                  onChange={(e) => setUnitPrice(e.target.value)}
+                  onBlur={(e) => setUnitPrice(Math.max(0, Number(e.target.value) || 0))}
                   className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
                   min="0"
                   step="1"
