@@ -23,6 +23,7 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
   const [items, setItems] = useState<InvoiceItem[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
+  const [unitQuantity, setUnitQuantity] = useState<number>(1);
   const [unitPrice, setUnitPrice] = useState<number>(0);
   const [colorCode, setColorCode] = useState('');
   const [base, setBase] = useState('');
@@ -272,7 +273,7 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
           {/* Add Item Section */}
           <div className="bg-gray-50 p-4 rounded-lg mb-6">
             <h3 className="text-lg font-semibold mb-3">Add Item</h3>
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
                 <ProductSelector
                   onProductSelect={setSelectedProduct}
@@ -303,26 +304,38 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
                 <label className="block text-sm font-medium mb-1">Quantity</label>
                 <input
                   type="number"
-                  step="0.5"
                   value={quantity}
-                  onChange={(e) => setQuantity(parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-2 border rounded-lg"
-                  min="0.5"
+                  onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="w-full p-2 border rounded-lg"
+                  min="1"
+                  step="1"
                 />
               </div>
-              {billType !== 'casual' && (
-                <div>
-                  <label className="block text-sm font-medium mb-1">Unit Price</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={unitPrice}
-                    onChange={(e) => setUnitPrice(parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    min="0"
-                  />
-                </div>
-              )}
+              <div>
+                <label className="block text-sm font-medium mb-1">Unit Quantity</label>
+                <select
+                  value={unitQuantity}
+                  onChange={e => setUnitQuantity(parseFloat(e.target.value))}
+                  className="w-full p-2 border rounded-lg"
+                >
+                  <option value={0.5}>0.5</option>
+                  <option value={1}>1</option>
+                  <option value={4}>4</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Unit Price</label>
+                <input
+                  type="number"
+                  value={unitPrice}
+                  onChange={e => setUnitPrice(parseInt(e.target.value) || 0)}
+                  className="w-full p-2 border rounded-lg"
+                  min="0"
+                  step="1"
+                />
+              </div>
             </div>
             <button
               type="button"
