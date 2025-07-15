@@ -247,8 +247,8 @@ const ProductManagement = ({
                 <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Unit Quantity</label>
                 <input
                   type="number"
-                  value={formData.unit_quantity || 1}
-                  onChange={e => setFormData({ ...formData, unit_quantity: parseFloat(e.target.value) || 1 })}
+                  value={formData.unit_quantity ?? 1}
+                  onChange={e => setFormData({ ...formData, unit_quantity: e.target.value === "" ? 1 : parseFloat(e.target.value) })}
                   className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                   min="0.5"
                   step="0.5"
