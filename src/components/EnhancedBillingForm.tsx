@@ -58,9 +58,9 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [currentBase, setCurrentBase] = useState("");
   const [currentColorCode, setCurrentColorCode] = useState('');
-  const [currentUnitQuantity, setCurrentUnitQuantity] = useState("");
+  const [currentUnitQuantity, setCurrentUnitQuantity] = useState(1);
   const [currentQuantityType, setCurrentQuantityType] = useState('Litre');
-  const [currentQuantity, setCurrentQuantity] = useState("");
+  const [currentQuantity, setCurrentQuantity] = useState(1);
   const [currentGstPercentage, setCurrentGstPercentage] = useState("");
   const [currentUnitPrice, setCurrentUnitPrice] = useState("");
   
@@ -421,29 +421,17 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                   
                   <div>
                     <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Unit Quantity</label>
-                    <div className="flex items-center">
-                      <button
-                        type="button"
-                        onClick={() => handleDecrement(currentUnitQuantity, setCurrentUnitQuantity)}
-                        className="p-1 border rounded-l hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-500"
-                      >
-                        <Minus className="h-4 w-4" />
-                      </button>
-                      <input
-                        type="number"
-                        step="1"
-                        value={currentUnitQuantity}
-                        onChange={e => setCurrentUnitQuantity(e.target.value)}
-                        className="w-16 px-2 py-1 border-t border-b text-center dark:bg-gray-600 dark:text-white dark:border-gray-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleIncrement(currentUnitQuantity, setCurrentUnitQuantity)}
-                        className="p-1 border rounded-r hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-500"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </button>
-                    </div>
+                   <select
+                     value={currentUnitQuantity}
+                     onChange={e => setCurrentUnitQuantity(Number(e.target.value))}
+                     className="w-full px-3 py-2 border rounded-lg dark:bg-gray-600 dark:text-white dark:border-gray-500"
+                   >
+                     <option value={0.5}>0.5</option>
+                     <option value={1}>1</option>
+                     <option value={4}>4</option>
+                     <option value={10}>10</option>
+                     <option value={20}>20</option>
+                   </select>
                   </div>
                   
                   <div>
@@ -464,21 +452,22 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                     <div className="flex items-center">
                       <button
                         type="button"
-                        onClick={() => handleDecrement(currentQuantity, setCurrentQuantity)}
+                        onClick={() => setCurrentQuantity(Math.max(1, Number(currentQuantity) - 1))}
                         className="p-1 border rounded-l hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-500"
                       >
                         <Minus className="h-4 w-4" />
                       </button>
                       <input
                         type="number"
-                        step="0.5"
+                        step="1"
+                        min="1"
                         value={currentQuantity}
-                        onChange={e => setCurrentQuantity(e.target.value)}
+                        onChange={e => setCurrentQuantity(Math.max(1, Number(e.target.value) || 1))}
                         className="w-16 px-2 py-1 border-t border-b text-center dark:bg-gray-600 dark:text-white dark:border-gray-500"
                       />
                       <button
                         type="button"
-                        onClick={() => handleIncrement(currentQuantity, setCurrentQuantity)}
+                        onClick={() => setCurrentQuantity(Number(currentQuantity) + 1)}
                         className="p-1 border rounded-r hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-500"
                       >
                         <Plus className="h-4 w-4" />
