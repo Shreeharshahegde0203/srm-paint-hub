@@ -462,12 +462,27 @@ export default function EditInvoiceForm({
     e.preventDefault();
     try {
       const allItems = [...items, ...returnedItems];
+      // Map billType to bill_type and billing_mode
+      let bill_type = 'gst';
+      let billing_mode = 'with_gst';
+      if (billType === 'with_gst' || billType === 'gst') {
+        bill_type = 'gst';
+        billing_mode = 'with_gst';
+      } else if (billType === 'without_gst' || billType === 'non_gst') {
+        bill_type = 'non_gst';
+        billing_mode = 'without_gst';
+      } else if (billType === 'casual') {
+        bill_type = 'casual';
+        billing_mode = 'casual';
+      }
       await onSave({
         items: allItems,
         status,
         discount: discountAmount,
         total,
-        partialAmount: status === 'partially_paid' ? partialAmount : 0
+        partialAmount: status === 'partially_paid' ? partialAmount : 0,
+        bill_type,
+        billing_mode
       } as any);
       toast({ title: "Success", description: "Invoice updated!" });
     } catch (err: any) {
