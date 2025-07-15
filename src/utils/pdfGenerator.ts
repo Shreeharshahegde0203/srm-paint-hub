@@ -138,6 +138,16 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
     // Enhanced GST Bill Format
     const totalQuantity = invoice.items.reduce((sum, item) => sum + (item.isReturned ? 0 : item.quantity), 0);
     const returnedQuantity = invoice.items.reduce((sum, item) => sum + (item.isReturned ? item.quantity : 0), 0);
+
+    // Calculate GST-exclusive subtotal for GST bills
+    let pdfSubtotal = invoice.subtotal;
+    if (invoice.billType === 'gst') {
+      pdfSubtotal = invoice.items.reduce((sum, item) => {
+        const gstRate = item.gstPercentage || item.product.gstRate || 18;
+        const exGstPrice = item.unitPrice / (1 + gstRate / 100);
+        return sum + (item.isReturned ? -item.quantity * exGstPrice : item.quantity * exGstPrice);
+      }, 0);
+    }
     
     invoiceHTML = `
       <!DOCTYPE html>
@@ -288,7 +298,7 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
             <table class="totals-table">
               <tr>
                 <td>Subtotal (Excl. GST):</td>
-                <td class="text-right">₹${invoice.subtotal.toFixed(2)}</td>
+                <td class="text-right">₹${pdfSubtotal.toFixed(2)}</td>
               </tr>
               ${invoice.billType === 'gst' ? `
               <tr>
@@ -409,3 +419,4 @@ function numberToWords(amount: number): string {
   
   return result.trim();
 }
+
