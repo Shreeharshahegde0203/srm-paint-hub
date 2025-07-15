@@ -144,14 +144,14 @@
       let gstSummaryRows = '';
       if (invoice.billType === 'gst') {
         pdfSubtotal = invoice.items.reduce((sum, item) => {
-          const gstRate = item.gstPercentage || item.product.gstRate || 18;
+          const gstRate = item.gst_percentage || item.gstPercentage || item.product.gstRate || 18;
           const exGstPrice = item.unitPrice / (1 + gstRate / 100);
           return sum + (item.isReturned ? -item.quantity * exGstPrice : item.quantity * exGstPrice);
         }, 0);
         // Group items by GST rate
         const gstGroups: Record<string, {cgst: number, sgst: number}> = {};
         invoice.items.forEach(item => {
-          const gstRate = item.gstPercentage || item.product.gstRate || 18;
+          const gstRate = item.gst_percentage || item.gstPercentage || item.product.gstRate || 18;
           const cgstRate = gstRate / 2;
           const exGstPrice = item.unitPrice / (1 + gstRate / 100);
           const cgstAmount = (item.isReturned ? 0 : item.quantity * exGstPrice * (cgstRate / 100));
