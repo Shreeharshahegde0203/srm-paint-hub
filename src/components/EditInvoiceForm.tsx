@@ -270,9 +270,13 @@ const AddItemDialog = ({ onAddProduct, onClose, billingMode }: AddItemDialogProp
                   onChange={(e) => setUnitType(e.target.value)}
                   className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
                 >
-                  {unitTypes.map(type => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
+                  {selectedProduct ? (
+                    <option value={(selectedProduct.unit || 'Piece').split(' ').slice(-1)[0]}>{(selectedProduct.unit || 'Piece').split(' ').slice(-1)[0]}</option>
+                  ) : (
+                    unitTypes.map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))
+                  )}
                 </select>
               </div>
               
