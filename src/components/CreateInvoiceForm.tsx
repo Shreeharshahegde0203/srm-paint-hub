@@ -28,6 +28,7 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
   const [colorCode, setColorCode] = useState('');
   const [base, setBase] = useState('');
   const [loading, setLoading] = useState(false);
+  const [gstPercentage, setGstPercentage] = useState<number>(18);
 
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -70,7 +71,8 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
       total: billType === 'casual' ? 0 : quantity * unitPrice,
       colorCode: colorCode || undefined,
       base: base || selectedProduct.base,
-      isReturned: false
+      isReturned: false,
+      gstPercentage: billType === 'gst' ? gstPercentage : 0
     };
 
     setItems([...items, newItem]);
@@ -79,6 +81,7 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
     setUnitPrice(0);
     setColorCode('');
     setBase('');
+    setGstPercentage(18);
   };
 
   const handleUpdateItem = (index: number, updates: Partial<InvoiceItem>) => {
@@ -156,7 +159,8 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
         quantity: item.quantity,
         price: item.unitPrice,
         color_code: item.colorCode,
-        base: item.base
+        base: item.base,
+        gst_percentage: item.gstPercentage
       }));
 
       const { error: itemsError } = await supabase
@@ -336,6 +340,21 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
                   step="1"
                 />
               </div>
+              {/* Add GST % input for GST bills */}
+              {billType === 'gst' && (
+                <div>
+                  <label className="block text-sm font-medium mb-1">GST %</label>
+                  <input
+                    type="number"
+                    value={gstPercentage}
+                    onChange={e => setGstPercentage(Number(e.target.value) || 18)}
+                    className="w-full p-2 border rounded-lg"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                  />
+                </div>
+              )}
             </div>
             <button
               type="button"
