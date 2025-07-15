@@ -76,7 +76,7 @@ export const BillHistoryCSV = () => {
 
       invoices?.forEach((invoice) => {
         const invoiceNumber = `INV-${invoice.id.slice(0, 8)}`;
-        const date = new Date(invoice.created_at!).toLocaleDateString('en-IN');
+        const date = invoice.created_at ? new Date(invoice.created_at).toISOString().slice(0, 10) : '';
         const customerName = invoice.customer?.name || 'Unknown Customer';
 
         let invoiceCGSTTotal = 0;
