@@ -84,6 +84,7 @@ export function useSupabaseInvoices() {
           color_code: item.colorCode || null,
           base: item.base || null,
           unit_type: item.unitType || 'Piece',
+          unit_quantity: (item.unitQuantity != null && !isNaN(item.unitQuantity)) ? item.unitQuantity : 1,
           gst_percentage: item.gstPercentage || 18,
           price_excluding_gst: item.priceExcludingGst || item.unitPrice
         });
