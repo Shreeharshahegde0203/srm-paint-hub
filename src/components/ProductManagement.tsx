@@ -132,6 +132,9 @@ const ProductManagement = ({
       e.preventDefault();
       setLoading(true);
 
+      // Debug: Log formData before building payload
+      console.log("FormData before submit:", formData);
+
       try {
         let imageUrl = formData.image;
         
@@ -139,16 +142,22 @@ const ProductManagement = ({
           imageUrl = await handleImageUpload(imageFile);
         }
 
-        const productData = {
+        // Always build unit and unit_type from current formData
+        const payload = {
           ...formData,
           image: imageUrl,
-          unit: `${formData.unit_quantity} ${formData.unit_type}`,
+          unit_quantity: formData.unit_quantity ?? 1,
+          unit_type: formData.unit_type || 'Litre',
+          unit: `${formData.unit_quantity ?? 1} ${formData.unit_type || 'Litre'}`,
         };
 
+        // Debug: Log payload before sending
+        console.log("Payload being sent to onAddProduct/onUpdateProduct:", payload);
+
         if (!isEdit) {
-          await onAddProduct(productData as Omit<Product, 'id'>);
+          await onAddProduct(payload as Omit<Product, 'id'>);
         } else {
-          await onUpdateProduct(product.id, productData);
+          await onUpdateProduct(product.id, payload);
         }
         
         toast({ title: isEdit ? "Product Updated Successfully!" : "Product Added Successfully!" });
