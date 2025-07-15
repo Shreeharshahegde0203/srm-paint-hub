@@ -366,7 +366,7 @@ export default function EditInvoiceForm({
             total: item.quantity * item.price,
             colorCode: item.color_code || '',
             base: item.base || product?.base || '',
-            unitQuantity: item.unit_quantity || product?.unit_quantity || 1,
+            unitQuantity: (item.unit_quantity != null && !isNaN(item.unit_quantity)) ? item.unit_quantity : (product?.unit_quantity || 1),
             unitType: item.unit_type || product?.unit || 'Piece',
             gstPercentage: item.gst_percentage || 18,
             isReturned: false
@@ -394,7 +394,7 @@ export default function EditInvoiceForm({
       total: itemData.quantity * itemData.unitPrice,
       colorCode: itemData.colorCode,
       base: itemData.base || product.base || '',
-      unitQuantity: itemData.unitQuantity || product.unit_quantity || 1,
+      unitQuantity: (itemData.unitQuantity != null && !isNaN(itemData.unitQuantity)) ? itemData.unitQuantity : (product.unit_quantity || 1),
       unitType: itemData.unitType || product.unit || 'Piece',
       gstPercentage: itemData.gstPercentage,
       isReturned: false,
@@ -413,7 +413,7 @@ export default function EditInvoiceForm({
       arr[idx].total = quantity * unitPrice;
     }
     // Always ensure unitQuantity and unitType are set
-    if (!arr[idx].unitQuantity) arr[idx].unitQuantity = arr[idx].product?.unit_quantity || 1;
+    if (arr[idx].unitQuantity == null || isNaN(arr[idx].unitQuantity)) arr[idx].unitQuantity = arr[idx].product?.unit_quantity || 1;
     if (!arr[idx].unitType) arr[idx].unitType = arr[idx].product?.unit || 'Piece';
     setItems(arr);
   };
