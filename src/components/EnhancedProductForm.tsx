@@ -80,7 +80,7 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
   const [gstRate, setGstRate] = useState("");
   const [reorderLevel, setReorderLevel] = useState("");
   const [unitQuantity, setUnitQuantity] = useState(
-    product?.unit_quantity !== undefined && product?.unit_quantity !== null
+    product?.unit_quantity != null
       ? String(product.unit_quantity)
       : "1"
   );
@@ -104,7 +104,7 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
     setGstRate(formData.gstRate !== undefined ? String(formData.gstRate) : "");
     setReorderLevel(formData.reorderLevel !== undefined ? String(formData.reorderLevel) : "");
     setUnitQuantity(
-      product?.unit_quantity !== undefined && product?.unit_quantity !== null
+      product?.unit_quantity != null
         ? String(product.unit_quantity)
         : "1"
     );
@@ -702,3 +702,4 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
 };
 
 export default EnhancedProductForm;
+
