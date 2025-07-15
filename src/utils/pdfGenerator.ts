@@ -141,12 +141,35 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
 
     // Calculate GST-exclusive subtotal for GST bills
     let pdfSubtotal = invoice.subtotal;
+    let gstSummaryRows = '';
     if (invoice.billType === 'gst') {
       pdfSubtotal = invoice.items.reduce((sum, item) => {
         const gstRate = item.gstPercentage || item.product.gstRate || 18;
         const exGstPrice = item.unitPrice / (1 + gstRate / 100);
         return sum + (item.isReturned ? -item.quantity * exGstPrice : item.quantity * exGstPrice);
       }, 0);
+      // Group items by GST rate
+      const gstGroups: Record<string, {cgst: number, sgst: number}> = {};
+      invoice.items.forEach(item => {
+        const gstRate = item.gstPercentage || item.product.gstRate || 18;
+        const cgstRate = gstRate / 2;
+        const exGstPrice = item.unitPrice / (1 + gstRate / 100);
+        const cgstAmount = (item.isReturned ? 0 : item.quantity * exGstPrice * (cgstRate / 100));
+        const sgstAmount = (item.isReturned ? 0 : item.quantity * exGstPrice * (cgstRate / 100));
+        if (!gstGroups[gstRate]) gstGroups[gstRate] = {cgst: 0, sgst: 0};
+        gstGroups[gstRate].cgst += cgstAmount;
+        gstGroups[gstRate].sgst += sgstAmount;
+      });
+      gstSummaryRows = Object.entries(gstGroups).map(([rate, {cgst, sgst}]) => `
+        <tr>
+          <td>&nbsp;&nbsp;- CGST @ ${(Number(rate)/2).toFixed(1)}%:</td>
+          <td class="text-right">₹${cgst.toFixed(2)}</td>
+        </tr>
+        <tr>
+          <td>&nbsp;&nbsp;- SGST @ ${(Number(rate)/2).toFixed(1)}%:</td>
+          <td class="text-right">₹${sgst.toFixed(2)}</td>
+        </tr>
+      `).join('');
     }
     
     invoiceHTML = `
@@ -260,16 +283,6 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
                 </tr>
               `;
             }).join('')}
-            ${Array.from({ length: Math.max(0, 8 - invoice.items.length) }, (_, i) => `
-              <tr>
-                <td class="text-center">${invoice.items.length + i + 1}</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-              </tr>
-            `).join('')}
           </tbody>
         </table>
 
@@ -305,14 +318,7 @@ export const generateInvoicePDF = (invoice: InvoiceData) => {
                 <td>Taxes:</td>
                 <td></td>
               </tr>
-              <tr>
-                <td>&nbsp;&nbsp;- CGST @ 9%:</td>
-                <td class="text-right">₹${(invoice.tax / 2).toFixed(2)}</td>
-              </tr>
-              <tr>
-                <td>&nbsp;&nbsp;- SGST @ 9%:</td>
-                <td class="text-right">₹${(invoice.tax / 2).toFixed(2)}</td>
-              </tr>
+              ${gstSummaryRows}
               ` : ''}
               <tr>
                 <td>Round Off:</td>
@@ -419,4 +425,3 @@ function numberToWords(amount: number): string {
   
   return result.trim();
 }
-
