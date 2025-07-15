@@ -631,23 +631,28 @@ export default function EditInvoiceForm({
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Unit Quantity</label>
-                      <input 
-                        type="number" 
-                        value={item.unitQuantity || 1} 
-                        onChange={(e) => updateItem(index, 'unitQuantity', parseFloat(e.target.value) || 1)} 
-                        className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white input-focus hover:shadow-md transition-all duration-200" 
-                        min="0.1"
-                        step="0.1"
-                      />
+                      <select
+                        value={item.unitQuantity || 1}
+                        onChange={(e) => updateItem(index, 'unitQuantity', parseFloat(e.target.value))}
+                        className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white input-focus hover:shadow-md transition-all duration-200"
+                      >
+                        <option value={0.5}>0.5</option>
+                        <option value={1}>1</option>
+                        <option value={4}>4</option>
+                        <option value={10}>10</option>
+                        <option value={20}>20</option>
+                      </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Quantity</label>
                       <input 
                         type="number" 
-                        value={item.quantity} 
-                        onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 1)} 
+                        value={item.quantity}
+                        onChange={(e) => updateItem(index, 'quantity', e.target.value)}
+                        onBlur={(e) => updateItem(index, 'quantity', Math.max(1, Number(e.target.value) || 1))}
                         className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white input-focus hover:shadow-md transition-all duration-200" 
                         min="1" 
+                        step="1" 
                         required 
                       />
                     </div>
@@ -655,11 +660,12 @@ export default function EditInvoiceForm({
                       <label className="block text-sm font-medium mb-1">Unit Price</label>
                       <input 
                         type="number" 
-                        value={item.unitPrice} 
-                        onChange={(e) => updateItem(index, 'unitPrice', parseFloat(e.target.value) || 0)} 
+                        value={item.unitPrice}
+                        onChange={(e) => updateItem(index, 'unitPrice', e.target.value)}
+                        onBlur={(e) => updateItem(index, 'unitPrice', Math.max(0, Number(e.target.value) || 0))}
                         className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white input-focus hover:shadow-md transition-all duration-200" 
                         min="0" 
-                        step="0.01" 
+                        step="1" 
                         required 
                       />
                     </div>
