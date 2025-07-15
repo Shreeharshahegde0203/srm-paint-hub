@@ -104,21 +104,21 @@
           
           <div class="divider"></div>
           
-          <div style="font-weight: bold;">
-            Item${' '.repeat(15)}Qty  Unit  PerUnit
+          <div style="font-weight: bold; display: flex; justify-content: space-between;">
+            <span>Item</span><span>Qty</span>
           </div>
           <div class="divider"></div>
           
           ${invoice.items.map(item => {
-            const itemName = `${item.product.name}${item.colorCode ? ` - ${item.colorCode}` : ''}`;
-            const displayName = itemName.substring(0, 15).padEnd(15);
-            const qty = item.quantity.toString().padStart(3);
-            const unit = item.product.name.toLowerCase().includes('inch') ? 'In' : 'Pc';
-            const perUnit = '1 ' + unit;
+            const itemName = item.product.name + (item.colorCode ? ` - ${item.colorCode}` : '');
+            const qty = (typeof item.unitQuantity === 'number' && item.unitType)
+              ? `${item.unitQuantity} ${item.unitType} x ${item.quantity}`
+              : item.quantity;
             const returnedClass = item.isReturned ? ' class="returned"' : '';
             const returnedText = item.isReturned ? ' (RETURNED)' : '';
-            
-            return `<div${returnedClass}>${displayName} ${qty}  ${unit.padEnd(4)} ${perUnit}${returnedText}</div>`;
+            return `<div${returnedClass} style="display: flex; justify-content: space-between;">
+              <span>${escapeHTML(itemName)}${returnedText}</span><span>${qty}</span>
+            </div>`;
           }).join('')}
           
           <div class="divider"></div>
@@ -428,3 +428,4 @@
     
     return result.trim();
   }
+
