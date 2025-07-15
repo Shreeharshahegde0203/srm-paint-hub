@@ -100,6 +100,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
     setCurrentBase(product.base || '');
     setCurrentGstPercentage(product.gstRate || 18);
     setCurrentUnitPrice(product.price);
+    setCurrentQuantityType(product.unit || 'Piece'); // Set to product's unit
     setSearchTerm('');
     setIsSearchOpen(false);
   };
@@ -441,9 +442,13 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                       onChange={(e) => setCurrentQuantityType(e.target.value)}
                       className="w-full px-3 py-2 border rounded-lg dark:bg-gray-600 dark:text-white dark:border-gray-500"
                     >
-                      {UNIT_TYPES.map(unit => (
-                        <option key={unit} value={unit}>{unit}</option>
-                      ))}
+                      {selectedProduct ? (
+                        <option value={selectedProduct.unit || 'Piece'}>{selectedProduct.unit || 'Piece'}</option>
+                      ) : (
+                        UNIT_TYPES.map(unit => (
+                          <option key={unit} value={unit}>{unit}</option>
+                        ))
+                      )}
                     </select>
                   </div>
                   
