@@ -227,13 +227,11 @@ const AddItemDialog = ({ onAddProduct, onClose, billingMode }: AddItemDialogProp
               <div>
                 <label className="block text-sm font-medium mb-1">Base</label>
                 <input 
-                  type="number" 
+                  type="text" 
                   value={base} 
                   onChange={(e) => setBase(e.target.value)}
                   className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 input-focus"
                   placeholder="Enter base specification"
-                  min="0"
-                  step="0.01"
                 />
               </div>
               
@@ -245,19 +243,23 @@ const AddItemDialog = ({ onAddProduct, onClose, billingMode }: AddItemDialogProp
                   onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                   className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
                   min="1"
+                  step="1"
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-medium mb-1">Unit Quantity</label>
-                <input
-                  type="number"
+                <select
                   value={unitQuantity}
-                  onChange={(e) => setUnitQuantity(parseFloat(e.target.value) || 1)}
+                  onChange={(e) => setUnitQuantity(parseFloat(e.target.value))}
                   className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
-                  min="0"
-                  step="0.1"
-                />
+                >
+                  <option value={0.5}>0.5</option>
+                  <option value={1}>1</option>
+                  <option value={4}>4</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                </select>
               </div>
               
               <div>
@@ -292,10 +294,10 @@ const AddItemDialog = ({ onAddProduct, onClose, billingMode }: AddItemDialogProp
                 <input
                   type="number"
                   value={unitPrice}
-                  onChange={(e) => setUnitPrice(parseFloat(e.target.value) || 0)}
+                  onChange={(e) => setUnitPrice(parseInt(e.target.value) || 0)}
                   className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
                   min="0"
-                  step="0.01"
+                  step="1"
                 />
               </div>
             </div>
@@ -620,13 +622,11 @@ export default function EditInvoiceForm({
                     <div>
                       <label className="block text-sm font-medium mb-1">Base</label>
                       <input 
-                        type="number" 
+                        type="text" 
                         value={item.base || ''} 
                         onChange={(e) => updateItem(index, 'base', e.target.value)} 
                         className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white input-focus hover:shadow-md transition-all duration-200" 
                         placeholder="Base"
-                        min="0"
-                        step="0.01"
                       />
                     </div>
                     <div>
