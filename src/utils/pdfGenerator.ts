@@ -73,12 +73,12 @@
         <!DOCTYPE html>
         <html>
         <head>
-          <title>Casual Bill ${invoice.invoiceNumber}</title>
+          <title>Invoice ${invoice.invoiceNumber}</title>
           <style>
             body { font-family: 'Courier New', monospace; margin: 20px; font-size: 12px; line-height: 1.4; }
             .center { text-align: center; }
             .divider { border-top: 1px dashed #000; margin: 10px 0; }
-            .header { font-weight: bold; margin-bottom: 15px; }
+            .header { font-weight: bold; margin-bottom: 10px; }
             .item-row { display: flex; justify-content: space-between; margin: 2px 0; }
             .footer { margin-top: 20px; font-size: 10px; }
             .returned { color: red; font-style: italic; }
@@ -91,25 +91,20 @@
             ${escapeHTML(company.tagline)}<br>
             ${escapeHTML(company.address)}<br>
             ${escapeHTML(company.phone)}<br>
-            <strong>CASUAL BILL (No Price)</strong>
+            <strong>INVOICE</strong>
           </div>
-          
           <div class="divider"></div>
-          
           <div>
             Date: ${escapeHTML(invoice.date)} Time: ${escapeHTML(invoice.time)}<br>
             Bill No: ${escapeHTML(invoice.invoiceNumber)}<br>
             Customer: ${escapeHTML(invoice.customer.name)}
           </div>
-          
           <div class="divider"></div>
-          
           <div style="font-weight: bold; display: flex; justify-content: space-between;">
             <span>Item</span><span>Qty</span>
           </div>
           <div class="divider"></div>
-          
-          ${invoice.items.map(item => {
+          ${invoice.items.length > 0 ? invoice.items.map(item => {
             const itemName = item.product.name + (item.colorCode ? ` - ${item.colorCode}` : '');
             const qty = (typeof item.unitQuantity === 'number' && item.unitType)
               ? `${item.unitQuantity} ${item.unitType} x ${item.quantity}`
@@ -119,15 +114,13 @@
             return `<div${returnedClass} style="display: flex; justify-content: space-between;">
               <span>${escapeHTML(itemName)}${returnedText}</span><span>${qty}</span>
             </div>`;
-          }).join('')}
-          
+          }).join('') : '<div style="text-align:center; color:#888;">No items</div>'}
           <div class="divider"></div>
           <div class="center">
             Note: No prices included.<br>
             For reference only.<br>
             Thank You! Visit Again!
           </div>
-          
           <div class="footer center">
             ${escapeHTML(company.footer).replace(/\n/g, '<br>')}
           </div>
@@ -428,4 +421,3 @@
     
     return result.trim();
   }
-
