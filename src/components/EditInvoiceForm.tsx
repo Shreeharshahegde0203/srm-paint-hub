@@ -337,7 +337,8 @@ export default function EditInvoiceForm({
   const [partialAmount, setPartialAmount] = useState((invoice as any).partial_amount_paid || 0);
   const [showReturnDialog, setShowReturnDialog] = useState(false);
   const [showAddItem, setShowAddItem] = useState(false);
-
+  const [billType, setBillType] = useState(invoice.billing_mode || 'with_gst');
+  const [gstInclusive, setGstInclusive] = useState(true); // Default to GST-inclusive
   const [customer, setCustomer] = useState<any>(null);
 
   useEffect(() => {
@@ -448,11 +449,29 @@ export default function EditInvoiceForm({
     setReturnedItems(returnedItems.filter((_, i) => i !== idx));
   };
 
+  // Calculation logic
   const subtotal = items.reduce((sum, item) => sum + (item.total || 0), 0);
   const returnTotal = returnedItems.reduce((sum, item) => sum + Math.abs(item.total || 0), 0);
   const discountAmount = (subtotal * discount) / 100;
-  const tax = invoice.billing_mode === 'with_gst' ? ((subtotal - returnTotal - discountAmount) * 0.18) : 0;
-  const total = subtotal - returnTotal - discountAmount + tax;
+  let tax = 0;
+  let total = 0;
+  if (billType === 'with_gst') {
+    if (gstInclusive) {
+      // GST is included in subtotal, extract GST
+      const taxable = subtotal - returnTotal - discountAmount;
+      tax = taxable * 18 / 118;
+      total = taxable;
+    } else {
+      // GST is not included, add GST
+      const taxable = subtotal - returnTotal - discountAmount;
+      tax = taxable * 0.18;
+      total = taxable + tax;
+    }
+  } else {
+    // Non-GST or Casual Bill
+    tax = 0;
+    total = subtotal - returnTotal - discountAmount;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -486,6 +505,70 @@ export default function EditInvoiceForm({
           )}
         </div>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Bill Type Selector */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2">Bill Type</label>
+            <div className="flex space-x-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  value="with_gst"
+                  checked={billType === 'with_gst'}
+                  onChange={() => setBillType('with_gst')}
+                  className="mr-2"
+                />
+                GST Bill
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  value="without_gst"
+                  checked={billType === 'without_gst'}
+                  onChange={() => setBillType('without_gst')}
+                  className="mr-2"
+                />
+                Non-GST Bill
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  value="casual"
+                  checked={billType === 'casual'}
+                  onChange={() => setBillType('casual')}
+                  className="mr-2"
+                />
+                Casual Bill
+              </label>
+            </div>
+          </div>
+          {/* GST Inclusive/Exclusive Toggle (only for GST Bill) */}
+          {billType === 'with_gst' && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-2">Unit Price is</label>
+              <div className="flex space-x-4">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    value="inclusive"
+                    checked={gstInclusive}
+                    onChange={() => setGstInclusive(true)}
+                    className="mr-2"
+                  />
+                  GST Inclusive
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    value="exclusive"
+                    checked={!gstInclusive}
+                    onChange={() => setGstInclusive(false)}
+                    className="mr-2"
+                  />
+                  GST Exclusive
+                </label>
+              </div>
+            </div>
+          )}
           
           {/* Items Section */}
           <div className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg">
@@ -648,7 +731,19 @@ export default function EditInvoiceForm({
                     <option value="overdue">Overdue</option>
                   </select>
                 </div>
-                
+                {/* Discount Field */}
+                <div>
+                  <label className="block text-sm font-medium mb-1">Discount (%)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={discount}
+                    onChange={e => setDiscount(Number(e.target.value))}
+                    className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white"
+                    placeholder="Enter discount percentage"
+                  />
+                </div>
                 {/* Partial Payment Amount */}
                 {status === 'partially_paid' && (
                   <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
@@ -683,7 +778,7 @@ export default function EditInvoiceForm({
                   </div>
                 )}
                 <div className="flex justify-between"><span>Discount:</span><span>-₹{discountAmount.toFixed(2)}</span></div>
-                {invoice.billing_mode === 'with_gst' && (
+                {billType === 'with_gst' && (
                   <div className="flex justify-between"><span>GST (18%):</span><span>₹{tax.toFixed(2)}</span></div>
                 )}
                 <div className="flex justify-between font-bold text-lg border-t pt-2">
