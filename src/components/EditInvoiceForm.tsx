@@ -366,7 +366,7 @@ export default function EditInvoiceForm({
             total: item.quantity * item.price,
             colorCode: item.color_code || '',
             base: item.base || product?.base || '',
-            unitQuantity: product?.unit_quantity || 1,
+            unitQuantity: item.unit_quantity || product?.unit_quantity || 1,
             unitType: item.unit_type || product?.unit || 'Piece',
             gstPercentage: item.gst_percentage || 18,
             isReturned: false
@@ -394,8 +394,8 @@ export default function EditInvoiceForm({
       total: itemData.quantity * itemData.unitPrice,
       colorCode: itemData.colorCode,
       base: itemData.base || product.base || '',
-      unitQuantity: itemData.unitQuantity,
-      unitType: itemData.unitType,
+      unitQuantity: itemData.unitQuantity || product.unit_quantity || 1,
+      unitType: itemData.unitType || product.unit || 'Piece',
       gstPercentage: itemData.gstPercentage,
       isReturned: false,
       isNew: true
@@ -412,6 +412,9 @@ export default function EditInvoiceForm({
       const unitPrice = field === 'unitPrice' ? value : arr[idx].unitPrice || 0;
       arr[idx].total = quantity * unitPrice;
     }
+    // Always ensure unitQuantity and unitType are set
+    if (!arr[idx].unitQuantity) arr[idx].unitQuantity = arr[idx].product?.unit_quantity || 1;
+    if (!arr[idx].unitType) arr[idx].unitType = arr[idx].product?.unit || 'Piece';
     setItems(arr);
   };
 
