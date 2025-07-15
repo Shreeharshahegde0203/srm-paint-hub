@@ -443,7 +443,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                       className="w-full px-3 py-2 border rounded-lg dark:bg-gray-600 dark:text-white dark:border-gray-500"
                     >
                       {selectedProduct ? (
-                        <option value={selectedProduct.unit || 'Piece'}>{selectedProduct.unit || 'Piece'}</option>
+                        <option value={(selectedProduct.unit || 'Piece').split(' ').slice(-1)[0]}>{(selectedProduct.unit || 'Piece').split(' ').slice(-1)[0]}</option>
                       ) : (
                         UNIT_TYPES.map(unit => (
                           <option key={unit} value={unit}>{unit}</option>
