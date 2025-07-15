@@ -462,7 +462,8 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                         step="1"
                         min="1"
                         value={currentQuantity}
-                        onChange={e => setCurrentQuantity(Math.max(1, Number(e.target.value) || 1))}
+                        onChange={e => setCurrentQuantity(e.target.value)}
+                        onBlur={e => setCurrentQuantity(q => Math.max(1, Number(q) || 1))}
                         className="w-16 px-2 py-1 border-t border-b text-center dark:bg-gray-600 dark:text-white dark:border-gray-500"
                       />
                       <button
