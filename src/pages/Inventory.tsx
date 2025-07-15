@@ -32,8 +32,8 @@ const Inventory = () => {
   const products: Product[] = (rawProducts || []).map((product: any) => ({
     ...product,
     gstRate: product.gst_rate,
-    unit_quantity: product.unit_quantity ?? parseFloat(product.unit?.split(' ')[0]) || 1,
-    unit_type: product.unit_type || product.unit?.split(' ').slice(1).join(' ') || 'Piece',
+    unit_quantity: parseFloat(product.unit?.split(' ')[0]) || 1,
+    unit_type: product.unit?.split(' ').slice(1).join(' ') || 'Piece',
     hsn_code: product.hsn_code,
     base: product.base,
   }));
@@ -470,3 +470,4 @@ const ProductCard = ({ product, viewMode, onEdit, onDelete, onRestock, onDoubleC
 };
 
 export default Inventory;
+
