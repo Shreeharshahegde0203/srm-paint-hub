@@ -47,12 +47,12 @@ const Inventory = () => {
       stock: productData.stock,
       price: productData.price,
       gst_rate: productData.gstRate ?? 18,
-      unit: `${productData.unit_quantity || 1} ${productData.unit || 'Piece'}`,
+      unit: `${productData.unit_quantity ?? 1} ${productData.unit || 'Piece'}`,
       description: productData.description,
       image: productData.image,
       hsn_code: productData.hsn_code || productData.hsnCode || null,
       category: (productData as any).category || null,
-      unit_quantity: productData.unit_quantity || 1,
+      unit_quantity: productData.unit_quantity ?? 1,
     };
 
     await addProduct(payload as TablesInsert<"products">);
@@ -68,12 +68,12 @@ const Inventory = () => {
         base: productData.base || null,
         price: productData.price,
         gst_rate: productData.gstRate,
-        unit: `${productData.unit_quantity || 1} ${productData.unit || 'Piece'}`,
+        unit: `${productData.unit_quantity ?? 1} ${productData.unit || 'Piece'}`,
         description: productData.description,
         image: productData.image,
         hsn_code: productData.hsn_code || productData.hsnCode || null,
         category: (productData as any).category || null,
-        unit_quantity: productData.unit_quantity || 1,
+        unit_quantity: productData.unit_quantity ?? 1,
       };
 
       // Include stock update
@@ -470,3 +470,4 @@ const ProductCard = ({ product, viewMode, onEdit, onDelete, onRestock, onDoubleC
 };
 
 export default Inventory;
+
