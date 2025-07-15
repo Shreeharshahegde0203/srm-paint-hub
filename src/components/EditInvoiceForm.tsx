@@ -453,25 +453,7 @@ export default function EditInvoiceForm({
   const subtotal = items.reduce((sum, item) => sum + (item.total || 0), 0);
   const returnTotal = returnedItems.reduce((sum, item) => sum + Math.abs(item.total || 0), 0);
   const discountAmount = (subtotal * discount) / 100;
-  let tax = 0;
-  let total = 0;
-  if (billType === 'with_gst') {
-    if (gstInclusive) {
-      // GST is included in subtotal, extract GST
-      const taxable = subtotal - returnTotal - discountAmount;
-      tax = taxable * 18 / 118;
-      total = taxable;
-    } else {
-      // GST is not included, add GST
-      const taxable = subtotal - returnTotal - discountAmount;
-      tax = taxable * 0.18;
-      total = taxable + tax;
-    }
-  } else {
-    // Non-GST or Casual Bill
-    tax = 0;
-    total = subtotal - returnTotal - discountAmount;
-  }
+  const total = subtotal - returnTotal - discountAmount;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -778,9 +760,7 @@ export default function EditInvoiceForm({
                   </div>
                 )}
                 <div className="flex justify-between"><span>Discount:</span><span>-₹{discountAmount.toFixed(2)}</span></div>
-                {billType === 'with_gst' && (
-                  <div className="flex justify-between"><span>GST (18%):</span><span>₹{tax.toFixed(2)}</span></div>
-                )}
+                {/* GST removed from summary */}
                 <div className="flex justify-between font-bold text-lg border-t pt-2">
                   <span>Total:</span><span>₹{total.toFixed(2)}</span>
                 </div>
