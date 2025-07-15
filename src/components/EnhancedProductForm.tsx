@@ -66,7 +66,7 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
     expiryDate: product?.expiry_date || '',
     category: product?.category || 'Interior Paint',
     image: product?.image || '',
-    unitQuantity: product?.unit_quantity || 1,
+    unitQuantity: product?.unit_quantity !== undefined && product?.unit_quantity !== null ? product.unit_quantity : 1,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -79,7 +79,11 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
   const [stock, setStock] = useState("");
   const [gstRate, setGstRate] = useState("");
   const [reorderLevel, setReorderLevel] = useState("");
-  const [unitQuantity, setUnitQuantity] = useState("");
+  const [unitQuantity, setUnitQuantity] = useState(
+    product?.unit_quantity !== undefined && product?.unit_quantity !== null
+      ? String(product.unit_quantity)
+      : "1"
+  );
   const [unitType, setUnitType] = useState(product?.unit_type || "Litre");
   const [hsnCode, setHsnCode] = useState(formData.hsnCode || "");
 
@@ -99,7 +103,11 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
     setStock(formData.stock !== undefined ? String(formData.stock) : "");
     setGstRate(formData.gstRate !== undefined ? String(formData.gstRate) : "");
     setReorderLevel(formData.reorderLevel !== undefined ? String(formData.reorderLevel) : "");
-    setUnitQuantity(formData.unitQuantity !== undefined ? String(formData.unitQuantity) : "");
+    setUnitQuantity(
+      product?.unit_quantity !== undefined && product?.unit_quantity !== null
+        ? String(product.unit_quantity)
+        : "1"
+    );
     setUnitType(product?.unit_type || "Litre");
     setHsnCode(formData.hsnCode || "");
   }, [product]);
