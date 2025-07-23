@@ -383,6 +383,14 @@ export default function EditInvoiceForm({
 
         setItems(mappedItems);
         setCustomer(customerData);
+        // Convert old percentage discount to amount if needed
+        if (invoice.discount_percentage != null) {
+          // Calculate subtotal
+          const subtotal = mappedItems.reduce((sum, item) => sum + (item.total || 0), 0);
+          setDiscount((subtotal * invoice.discount_percentage) / 100);
+        } else if (invoice.discount != null) {
+          setDiscount(invoice.discount);
+        }
       } catch (error) {
         console.error('Error loading invoice data:', error);
       }
@@ -463,8 +471,7 @@ export default function EditInvoiceForm({
   // Calculation logic
   const subtotal = items.reduce((sum, item) => sum + (item.total || 0), 0);
   const returnTotal = returnedItems.reduce((sum, item) => sum + Math.abs(item.total || 0), 0);
-  const discountAmount = (subtotal * discount) / 100;
-  const total = subtotal - returnTotal - discountAmount;
+  const total = subtotal - returnTotal - discount;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -486,7 +493,7 @@ export default function EditInvoiceForm({
       await onSave({
         items: allItems,
         status,
-        discount: discountAmount,
+        discount: discount,
         total,
         partialAmount: status === 'partially_paid' ? partialAmount : 0,
         bill_type,
@@ -745,15 +752,14 @@ export default function EditInvoiceForm({
                 </div>
                 {/* Discount Field */}
                 <div>
-                  <label className="block text-sm font-medium mb-1">Discount (%)</label>
+                  <label className="block text-sm font-medium mb-1">Discount (₹)</label>
                   <input
                     type="number"
                     min="0"
-                    max="100"
-                    value={discount}
-                    onChange={e => setDiscount(Number(e.target.value))}
+                    value={discount.toString()}
+                    onChange={e => setDiscount(Number(e.target.value) || 0)}
                     className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white"
-                    placeholder="Enter discount percentage"
+                    placeholder="Enter discount amount (if any)"
                   />
                 </div>
                 {/* Partial Payment Amount */}
@@ -789,7 +795,11 @@ export default function EditInvoiceForm({
                     <span>Returns:</span><span>-₹{returnTotal.toFixed(2)}</span>
                   </div>
                 )}
-                <div className="flex justify-between"><span>Discount:</span><span>-₹{discountAmount.toFixed(2)}</span></div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-blue-600">
+                    <span>Discount:</span><span>-₹{discount.toFixed(2)}</span>
+                  </div>
+                )}
                 {/* GST removed from summary */}
                 <div className="flex justify-between font-bold text-lg border-t pt-2">
                   <span>Total:</span><span>₹{total.toFixed(2)}</span>
