@@ -29,6 +29,7 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
   const [base, setBase] = useState('');
   const [loading, setLoading] = useState(false);
   const [gstPercentage, setGstPercentage] = useState<number>(18);
+  const [discount, setDiscount] = useState<number>(0);
 
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -107,8 +108,9 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
   const subtotal = items.reduce((sum, item) => 
     sum + (item.isReturned ? -item.total : item.total), 0
   );
-  const gstAmount = billType === 'gst' ? subtotal * 0.18 / 1.18 : 0;
-  const total = subtotal;
+  const discountedSubtotal = Math.max(0, subtotal - discount);
+  const gstAmount = billType === 'gst' ? discountedSubtotal * 0.18 : 0;
+  const total = discountedSubtotal + gstAmount;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,7 +147,8 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
           total,
           bill_type: billType,
           billing_mode: billType === 'gst' ? 'with_gst' : 'without_gst',
-          status: 'completed'
+          status: 'completed',
+          discount
         })
         .select()
         .single();
@@ -410,6 +413,7 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
               {billType !== 'casual' && (
                 <div className="mt-4 text-right">
                   <p className="text-lg">Subtotal: ₹{subtotal.toFixed(2)}</p>
+                  {discount > 0 && <p className="text-lg text-blue-600">Discount: -₹{discount.toFixed(2)}</p>}
                   {billType === 'gst' && (
                     <p className="text-lg">GST (18%): ₹{gstAmount.toFixed(2)}</p>
                   )}
