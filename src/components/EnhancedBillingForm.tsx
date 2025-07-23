@@ -53,7 +53,6 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
   const [paymentStatus, setPaymentStatus] = useState<'paid' | 'pending' | 'partially_paid'>('pending');
   const [partialAmount, setPartialAmount] = useState<number>(0);
   const [showReturnDialog, setShowReturnDialog] = useState(false);
-  const [discount, setDiscount] = useState<number>(0);
   
   // Current item being added
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -194,15 +193,10 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
 
   const calculateTotals = () => {
     const subtotal = items.reduce((sum, item) => sum + (item.isReturned ? -item.total : item.total), 0);
-    const discountedSubtotal = Math.max(0, subtotal - discount);
-    let gstAmount = 0;
-    let total = discountedSubtotal;
-    if (billType === 'gst') {
-      // Calculate GST on discounted subtotal
-      gstAmount = discountedSubtotal * 0.18; // Assuming 18% GST
-      total = discountedSubtotal + gstAmount;
-    }
-    return { subtotal, discountedSubtotal, gstAmount, total };
+    // GST amount is not calculated separately anymore
+    const gstAmount = 0;
+    const total = subtotal;
+    return { subtotal, gstAmount, total };
   };
 
   const handleSave = () => {
@@ -218,14 +212,12 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
 
     // Remove validation for casual bills - allow both pending and paid
 
-    const { subtotal, discountedSubtotal, gstAmount, total } = calculateTotals();
+    const { subtotal, gstAmount, total } = calculateTotals();
     
     const billData = {
       customer,
       items,
       subtotal,
-      discountedSubtotal,
-      discount,
       gstAmount,
       total,
       billType,
@@ -237,7 +229,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
     onSave(billData);
   };
 
-  const { subtotal, discountedSubtotal, gstAmount, total } = calculateTotals();
+  const { subtotal, gstAmount, total } = calculateTotals();
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
@@ -673,21 +665,6 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
             
           </div>
 
-          {/* Discount Field */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm">
-            <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-              Discount (₹)
-            </label>
-            <input
-              type="number"
-              min="0"
-              value={discount}
-              onChange={e => setDiscount(Number(e.target.value) || 0)}
-              className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-              placeholder="Enter discount amount (if any)"
-            />
-          </div>
-
           {/* Totals */}
           {items.length > 0 && (
             <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-gray-700 dark:to-gray-600 border border-gray-200 dark:border-gray-600 rounded-xl p-6">
@@ -697,18 +674,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                     <span className="font-medium text-gray-700 dark:text-gray-300">Subtotal:</span>
                     <span className="font-semibold text-gray-900 dark:text-white">₹{subtotal.toFixed(2)}</span>
                   </div>
-                  {discount > 0 && (
-                    <div className="flex justify-between text-lg">
-                      <span className="font-medium text-gray-700 dark:text-gray-300">Discount:</span>
-                      <span className="font-semibold text-red-600">-₹{discount.toFixed(2)}</span>
-                    </div>
-                  )}
-                  {billType === 'gst' && (
-                    <div className="flex justify-between text-lg">
-                      <span className="font-medium text-gray-700 dark:text-gray-300">GST (18%):</span>
-                      <span className="font-semibold text-gray-900 dark:text-white">₹{gstAmount.toFixed(2)}</span>
-                    </div>
-                  )}
+                   {/* GST amount removed from summary */}
                   <div className="flex justify-between font-bold text-xl border-t pt-3 text-green-600">
                     <span>Total:</span>
                     <span>₹{total.toFixed(2)}</span>
