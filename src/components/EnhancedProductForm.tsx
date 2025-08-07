@@ -249,8 +249,7 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
         stock: safeStock,
         gstRate: safeGstRate,
         reorderLevel: safeReorderLevel,
-        unitQuantity: safeUnitQuantity,
-        unit_type: unitType, // Save the correct unit type
+        unitQuantity: safeUnitQuantity
       });
     }
   };

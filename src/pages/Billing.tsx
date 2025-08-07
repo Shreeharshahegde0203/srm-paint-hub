@@ -187,7 +187,7 @@ const Billing = () => {
         total: item.quantity * item.price,
         colorCode: item.color_code || "",
         unitType,
-        unitQuantity: item.unit_quantity, // already present
+        unitQuantity: (item as any).unit_quantity || 1, // already present
         isReturned: false,
       };
     });

@@ -98,8 +98,8 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
   const selectProduct = (product: Product) => {
     setSelectedProduct(product);
     setCurrentBase(product.base || '');
-    setCurrentGstPercentage(product.gstRate || 18);
-    setCurrentUnitPrice(product.price);
+    setCurrentGstPercentage(String(product.gstRate || 18));
+    setCurrentUnitPrice(String(product.price));
     setCurrentQuantityType(product.unit || 'Piece'); // Set to product's unit
     setSearchTerm('');
     setIsSearchOpen(false);
@@ -121,11 +121,11 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
       return;
     }
 
-    const safeBase = currentBase === "" ? 0 : parseFloat(currentBase);
-    const safeUnitQuantity = currentUnitQuantity === "" ? 0 : parseFloat(currentUnitQuantity);
-    const safeQuantity = currentQuantity === "" ? 0 : parseFloat(currentQuantity);
-    const safeGstPercentage = currentGstPercentage === "" ? 0 : parseFloat(currentGstPercentage);
-    const safeUnitPrice = currentUnitPrice === "" ? 0 : parseFloat(currentUnitPrice);
+    const safeBase = currentBase === "" ? 0 : parseFloat(String(currentBase));
+    const safeUnitQuantity = typeof currentUnitQuantity === 'string' && currentUnitQuantity === "" ? 0 : parseFloat(String(currentUnitQuantity));
+    const safeQuantity = typeof currentQuantity === 'string' && currentQuantity === "" ? 0 : parseFloat(String(currentQuantity));
+    const safeGstPercentage = currentGstPercentage === "" ? 0 : parseFloat(String(currentGstPercentage));
+    const safeUnitPrice = currentUnitPrice === "" ? 0 : parseFloat(String(currentUnitPrice));
 
     const total = safeQuantity * safeUnitPrice;
 
@@ -139,7 +139,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
       // priceExcludingGst removed
       gstPercentage: safeGstPercentage,
       colorCode: currentColorCode,
-      base: safeBase,
+      base: String(safeBase),
       total,
       isReturned: false
     };
@@ -153,8 +153,8 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
     setCurrentUnitQuantity(1);
     setCurrentQuantityType('Litre');
     setCurrentQuantity(1);
-    setCurrentGstPercentage(18);
-    setCurrentUnitPrice(0);
+    setCurrentGstPercentage("18");
+    setCurrentUnitPrice("0");
   };
 
   const updateItem = (itemId: string, updates: Partial<BillingItem>) => {
@@ -467,7 +467,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                         step="1"
                         min="1"
                         value={currentQuantity}
-                        onChange={e => setCurrentQuantity(e.target.value)}
+                        onChange={e => setCurrentQuantity(Number(e.target.value))}
                         onBlur={e => setCurrentQuantity(q => Math.max(1, Number(q) || 1))}
                         className="w-16 px-2 py-1 border-t border-b text-center dark:bg-gray-600 dark:text-white dark:border-gray-500"
                       />

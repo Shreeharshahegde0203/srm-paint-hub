@@ -374,7 +374,7 @@ export default function EditInvoiceForm({
             total: item.quantity * item.price,
             colorCode: item.color_code || '',
             base: item.base || product?.base || '',
-            unitQuantity: (item.unit_quantity != null && !isNaN(item.unit_quantity)) ? item.unit_quantity : (product?.unit_quantity || 1),
+            unitQuantity: ((item as any).unit_quantity != null && !isNaN((item as any).unit_quantity)) ? (item as any).unit_quantity : (product?.unit_quantity || 1),
             unitType: item.unit_type || product?.unit || 'Piece',
             gstPercentage: item.gst_percentage || 18,
             isReturned: false

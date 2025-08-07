@@ -31,11 +31,11 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
     type: "",
     base: "",
     stock: 1,
-    price: "",
+    price: 0,
     gst_rate: 18,
     unit: "Litre",
     description: "",
-    cost_price: "",
+    cost_price: 0,
     supplier_id: "",
   });
   const [quantity, setQuantity] = useState("");
@@ -72,7 +72,7 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
       // Insert new product
       const safeQuantity = quantity === "" ? 0 : parseFloat(quantity);
       const safeCostPrice = costPrice === "" ? 0 : parseFloat(costPrice);
-      const safePrice = formData.price === "" ? 0 : parseFloat(formData.price);
+      const safePrice = typeof formData.price === "string" ? (formData.price === "" ? 0 : parseFloat(formData.price)) : formData.price;
 
       const { data: inserted, error: insErr } = await supabase
         .from("products")
@@ -229,7 +229,7 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
               <div className="flex-1">
                 <input type="number" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder="Unit Price (₹)" value={formData.price} min={0} step={0.01} required
-                  onChange={e => setFormData(fd => ({ ...fd, price: e.target.value }))} />
+                  onChange={e => setFormData(fd => ({ ...fd, price: parseFloat(e.target.value) || 0 }))} />
               </div>
               <div className="flex-1">
                 <input type="number" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"

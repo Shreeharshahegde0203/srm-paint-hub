@@ -96,7 +96,7 @@ export const BillsPDFExporter = () => {
         let subtotal = 0;
         let gstTotal = 0;
         
-        invoice.invoice_items?.forEach((item) => {
+        invoice.invoice_items?.forEach((item: any) => {
           const itemTotal = item.quantity * item.price;
           subtotal += itemTotal;
           
@@ -140,7 +140,7 @@ export const BillsPDFExporter = () => {
               </tr>
             </thead>
             <tbody>
-              ${invoice.invoice_items?.map((item, itemIndex) => {
+              ${invoice.invoice_items?.map((item: any, itemIndex: number) => {
                 const itemDescription = `${item.product?.name || 'Unknown Product'}${item.color_code ? ` - ${item.color_code}` : ''}`;
                 const itemTotal = item.quantity * item.price;
                 
