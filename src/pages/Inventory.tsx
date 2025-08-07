@@ -283,7 +283,8 @@ const ProductCard = ({ product, viewMode, onEdit, onDelete, onRestock, onDoubleC
           )}
           <div>
             <h3 className="font-semibold text-gray-900 dark:text-white">
-              {product.name} {product.base && `- ${product.base}`}
+              {product.base ? `${product.base} - ${product.name}` : product.name}
+              {product.unit_quantity && <span className="text-sm text-gray-500"> ({product.unit_quantity} {product.unit?.split(' ').slice(-1)[0] || 'Unit'})</span>}
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-300">
               {product.brand} • {product.type}
@@ -292,6 +293,8 @@ const ProductCard = ({ product, viewMode, onEdit, onDelete, onRestock, onDoubleC
               <span>₹{product.price}</span>
               <span>Stock: {product.stock}</span>
               <span>HSN: {product.hsn_code || 'N/A'}</span>
+              <span>Base: {product.base || 'N/A'}</span>
+              <span>Unit Qty: {product.unit_quantity || 1}</span>
             </div>
           </div>
         </div>
@@ -361,8 +364,8 @@ const ProductCard = ({ product, viewMode, onEdit, onDelete, onRestock, onDoubleC
           <h3 className={`font-semibold text-gray-900 dark:text-white ${
             viewMode === 'small' ? 'text-sm' : 'text-base'
           }`}>
-            {product.name}
-            {product.base && <span className="text-gray-500"> - {product.base}</span>}
+            {product.base ? `${product.base} - ${product.name}` : product.name}
+            {product.unit_quantity && <span className="text-gray-500"> ({product.unit_quantity} {product.unit?.split(' ').slice(-1)[0] || 'Unit'})</span>}
           </h3>
           <StockLevelIcon stock={product.stock} />
         </div>
@@ -375,6 +378,8 @@ const ProductCard = ({ product, viewMode, onEdit, onDelete, onRestock, onDoubleC
           <div>Price: ₹{product.price} ({product.gstRate}% GST)</div>
           <div>Stock: {product.stock} {product.unit}</div>
           {product.hsn_code && <div>HSN: {product.hsn_code}</div>}
+          {product.base && <div>Base: {product.base}</div>}
+          <div>Unit Qty: {product.unit_quantity || 1}</div>
           {(product as any).category && <div>Category: {(product as any).category}</div>}
         </div>
 

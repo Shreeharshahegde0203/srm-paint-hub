@@ -104,11 +104,13 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
     setItems(updatedItems);
   };
 
+  const [discountAmount, setDiscountAmount] = useState<number>(0);
+  
   const subtotal = items.reduce((sum, item) => 
     sum + (item.isReturned ? -item.total : item.total), 0
   );
   const gstAmount = billType === 'gst' ? subtotal * 0.18 / 1.18 : 0;
-  const total = subtotal;
+  const total = subtotal - discountAmount;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,6 +145,7 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
         .insert({
           customer_id: customerId,
           total,
+          discount: discountAmount,
           bill_type: billType,
           billing_mode: billType === 'gst' ? 'with_gst' : 'without_gst',
           status: 'completed'
@@ -406,14 +409,32 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
                 </table>
               </div>
 
-              {/* Totals */}
+              {/* Discount and Totals */}
               {billType !== 'casual' && (
-                <div className="mt-4 text-right">
-                  <p className="text-lg">Subtotal: ₹{subtotal.toFixed(2)}</p>
-                  {billType === 'gst' && (
-                    <p className="text-lg">GST (18%): ₹{gstAmount.toFixed(2)}</p>
-                  )}
-                  <p className="text-xl font-bold">Total: ₹{total.toFixed(2)}</p>
+                <div className="mt-4">
+                  <div className="flex justify-end mb-2">
+                    <div className="w-72">
+                      <label className="block text-sm font-medium mb-1">Discount Amount (₹)</label>
+                      <input
+                        type="number"
+                        value={discountAmount}
+                        onChange={(e) => setDiscountAmount(parseFloat(e.target.value) || 0)}
+                        className="w-full px-3 py-2 border rounded-lg"
+                        min="0"
+                        step="0.01"
+                      />
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg">Subtotal: ₹{subtotal.toFixed(2)}</p>
+                    {discountAmount > 0 && (
+                      <p className="text-lg text-green-600">Discount: -₹{discountAmount.toFixed(2)}</p>
+                    )}
+                    {billType === 'gst' && (
+                      <p className="text-lg">GST (18%): ₹{gstAmount.toFixed(2)}</p>
+                    )}
+                    <p className="text-xl font-bold">Total: ₹{total.toFixed(2)}</p>
+                  </div>
                 </div>
               )}
             </div>

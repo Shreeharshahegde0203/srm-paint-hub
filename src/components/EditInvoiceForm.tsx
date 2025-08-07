@@ -240,7 +240,7 @@ const AddItemDialog = ({ onAddProduct, onClose, billingMode }: AddItemDialogProp
                 <input
                   type="number"
                   value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
+                  onChange={(e) => setQuantity(Number(e.target.value))}
                   onBlur={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
                   className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
                   min="1"
@@ -299,7 +299,7 @@ const AddItemDialog = ({ onAddProduct, onClose, billingMode }: AddItemDialogProp
                 <input
                   type="number"
                   value={unitPrice}
-                  onChange={(e) => setUnitPrice(e.target.value)}
+                  onChange={(e) => setUnitPrice(Number(e.target.value))}
                   onBlur={(e) => setUnitPrice(Math.max(0, Number(e.target.value) || 0))}
                   className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
                   min="0"
@@ -463,7 +463,7 @@ export default function EditInvoiceForm({
   // Calculation logic
   const subtotal = items.reduce((sum, item) => sum + (item.total || 0), 0);
   const returnTotal = returnedItems.reduce((sum, item) => sum + Math.abs(item.total || 0), 0);
-  const discountAmount = (subtotal * discount) / 100;
+  const discountAmount = discount; // discount is now amount, not percentage
   const total = subtotal - returnTotal - discountAmount;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -654,7 +654,7 @@ export default function EditInvoiceForm({
                       <input 
                         type="number" 
                         value={item.quantity}
-                        onChange={(e) => updateItem(index, 'quantity', e.target.value)}
+                        onChange={(e) => updateItem(index, 'quantity', Number(e.target.value))}
                         onBlur={(e) => updateItem(index, 'quantity', Math.max(1, Number(e.target.value) || 1))}
                         className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white input-focus hover:shadow-md transition-all duration-200" 
                         min="1" 
@@ -667,7 +667,7 @@ export default function EditInvoiceForm({
                       <input 
                         type="number" 
                         value={item.unitPrice}
-                        onChange={(e) => updateItem(index, 'unitPrice', e.target.value)}
+                        onChange={(e) => updateItem(index, 'unitPrice', Number(e.target.value))}
                         onBlur={(e) => updateItem(index, 'unitPrice', Math.max(0, Number(e.target.value) || 0))}
                         className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white input-focus hover:shadow-md transition-all duration-200" 
                         min="0" 
@@ -745,15 +745,15 @@ export default function EditInvoiceForm({
                 </div>
                 {/* Discount Field */}
                 <div>
-                  <label className="block text-sm font-medium mb-1">Discount (%)</label>
+                  <label className="block text-sm font-medium mb-1">Discount Amount (₹)</label>
                   <input
                     type="number"
                     min="0"
-                    max="100"
+                    step="0.01"
                     value={discount}
                     onChange={e => setDiscount(Number(e.target.value))}
                     className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-gray-700 dark:text-white"
-                    placeholder="Enter discount percentage"
+                    placeholder="Enter discount amount"
                   />
                 </div>
                 {/* Partial Payment Amount */}

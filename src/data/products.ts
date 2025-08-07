@@ -28,6 +28,9 @@ export interface InvoiceItem {
   base?: string;
   isReturned?: boolean;
   returnReason?: string;
+  gstPercentage?: number;
+  unitQuantity?: number;
+  unitType?: string;
 }
 
 export const UNIT_TYPES = ['Litre', 'Kg', 'Inch', 'Number', 'Piece'];

@@ -144,7 +144,7 @@
         // Group items by GST rate
         const gstGroups: Record<string, {cgst: number, sgst: number}> = {};
         invoice.items.forEach(item => {
-          const gstRate = item.gst_percentage || item.gstPercentage || item.product.gstRate || 18;
+          const gstRate = (item as any).gst_percentage || (item as any).gstPercentage || item.product.gstRate || 18;
           const cgstRate = gstRate / 2;
           const exGstPrice = item.unitPrice / (1 + gstRate / 100);
           const cgstAmount = (item.isReturned ? 0 : item.quantity * exGstPrice * (cgstRate / 100));
@@ -234,48 +234,7 @@
             </div>
           </div>
 
-          <table class="table">
-            <thead>
-              <tr>
-                <th style="width: 8%;">S.No</th>
-                <th style="width: 52%;">Description of Goods</th>
-                <th style="width: 10%;">Qty</th>
-                <th style="width: 15%;">Rate</th>
-                <th style="width: 15%;">Amt</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${invoice.items.map((item, index) => {
-                console.log('PDF Qty Item:', item);
-                const colorCode = item.colorCode || '';
-                const itemDescription = `${item.product.name}${colorCode ? ` - ${colorCode}` : ''}`;
-                const displayAmount = item.isReturned ? -Math.abs(item.total) : item.total;
-                const itemClass = item.isReturned ? ' class="returned-item"' : '';
-                const returnedText = item.isReturned ? ' (RETURNED)' : '';
-                
-                // Calculate GST-exclusive rate and total for GST bills
-                let exGstRate = item.unitPrice;
-                let exGstTotal = item.total;
-                if (invoice.billType === 'gst') {
-                  exGstRate = (item.unitPrice / 1.18);
-                  exGstTotal = item.quantity * exGstRate;
-                }
-                return `
-                  <tr${itemClass}>
-                    <td class="text-center">${index + 1}</td>
-                    <td>${escapeHTML(itemDescription)}${returnedText}</td>
-                    <td class="text-center">${
-                      (typeof item.unitQuantity === 'number' && item.unitType)
-                        ? `${item.unitQuantity} ${item.unitType} x ${item.quantity}`
-                        : item.quantity
-                    }</td>
-                    <td class="text-right">₹${exGstRate.toFixed(2)}</td>
-                    <td class="text-right">₹${exGstTotal.toFixed(2)}</td>
-                  </tr>
-                `;
-              }).join('')}
-            </tbody>
-          </table>
+          ${generateItemTables(invoice, escapeHTML)}
 
           <div style="margin: 15px 0;">
             <strong>Total Quantity: ${totalQuantity} units</strong>
@@ -420,4 +379,70 @@
     }
     
     return result.trim();
+  }
+
+  // Generate paginated tables for items (8 items per page)
+  function generateItemTables(invoice: any, escapeHTML: (str: string) => string): string {
+    const itemsPerPage = 8;
+    const totalPages = Math.ceil(invoice.items.length / itemsPerPage);
+    let tables = '';
+
+    for (let page = 0; page < totalPages; page++) {
+      const startIndex = page * itemsPerPage;
+      const endIndex = Math.min(startIndex + itemsPerPage, invoice.items.length);
+      const pageItems = invoice.items.slice(startIndex, endIndex);
+      
+      // Add page break before subsequent pages
+      const pageBreak = page > 0 ? '<div style="page-break-before: always;"></div>' : '';
+      
+      tables += `
+        ${pageBreak}
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="width: 8%;">S.No</th>
+              <th style="width: 52%;">Description of Goods</th>
+              <th style="width: 10%;">Qty</th>
+              <th style="width: 15%;">Rate</th>
+              <th style="width: 15%;">Amt</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${pageItems.map((item, index) => {
+              console.log('PDF Qty Item:', item);
+              const colorCode = item.colorCode || '';
+              const itemDescription = `${item.product.name}${colorCode ? ` - ${colorCode}` : ''}`;
+              const displayAmount = item.isReturned ? -Math.abs(item.total) : item.total;
+              const itemClass = item.isReturned ? ' class="returned-item"' : '';
+              const returnedText = item.isReturned ? ' (RETURNED)' : '';
+              
+              // Calculate GST-exclusive rate and total for GST bills
+              let exGstRate = item.unitPrice;
+              let exGstTotal = item.total;
+              if (invoice.billType === 'gst') {
+                exGstRate = (item.unitPrice / 1.18);
+                exGstTotal = item.quantity * exGstRate;
+              }
+              return `
+                <tr${itemClass}>
+                  <td class="text-center">${startIndex + index + 1}</td>
+                  <td>${escapeHTML(itemDescription)}${returnedText}</td>
+                  <td class="text-center">${
+                    (typeof item.unitQuantity === 'number' && item.unitType)
+                      ? `${item.unitQuantity} ${item.unitType} x ${item.quantity}`
+                      : item.quantity
+                  }</td>
+                  <td class="text-right">₹${exGstRate.toFixed(2)}</td>
+                  <td class="text-right">₹${exGstTotal.toFixed(2)}</td>
+                </tr>
+              `;
+            }).join('')}
+            ${page === totalPages - 1 ? '' : '<tr><td colspan="5" style="text-align: center; padding: 10px; font-style: italic;">Continued on next page...</td></tr>'}
+          </tbody>
+        </table>
+        ${page < totalPages - 1 ? '<div style="margin: 20px 0; text-align: center; font-weight: bold;">Page ' + (page + 1) + ' of ' + totalPages + '</div>' : ''}
+      `;
+    }
+    
+    return tables;
   }
