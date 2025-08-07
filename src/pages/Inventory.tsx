@@ -68,12 +68,12 @@ const Inventory = () => {
         base: productData.base || null,
         price: productData.price,
         gst_rate: productData.gstRate,
-        unit: `${productData.unit_quantity ?? 1} ${productData.unit || 'Piece'}`,
+        unit: `${productData.unit_quantity } ${productData.unit || 'Piece'}`,
         description: productData.description,
         image: productData.image,
         hsn_code: productData.hsn_code || productData.hsnCode || null,
         category: (productData as any).category || null,
-        unit_quantity: productData.unit_quantity ?? 1,
+        unit_quantity: productData.unit_quantity ,
       };
 
       // Include stock update
