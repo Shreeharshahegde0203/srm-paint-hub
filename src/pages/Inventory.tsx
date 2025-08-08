@@ -29,14 +29,21 @@ const Inventory = () => {
   const [filterType, setFilterType] = useState('all');
 
   // Map Supabase products to local Product type
-  const products: Product[] = (rawProducts || []).map((product: any) => ({
-    ...product,
-    gstRate: product.gst_rate,
-    unit_quantity: product.unit_quantity || 1,
-    unit_type: product.unit?.split(' ').slice(1).join(' ') || 'Piece',
-    hsn_code: product.hsn_code,
-    base: product.base,
-  }));
+  const products: Product[] = (rawProducts || []).map((product: any) => {
+    // Parse unit string properly: "5 Litre" -> unit_quantity: 5, unit_type: "Litre"
+    const unitParts = product.unit?.split(' ') || ['1', 'Piece'];
+    const parsedUnitQuantity = parseFloat(unitParts[0]) || 1;
+    const parsedUnitType = unitParts.slice(1).join(' ') || 'Piece';
+    
+    return {
+      ...product,
+      gstRate: product.gst_rate,
+      unit_quantity: product.unit_quantity || parsedUnitQuantity,
+      unit_type: parsedUnitType,
+      hsn_code: product.hsn_code,
+      base: product.base,
+    };
+  });
 
   const handleAddProduct = async (productData: Omit<Product, 'id'> & { hsn_code?: string, hsnCode?: string }) => {
     const payload: any = {
