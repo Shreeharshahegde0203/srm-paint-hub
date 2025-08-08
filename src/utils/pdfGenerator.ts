@@ -269,6 +269,12 @@
                     <td>Subtotal (Excl. GST):</td>
                     <td class="text-right">₹${pdfSubtotal.toFixed(2)}</td>
                   </tr>
+                  ${invoice.discount && invoice.discount > 0 ? `
+                  <tr>
+                    <td>Discount:</td>
+                    <td class="text-right">-₹${invoice.discount.toFixed(2)}</td>
+                  </tr>
+                  ` : ''}
                   <tr>
                     <td>Taxes:</td>
                     <td></td>
@@ -277,12 +283,18 @@
                   <tr>
                     <td>Round Off:</td>
                     <td class="text-right">₹0.00</td>
-                  </tr>
-                  <tr class="grand-total">
-                    <td><strong>Total Amount:</strong></td>
-                    <td class="text-right"><strong>₹${invoice.total.toFixed(2)}</strong></td>
-                  </tr>
-                `}
+                   </tr>
+                   ${invoice.discount && invoice.discount > 0 ? `
+                   <tr>
+                     <td>Discount:</td>
+                     <td class="text-right">-₹${invoice.discount.toFixed(2)}</td>
+                   </tr>
+                   ` : ''}
+                   <tr class="grand-total">
+                     <td><strong>Total Amount:</strong></td>
+                     <td class="text-right"><strong>₹${invoice.total.toFixed(2)}</strong></td>
+                   </tr>
+                 `}
               </table>
             </div>
           </div>

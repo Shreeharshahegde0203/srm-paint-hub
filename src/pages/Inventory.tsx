@@ -32,7 +32,7 @@ const Inventory = () => {
   const products: Product[] = (rawProducts || []).map((product: any) => ({
     ...product,
     gstRate: product.gst_rate,
-    unit_quantity: parseFloat(product.unit?.split(' ')[0]) || 1,
+    unit_quantity: product.unit_quantity || 1,
     unit_type: product.unit?.split(' ').slice(1).join(' ') || 'Piece',
     hsn_code: product.hsn_code,
     base: product.base,
@@ -68,12 +68,12 @@ const Inventory = () => {
         base: productData.base || null,
         price: productData.price,
         gst_rate: productData.gstRate,
-        unit: `${productData.unit_quantity } ${productData.unit || 'Piece'}`,
+        unit: `${productData.unit_quantity || 1} ${productData.unit || 'Piece'}`,
         description: productData.description,
         image: productData.image,
         hsn_code: productData.hsn_code || productData.hsnCode || null,
         category: (productData as any).category || null,
-        unit_quantity: productData.unit_quantity ,
+        unit_quantity: productData.unit_quantity || 1,
       };
 
       // Include stock update

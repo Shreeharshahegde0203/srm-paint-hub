@@ -383,6 +383,9 @@ export default function EditInvoiceForm({
 
         setItems(mappedItems);
         setCustomer(customerData);
+        
+        // Set discount from invoice data
+        setDiscount(invoice.discount || 0);
       } catch (error) {
         console.error('Error loading invoice data:', error);
       }
