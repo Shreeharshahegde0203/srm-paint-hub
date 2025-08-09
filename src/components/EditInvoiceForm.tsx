@@ -340,7 +340,7 @@ export default function EditInvoiceForm({
 }) {
   const [items, setItems] = useState<any[]>([]);
   const [returnedItems, setReturnedItems] = useState<any[]>([]);
-  const [discount, setDiscount] = useState(invoice?.discount || 0);
+  const [discount, setDiscount] = useState(0);
   const [status, setStatus] = useState(invoice.status);
   const [partialAmount, setPartialAmount] = useState((invoice as any).partial_amount_paid || 0);
   const [showReturnDialog, setShowReturnDialog] = useState(false);
@@ -364,7 +364,14 @@ export default function EditInvoiceForm({
           .eq("id", invoice.customer_id)
           .single();
 
-          const mappedItems = (invoiceItems || []).map((item) => {
+        // Get the full invoice data including discount
+        const { data: fullInvoiceData } = await supabase
+          .from("invoices")
+          .select("*")
+          .eq("id", invoice.id)
+          .single();
+
+        const mappedItems = (invoiceItems || []).map((item) => {
           const product = products.find((p) => p.id === item.product_id);
           return {
             id: item.id,
@@ -384,8 +391,9 @@ export default function EditInvoiceForm({
         setItems(mappedItems);
         setCustomer(customerData);
         
-        // Set discount from invoice data
-        setDiscount(invoice.discount || 0);
+        // Set discount from the fresh database data
+        console.log('Loading discount from database:', fullInvoiceData?.discount);
+        setDiscount(fullInvoiceData?.discount || 0);
       } catch (error) {
         console.error('Error loading invoice data:', error);
       }
