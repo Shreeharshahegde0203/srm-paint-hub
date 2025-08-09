@@ -57,7 +57,7 @@ export function useSupabaseInvoices() {
   // Edit invoice (only updates invoice and its items, not customer)
   const editInvoice = async (id: string, { items, status, discount, total, partialAmount, bill_type, billing_mode }: { items: any[]; status: string; discount: number; total: number; partialAmount?: number; bill_type?: string; billing_mode?: string; }) => {
     // Update invoice fields
-    const updates: any = { status, total, discount: discount || 0 };
+    const updates: any = { status, total };
     if (bill_type) updates.bill_type = bill_type;
     if (billing_mode) updates.billing_mode = billing_mode;
     if (status === 'partially_paid' && partialAmount !== undefined) {
