@@ -101,6 +101,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
     setCurrentGstPercentage(String(product.gstRate || 18));
     setCurrentUnitPrice(String(product.price));
     setCurrentQuantityType(product.unit || 'Piece'); // Set to product's unit
+    setCurrentUnitQuantity(product.unit_quantity || 1); // Set unit quantity from product
     setSearchTerm('');
     setIsSearchOpen(false);
   };
