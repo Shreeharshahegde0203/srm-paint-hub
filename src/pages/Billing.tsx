@@ -60,6 +60,7 @@ const Billing = () => {
         .insert({
           customer_id: customerData.id,
           total: billData.total,
+          discount: billData.discount || 0,
           bill_type: billData.billType,
           billing_mode: billData.billType === 'gst' ? 'with_gst' : billData.billType === 'non_gst' ? 'without_gst' : 'casual',
           status: billData.paymentStatus,
