@@ -340,7 +340,7 @@ export default function EditInvoiceForm({
 }) {
   const [items, setItems] = useState<any[]>([]);
   const [returnedItems, setReturnedItems] = useState<any[]>([]);
-  const [discount, setDiscount] = useState(0);
+  const [discount, setDiscount] = useState(invoice?.discount || 0);
   const [status, setStatus] = useState(invoice.status);
   const [partialAmount, setPartialAmount] = useState((invoice as any).partial_amount_paid || 0);
   const [showReturnDialog, setShowReturnDialog] = useState(false);

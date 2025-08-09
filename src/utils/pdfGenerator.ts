@@ -271,7 +271,7 @@
                   </tr>
                   ` : ''}
                   <tr class="grand-total">
-                    <td><strong>Total Amount:</strong></td>
+                    <td><strong>Grand Total:</strong></td>
                     <td class="text-right"><strong>₹${invoice.total.toFixed(2)}</strong></td>
                   </tr>
                 ` : `
@@ -294,14 +294,8 @@
                     <td>Round Off:</td>
                     <td class="text-right">₹0.00</td>
                    </tr>
-                   ${invoice.discount && invoice.discount > 0 ? `
-                   <tr>
-                     <td>Discount:</td>
-                     <td class="text-right">-₹${invoice.discount.toFixed(2)}</td>
-                   </tr>
-                   ` : ''}
                    <tr class="grand-total">
-                     <td><strong>Total Amount:</strong></td>
+                     <td><strong>Grand Total:</strong></td>
                      <td class="text-right"><strong>₹${invoice.total.toFixed(2)}</strong></td>
                    </tr>
                  `}

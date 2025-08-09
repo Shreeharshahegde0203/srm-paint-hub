@@ -271,7 +271,8 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
         gstRate: safeGstRate,
         reorderLevel: safeReorderLevel,
         unitQuantity: safeUnitQuantity,
-        unit: unitType // Pass the current unit type
+        unit: unitType, // Pass the current unit type
+        hsnCode: hsnCode
       });
     }
   };
