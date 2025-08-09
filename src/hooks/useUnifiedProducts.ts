@@ -14,6 +14,7 @@ export interface UnifiedProduct {
   source: 'inventory' | 'catalog';
   gstRate?: number;
   unit?: string;
+  unit_quantity?: number;
   description?: string;
   cost_price?: number;
   supplier_id?: string;
@@ -58,6 +59,7 @@ export function useUnifiedProducts() {
             source: 'inventory',
             gstRate: product.gst_rate,
             unit: product.unit,
+            unit_quantity: product.unit_quantity,
             description: product.description || undefined,
             cost_price: product.cost_price || undefined,
             supplier_id: product.supplier_id || undefined,
