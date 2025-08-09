@@ -261,7 +261,7 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
       const safeStock = stock === "" ? 0 : parseFloat(stock);
       const safeGstRate = gstRate === "" ? 0 : parseFloat(gstRate);
       const safeReorderLevel = reorderLevel === "" ? 0 : parseFloat(reorderLevel);
-      const safeUnitQuantity = unitQuantity === "" ? 0 : parseFloat(unitQuantity);
+      const safeUnitQuantity = unitQuantity === "" ? 1 : parseFloat(unitQuantity);
 
       onSave({
         ...formData,
@@ -271,7 +271,7 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
         gstRate: safeGstRate,
         reorderLevel: safeReorderLevel,
         unitQuantity: safeUnitQuantity,
-        unit: unitType, // Pass the current unit type
+        unit: unitType,
         hsnCode: hsnCode
       });
     }

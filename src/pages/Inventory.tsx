@@ -46,6 +46,9 @@ const Inventory = () => {
   });
 
   const handleAddProduct = async (productData: Omit<Product, 'id'> & { hsn_code?: string, hsnCode?: string }) => {
+    const unitQuantity = (productData as any).unitQuantity ?? 1;
+    const unitType = productData.unit || 'Piece';
+    
     const payload: any = {
       name: productData.name,
       brand: productData.brand,
@@ -54,12 +57,12 @@ const Inventory = () => {
       stock: productData.stock,
       price: productData.price,
       gst_rate: productData.gstRate ?? 18,
-      unit: `${productData.unit_quantity ?? 1} ${productData.unit || 'Piece'}`,
+      unit: `${unitQuantity} ${unitType}`,
       description: productData.description,
       image: productData.image,
       hsn_code: productData.hsn_code || productData.hsnCode || null,
       category: (productData as any).category || null,
-      unit_quantity: productData.unit_quantity ?? 1,
+      unit_quantity: unitQuantity,
     };
 
     await addProduct(payload as TablesInsert<"products">);
@@ -68,6 +71,9 @@ const Inventory = () => {
 
   const handleUpdateProduct = async (id: string, productData: Partial<Product> & { hsn_code?: string, hsnCode?: string }) => {
     try {
+      const unitQuantity = (productData as any).unitQuantity || 1;
+      const unitType = productData.unit || 'Piece';
+      
       const payload: any = {
         name: productData.name,
         brand: productData.brand,
@@ -75,12 +81,12 @@ const Inventory = () => {
         base: productData.base || null,
         price: productData.price,
         gst_rate: productData.gstRate,
-        unit: `${productData.unit_quantity || 1} ${productData.unit || 'Piece'}`,
+        unit: `${unitQuantity} ${unitType}`,
         description: productData.description,
         image: productData.image,
         hsn_code: productData.hsn_code || productData.hsnCode || null,
         category: (productData as any).category || null,
-        unit_quantity: productData.unit_quantity || 1,
+        unit_quantity: unitQuantity,
       };
 
       // Include stock update

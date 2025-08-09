@@ -294,9 +294,15 @@
                     <td>Round Off:</td>
                     <td class="text-right">₹0.00</td>
                    </tr>
+                   ${invoice.discount && invoice.discount > 0 ? `
+                   <tr>
+                     <td>Discount:</td>
+                     <td class="text-right">-₹${invoice.discount.toFixed(2)}</td>
+                   </tr>
+                   ` : ''}
                    <tr class="grand-total">
                      <td><strong>Grand Total:</strong></td>
-                     <td class="text-right"><strong>₹${invoice.total.toFixed(2)}</strong></td>
+                     <td class="text-right"><strong>₹${(invoice.total - (invoice.discount || 0)).toFixed(2)}</strong></td>
                    </tr>
                  `}
               </table>
