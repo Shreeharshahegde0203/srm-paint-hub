@@ -17,6 +17,7 @@ const mapUnifiedProductToProduct = (unifiedProduct: any): Product => ({
   image: undefined,
   gstRate: unifiedProduct.gstRate || 18,
   unit: unifiedProduct.unit || 'Litre',
+  unit_quantity: unifiedProduct.unit_quantity || 1,
   batchNumber: undefined,
   expiryDate: undefined,
   description: unifiedProduct.description,
