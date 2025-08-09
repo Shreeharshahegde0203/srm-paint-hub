@@ -16,6 +16,7 @@ const mapDbProductToProduct = (dbProduct: any): Product => ({
   image: dbProduct.image || undefined,
   gstRate: dbProduct.gst_rate,
   unit: dbProduct.unit,
+  unit_quantity: dbProduct.unit_quantity,
   batchNumber: dbProduct.batch_number ?? undefined,
   expiryDate: dbProduct.expiry_date ?? undefined,
   description: dbProduct.description ?? undefined,
