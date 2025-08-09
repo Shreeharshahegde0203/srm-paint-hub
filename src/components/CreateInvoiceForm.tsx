@@ -47,6 +47,16 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
     fetchCustomers();
   }, []);
 
+  // Set unit quantity and price when product is selected
+  useEffect(() => {
+    if (selectedProduct) {
+      setUnitQuantity(selectedProduct.unit_quantity || 1);
+      setUnitPrice(selectedProduct.price);
+      setGstPercentage(selectedProduct.gstRate || 18);
+      setBase(selectedProduct.base || '');
+    }
+  }, [selectedProduct]);
+
   const handleAddItem = () => {
     if (!selectedProduct) {
       toast({ title: "Please select a product", variant: "destructive" });
@@ -72,12 +82,14 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
       colorCode: colorCode || undefined,
       base: base || selectedProduct.base,
       isReturned: false,
-      gstPercentage: billType === 'gst' ? gstPercentage : 0
+      gstPercentage: billType === 'gst' ? gstPercentage : 0,
+      unitQuantity: unitQuantity
     };
 
     setItems([...items, newItem]);
     setSelectedProduct(null);
     setQuantity(1);
+    setUnitQuantity(1);
     setUnitPrice(0);
     setColorCode('');
     setBase('');
