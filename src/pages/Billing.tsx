@@ -240,7 +240,7 @@ const Billing = () => {
       },
       items: allItems,
       subtotal: netSubtotal,
-      discount: 0,
+      discount: Number((invoice as any).discount) || 0,
       tax: gstAmount,
       total,
       billType: invoice.bill_type as 'gst' | 'non_gst' | 'casual',

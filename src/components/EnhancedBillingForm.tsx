@@ -52,6 +52,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
   const [billType, setBillType] = useState<BillType>('gst');
   const [paymentStatus, setPaymentStatus] = useState<'paid' | 'pending' | 'partially_paid'>('pending');
   const [partialAmount, setPartialAmount] = useState<number>(0);
+  const [discount, setDiscount] = useState<number>(0);
   const [showReturnDialog, setShowReturnDialog] = useState(false);
   
   // Current item being added
@@ -221,6 +222,7 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
       subtotal,
       gstAmount,
       total,
+      discount,
       billType,
       paymentStatus,
       partialAmount: paymentStatus === 'partially_paid' ? partialAmount : 0,
@@ -675,10 +677,20 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                     <span className="font-medium text-gray-700 dark:text-gray-300">Subtotal:</span>
                     <span className="font-semibold text-gray-900 dark:text-white">₹{subtotal.toFixed(2)}</span>
                   </div>
-                   {/* GST amount removed from summary */}
+                  <div className="flex items-center justify-between">
+                    <label className="font-medium text-gray-700 dark:text-gray-300 mr-3">Discount (₹):</label>
+                    <input
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      value={discount}
+                      onChange={(e) => setDiscount(Math.max(0, Number(e.target.value) || 0))}
+                      className="w-32 px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-right"
+                    />
+                  </div>
                   <div className="flex justify-between font-bold text-xl border-t pt-3 text-green-600">
-                    <span>Total:</span>
-                    <span>₹{total.toFixed(2)}</span>
+                    <span>Grand Total:</span>
+                    <span>₹{Math.max(0, total - discount).toFixed(2)}</span>
                   </div>
                 </div>
               </div>

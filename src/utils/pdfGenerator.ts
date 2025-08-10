@@ -245,7 +245,7 @@
             <div class="summary-left">
               <div style="border: 1px solid #000; padding: 8px; margin-bottom: 15px;">
                 <strong>In Words:</strong><br>
-                ${numberToWords(Math.abs(invoice.total))} Only
+                ${numberToWords(Math.abs(invoice.total - (invoice.discount || 0)))} Only
               </div>
               
               <div class="bank-details">
@@ -259,52 +259,20 @@
             
             <div class="summary-right">
               <table class="totals-table">
-                ${invoice.billType === 'non_gst' ? `
-                  ${invoice.discount && invoice.discount > 0 ? `
-                  <tr>
-                    <td>Subtotal:</td>
-                    <td class="text-right">₹${(invoice.total + invoice.discount).toFixed(2)}</td>
-                  </tr>
-                  <tr>
-                    <td>Discount:</td>
-                    <td class="text-right">-₹${invoice.discount.toFixed(2)}</td>
-                  </tr>
-                  ` : ''}
-                  <tr class="grand-total">
-                    <td><strong>Grand Total:</strong></td>
-                    <td class="text-right"><strong>₹${invoice.total.toFixed(2)}</strong></td>
-                  </tr>
-                ` : `
-                  <tr>
-                    <td>Subtotal (Excl. GST):</td>
-                    <td class="text-right">₹${pdfSubtotal.toFixed(2)}</td>
-                  </tr>
-                  ${invoice.discount && invoice.discount > 0 ? `
-                  <tr>
-                    <td>Discount:</td>
-                    <td class="text-right">-₹${invoice.discount.toFixed(2)}</td>
-                  </tr>
-                  ` : ''}
-                  <tr>
-                    <td>Taxes:</td>
-                    <td></td>
-                  </tr>
-                  ${gstSummaryRows}
-                  <tr>
-                    <td>Round Off:</td>
-                    <td class="text-right">₹0.00</td>
-                   </tr>
-                   ${invoice.discount && invoice.discount > 0 ? `
-                   <tr>
-                     <td>Discount:</td>
-                     <td class="text-right">-₹${invoice.discount.toFixed(2)}</td>
-                   </tr>
-                   ` : ''}
-                   <tr class="grand-total">
-                     <td><strong>Grand Total:</strong></td>
-                     <td class="text-right"><strong>₹${(invoice.total - (invoice.discount || 0)).toFixed(2)}</strong></td>
-                   </tr>
-                 `}
+                <tr>
+                  <td>Total:</td>
+                  <td class="text-right">₹${invoice.total.toFixed(2)}</td>
+                </tr>
+                ${invoice.discount && invoice.discount > 0 ? `
+                <tr>
+                  <td>Discount:</td>
+                  <td class="text-right">-₹${invoice.discount.toFixed(2)}</td>
+                </tr>
+                ` : ''}
+                <tr class="grand-total">
+                  <td><strong>Grand Total:</strong></td>
+                  <td class="text-right"><strong>₹${(invoice.total - (invoice.discount || 0)).toFixed(2)}</strong></td>
+                </tr>
               </table>
             </div>
           </div>
