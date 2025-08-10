@@ -259,10 +259,22 @@
             
             <div class="summary-right">
               <table class="totals-table">
+                ${invoice.billType === 'gst' ? `
+                <tr>
+                  <td>Subtotal (Excl. GST):</td>
+                  <td class="text-right">₹${pdfSubtotal.toFixed(2)}</td>
+                </tr>
+                ${gstSummaryRows}
+                <tr>
+                  <td>Total (Incl. GST):</td>
+                  <td class="text-right">₹${invoice.total.toFixed(2)}</td>
+                </tr>
+                ` : `
                 <tr>
                   <td>Total:</td>
                   <td class="text-right">₹${invoice.total.toFixed(2)}</td>
                 </tr>
+                `}
                 ${invoice.discount && invoice.discount > 0 ? `
                 <tr>
                   <td>Discount:</td>
@@ -410,7 +422,8 @@
               let exGstRate = item.unitPrice;
               let exGstTotal = item.total;
               if (invoice.billType === 'gst') {
-                exGstRate = (item.unitPrice / 1.18);
+                const itemGstRate = (item as any).gst_percentage || (item as any).gstPercentage || item.product.gstRate || 18;
+                exGstRate = item.unitPrice / (1 + itemGstRate / 100);
                 exGstTotal = item.quantity * exGstRate;
               }
               return `
