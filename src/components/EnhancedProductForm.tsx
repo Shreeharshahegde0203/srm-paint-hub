@@ -79,23 +79,32 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
   const [stock, setStock] = useState("");
   const [gstRate, setGstRate] = useState("");
   const [reorderLevel, setReorderLevel] = useState("");
-  const [unitQuantity, setUnitQuantity] = useState(() => {
-    if (product?.unit_quantity != null) {
-      return String(product.unit_quantity);
+
+  // Helper to parse a stored unit string like "5 Litre" or malformed values like "1 1 Litre"
+  const parseUnit = (unitStr?: string): { qty: string; type: string } => {
+    if (!unitStr) return { qty: "1", type: "Litre" };
+    const parts = unitStr.trim().split(/\s+/);
+    const firstNum = parseFloat(parts[0]);
+    const qty = isNaN(firstNum) ? "1" : String(firstNum);
+    let typeCandidate = isNaN(firstNum) ? parts.join(' ') : parts.slice(1).join(' ');
+    typeCandidate = typeCandidate.trim();
+
+    const match = typeCandidate.match(/^(\d+(?:\.\d+)?)\s+(.*)$/);
+    if (match) {
+      const maybeType = match[2];
+      const STANDARD_UNITS = ['Litre','Kg','Piece','Box','Gallon','Quart','Number','Inch','Meter','Sqft'];
+      const maybeTypeHead = maybeType.split(/\s+/)[0];
+      if (STANDARD_UNITS.includes(maybeTypeHead)) {
+        typeCandidate = maybeTypeHead;
+      }
     }
-    // Parse from unit string as fallback: "5 Litre" -> "5"
-    const unitParts = product?.unit?.split(' ') || ['1'];
-    const parsedQuantity = parseFloat(unitParts[0]) || 1;
-    return String(parsedQuantity);
-  });
-  const [unitType, setUnitType] = useState(() => {
-    if (product?.unit_type) {
-      return product.unit_type;
-    }
-    // Parse from unit string as fallback: "5 Litre" -> "Litre"  
-    const unitParts = product?.unit?.split(' ') || ['1', 'Piece'];
-    return unitParts.slice(1).join(' ') || "Litre";
-  });
+    if (!typeCandidate) typeCandidate = 'Litre';
+    return { qty, type: typeCandidate };
+  };
+
+  const initialParsed = parseUnit(product?.unit);
+  const [unitQuantity, setUnitQuantity] = useState(initialParsed.qty);
+  const [unitType, setUnitType] = useState(initialParsed.type);
   const [hsnCode, setHsnCode] = useState(formData.hsnCode || "");
 
   useEffect(() => {
@@ -112,23 +121,11 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
     setGstRate(formData.gstRate !== undefined ? String(formData.gstRate) : "");
     setReorderLevel(formData.reorderLevel !== undefined ? String(formData.reorderLevel) : "");
     
-    // Set unit quantity and type from product data
-    if (product?.unit_quantity != null) {
-      setUnitQuantity(String(product.unit_quantity));
-    } else if (product?.unit) {
-      // Parse from unit string: "5 Litre" -> "5"
-      const unitParts = product.unit.split(' ');
-      const parsedQuantity = parseFloat(unitParts[0]) || 1;
-      setUnitQuantity(String(parsedQuantity));
-    }
-    
-    if (product?.unit_type) {
-      setUnitType(product.unit_type);
-    } else if (product?.unit) {
-      // Parse from unit string: "5 Litre" -> "Litre"
-      const unitParts = product.unit.split(' ');
-      setUnitType(unitParts.slice(1).join(' ') || "Litre");
-    }
+    // Set unit quantity and type from product data using robust parsing
+    const parsed = parseUnit(product?.unit);
+    const qtyFromField = product?.unit_quantity != null ? String(product.unit_quantity) : undefined;
+    setUnitQuantity(qtyFromField ?? parsed.qty);
+    setUnitType(parsed.type);
     
     setHsnCode(formData.hsnCode || "");
   }, [product, formData]);

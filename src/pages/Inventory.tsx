@@ -28,18 +28,43 @@ const Inventory = () => {
   const [viewMode, setViewMode] = useState('large');
   const [filterType, setFilterType] = useState('all');
 
+  // Helper to robustly parse unit string like "5 Litre", "1 1 Inch", or malformed values
+  const parseUnit = (unitStr?: string): { qty: number; type: string } => {
+    if (!unitStr) return { qty: 1, type: 'Piece' };
+    const parts = unitStr.trim().split(/\s+/);
+    // Try to read the first token as quantity
+    const firstNum = parseFloat(parts[0]);
+    let qty = isNaN(firstNum) ? 1 : firstNum;
+    // Build the remainder as type candidate
+    let typeCandidate = isNaN(firstNum) ? parts.join(' ') : parts.slice(1).join(' ');
+    typeCandidate = typeCandidate.trim();
+
+    // If typeCandidate starts with a number (e.g., "1 Litre"), drop the leading number for standard units
+    const match = typeCandidate.match(/^(\d+(?:\.\d+)?)\s+(.*)$/);
+    if (match) {
+      const maybeType = match[2];
+      // Normalize known standard units
+      const STANDARD_UNITS = ['Litre','Kg','Piece','Box','Gallon','Quart','Number','Inch','Meter','Sqft'];
+      const maybeTypeHead = maybeType.split(/\s+/)[0];
+      if (STANDARD_UNITS.includes(maybeTypeHead)) {
+        typeCandidate = maybeTypeHead;
+      }
+    }
+
+    // Final fallback
+    if (!typeCandidate) typeCandidate = 'Piece';
+
+    return { qty, type: typeCandidate };
+  };
+
   // Map Supabase products to local Product type
   const products: Product[] = (rawProducts || []).map((product: any) => {
-    // Parse unit string properly: "5 Litre" -> unit_quantity: 5, unit_type: "Litre"
-    const unitParts = product.unit?.split(' ') || ['1', 'Piece'];
-    const parsedUnitQuantity = parseFloat(unitParts[0]) || 1;
-    const parsedUnitType = unitParts.slice(1).join(' ') || 'Piece';
-    
+    const { qty, type } = parseUnit(product.unit);
     return {
       ...product,
       gstRate: product.gst_rate,
-      unit_quantity: product.unit_quantity || parsedUnitQuantity,
-      unit_type: parsedUnitType,
+      unit_quantity: product.unit_quantity || qty,
+      unit_type: type,
       hsn_code: product.hsn_code,
       base: product.base,
     };
