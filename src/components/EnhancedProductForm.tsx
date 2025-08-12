@@ -573,11 +573,22 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
                  -
                </button>
                <input
-                 type="text"
+                 type="number"
+                 step="0.5"
+                 min="0.5"
+                 inputMode="decimal"
                  value={unitQuantity}
                  onChange={e => {
                    setUnitQuantity(e.target.value);
                    setFormData(prev => ({ ...prev, unitQuantity: e.target.value === "" ? 0 : parseFloat(e.target.value) }));
+                 }}
+                 onBlur={() => {
+                   setUnitQuantity((v) => {
+                     const n = parseFloat(String(v));
+                     const clamped = isNaN(n) ? 0.5 : Math.max(0.5, n);
+                     setFormData(prev => ({ ...prev, unitQuantity: clamped }));
+                     return String(clamped);
+                   });
                  }}
                  className="flex-1 px-3 py-2 text-center border-none dark:bg-gray-600 dark:text-white"
                  placeholder="1"
