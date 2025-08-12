@@ -101,7 +101,9 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
     setCurrentBase(product.base || '');
     setCurrentGstPercentage(String(product.gstRate || 18));
     setCurrentUnitPrice(String(product.price));
-    setCurrentQuantityType(product.unit || 'Piece'); // Set to product's unit
+    // Use only the unit type token (e.g., "Litre" from "20 Litre")
+    const unitType = (product.unit || 'Piece').toString().split(' ').slice(-1)[0];
+    setCurrentQuantityType(unitType);
     setCurrentUnitQuantity(product.unit_quantity || 1); // Set unit quantity from product
     setSearchTerm('');
     setIsSearchOpen(false);
@@ -425,17 +427,31 @@ const EnhancedBillingForm = ({ onClose, onSave, existingBill, isEditing = false 
                   
                   <div>
                     <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Unit Quantity</label>
-                   <select
-                     value={currentUnitQuantity}
-                     onChange={e => setCurrentUnitQuantity(Number(e.target.value))}
-                     className="w-full px-3 py-2 border rounded-lg dark:bg-gray-600 dark:text-white dark:border-gray-500"
-                   >
-                     <option value={0.5}>0.5</option>
-                     <option value={1}>1</option>
-                     <option value={4}>4</option>
-                     <option value={10}>10</option>
-                     <option value={20}>20</option>
-                   </select>
+                    <div className="flex items-center">
+                      <button
+                        type="button"
+                        onClick={() => setCurrentUnitQuantity(q => Math.max(0.5, Number(q) - 0.5))}
+                        className="p-1 border rounded-l hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-500"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </button>
+                      <input
+                        type="number"
+                        step="0.5"
+                        min="0.5"
+                        value={currentUnitQuantity}
+                        onChange={e => setCurrentUnitQuantity(Number(e.target.value) || 0.5)}
+                        onBlur={() => setCurrentUnitQuantity(q => Math.max(0.5, Number(q) || 0.5))}
+                        className="w-20 px-2 py-1 border-t border-b text-center dark:bg-gray-600 dark:text-white dark:border-gray-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setCurrentUnitQuantity(q => Number(q) + 0.5)}
+                        className="p-1 border rounded-r hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-500"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                   
                   <div>

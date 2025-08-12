@@ -79,8 +79,8 @@ const Billing = () => {
         price: item.unitPrice,
         price_excluding_gst: item.priceExcludingGst,
         gst_percentage: item.gstPercentage,
-        unit_type: item.unitType,
-        unit_quantity: item.unitQuantity, // <-- Added this line
+        unit_quantity: item.unitQuantity, // pack size
+        unit_type: (item as any).quantityType,
         color_code: item.colorCode,
         base: item.product.base
       }));

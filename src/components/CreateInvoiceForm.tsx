@@ -332,17 +332,31 @@ const CreateInvoiceForm = ({ onClose, onSuccess }: CreateInvoiceFormProps) => {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Unit Quantity</label>
-                <select
-                  value={unitQuantity}
-                  onChange={e => setUnitQuantity(parseFloat(e.target.value))}
-                  className="w-full p-2 border rounded-lg"
-                >
-                  <option value={0.5}>0.5</option>
-                  <option value={1}>1</option>
-                  <option value={4}>4</option>
-                  <option value={10}>10</option>
-                  <option value={20}>20</option>
-                </select>
+                <div className="flex items-center">
+                  <button
+                    type="button"
+                    onClick={() => setUnitQuantity((q) => Math.max(0.5, Number(q) - 0.5))}
+                    className="p-1 border rounded-l hover:bg-gray-100"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="0.5"
+                    value={unitQuantity}
+                    onChange={e => setUnitQuantity(Number(e.target.value) || 0.5)}
+                    onBlur={() => setUnitQuantity((q) => Math.max(0.5, Number(q) || 0.5))}
+                    className="w-20 px-2 py-1 border-t border-b text-center"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setUnitQuantity((q) => Number(q) + 0.5)}
+                    className="p-1 border rounded-r hover:bg-gray-100"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Unit Price</label>
