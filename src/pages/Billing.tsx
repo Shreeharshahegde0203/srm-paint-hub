@@ -26,7 +26,6 @@ const Billing = () => {
     fetchInvoices,
     editInvoice,
     deleteInvoice,
-    deleteInvoices,
   } = useSupabaseInvoices();
   const { products } = useSupabaseProducts();
   const { companyInfo } = useCompanyInfo();
@@ -310,12 +309,6 @@ const Billing = () => {
             onDelete={setDeletingInvoice}
             onDownloadPDF={handleDownloadPDF}
             onView={handleView}
-            onBulkDelete={async (ids) => {
-              // confirm once for bulk delete
-              const confirmed = window.confirm(`Delete ${ids.length} selected invoice(s)? This action cannot be undone.`);
-              if (!confirmed) return;
-              await deleteInvoices(ids);
-            }}
           />
         )}
       </div>
