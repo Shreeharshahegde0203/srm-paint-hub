@@ -104,9 +104,24 @@ export function useSupabaseInvoices() {
     }
   };
 
+  // Soft-delete multiple invoices at once
+  const deleteInvoices = async (ids: string[]) => {
+    if (!ids || ids.length === 0) return;
+    const { error } = await supabase
+      .from("invoices")
+      .update({ deleted_at: new Date().toISOString() })
+      .in("id", ids);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Invoices deleted", description: `${ids.length} invoice(s) were deleted successfully.` });
+      await fetchInvoices();
+    }
+  };
+
   // All other existing logic (status, create, etc) can be merged here
   return {
-    invoices, loading, error, fetchInvoices, editInvoice, deleteInvoice
+    invoices, loading, error, fetchInvoices, editInvoice, deleteInvoice, deleteInvoices
     // You may want to migrate: setInvoiceStatus, createInvoice, etc, here in your final refactor!
   };
 }
