@@ -402,8 +402,9 @@
         <table class="table">
           <thead>
             <tr>
-              <th style="width: 8%;">S.No</th>
-              <th style="width: 52%;">Description of Goods</th>
+              <th style="width: 6%;">S.No</th>
+              <th style="width: 44%;">Description of Goods</th>
+              <th style="width: 10%;">HSN Code</th>
               <th style="width: 10%;">Qty</th>
               <th style="width: 15%;">Rate</th>
               <th style="width: 15%;">Amt</th>
@@ -430,6 +431,7 @@
                 <tr${itemClass}>
                   <td class="text-center">${startIndex + index + 1}</td>
                   <td>${escapeHTML(itemDescription)}${returnedText}</td>
+                  <td class="text-center">${escapeHTML(item.product.hsn_code || '')}</td>
                   <td class="text-center">${
                     (typeof item.unitQuantity === 'number' && item.unitType)
                       ? `${item.unitQuantity} ${item.unitType} x ${item.quantity}`
@@ -440,7 +442,7 @@
                 </tr>
               `;
             }).join('')}
-            ${page === totalPages - 1 ? '' : '<tr><td colspan="5" style="text-align: center; padding: 10px; font-style: italic;">Continued on next page...</td></tr>'}
+            ${page === totalPages - 1 ? '' : '<tr><td colspan="6" style="text-align: center; padding: 10px; font-style: italic;">Continued on next page...</td></tr>'}
           </tbody>
         </table>
         ${page < totalPages - 1 ? '<div style="margin: 20px 0; text-align: center; font-weight: bold;">Page ' + (page + 1) + ' of ' + totalPages + '</div>' : ''}
