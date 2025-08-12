@@ -113,7 +113,7 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
     }
   }, [formData.image]);
 
-  // Add useEffect to sync local state with formData on mount/edit
+  // Add useEffect to sync local state with formData only when editing a different product
   useEffect(() => {
     setPrice(formData.price !== undefined ? String(formData.price) : "");
     setCostPrice(formData.costPrice !== undefined ? String(formData.costPrice) : "");
@@ -121,14 +121,14 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
     setGstRate(formData.gstRate !== undefined ? String(formData.gstRate) : "");
     setReorderLevel(formData.reorderLevel !== undefined ? String(formData.reorderLevel) : "");
     
-    // Set unit quantity and type from product data using robust parsing
+    // Set unit quantity and type from product data using robust parsing (only on product change)
     const parsed = parseUnit(product?.unit);
     const qtyFromField = product?.unit_quantity != null ? String(product.unit_quantity) : undefined;
     setUnitQuantity(qtyFromField ?? parsed.qty);
     setUnitType(parsed.type);
     
     setHsnCode(formData.hsnCode || "");
-  }, [product, formData]);
+  }, [product]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
