@@ -1,18 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2, Download, Eye, EyeOff, Search } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Invoice } from "../hooks/useSupabaseInvoices";
-import { Checkbox } from "@/components/ui/checkbox";
+
 interface InvoiceHistoryTableProps {
   invoices: Invoice[];
   onEdit: (invoice: Invoice) => void;
   onDelete: (invoice: Invoice) => void;
   onDownloadPDF: (invoice: Invoice) => void;
   onView: (invoice: Invoice) => void;
-  onBulkDelete: (ids: string[]) => void;
 }
 
 export const InvoiceHistoryTable = ({ 
@@ -20,8 +19,7 @@ export const InvoiceHistoryTable = ({
   onEdit, 
   onDelete, 
   onDownloadPDF, 
-  onView,
-  onBulkDelete,
+  onView 
 }: InvoiceHistoryTableProps) => {
   // Load hidden amounts from localStorage on component mount
   const [hiddenAmounts, setHiddenAmounts] = useState<Set<string>>(() => {
@@ -29,45 +27,6 @@ export const InvoiceHistoryTable = ({
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
   const [searchTerm, setSearchTerm] = useState('');
-  
-  // Selection state for bulk actions and drag-select
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [isDraggingSelect, setIsDraggingSelect] = useState(false);
-  const dragSelectValueRef = useRef<boolean | null>(null);
-
-  useEffect(() => {
-    const handleMouseUp = () => {
-      setIsDraggingSelect(false);
-      dragSelectValueRef.current = null;
-    };
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => window.removeEventListener('mouseup', handleMouseUp);
-  }, []);
-
-  const toggleSelect = (id: string, value?: boolean) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      const isSelected = next.has(id);
-      const shouldSelect = value !== undefined ? value : !isSelected;
-      if (shouldSelect) next.add(id);
-      else next.delete(id);
-      return next;
-    });
-  };
-
-  const clearSelection = () => setSelectedIds(new Set());
-
-  const areAllFilteredSelected = (filtered: Invoice[]) =>
-    filtered.length > 0 && filtered.every((inv) => selectedIds.has(inv.id));
-
-  const selectAllFiltered = (filtered: Invoice[], select: boolean) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (select) filtered.forEach((inv) => next.add(inv.id));
-      else filtered.forEach((inv) => next.delete(inv.id));
-      return next;
-    });
-  };
 
   const toggleAmountVisibility = (invoiceId: string) => {
     const newHidden = new Set(hiddenAmounts);
@@ -180,40 +139,12 @@ export const InvoiceHistoryTable = ({
             className="w-full pl-10 pr-4 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-200 focus:outline-none focus:ring-2 focus:ring-white/50"
           />
         </div>
-        {selectedIds.size > 0 && (
-          <div className="mt-3 flex items-center justify-between bg-white/10 border border-white/20 rounded-md px-3 py-2">
-            <span className="text-sm">{selectedIds.size} selected</span>
-            <div className="flex gap-2">
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => onBulkDelete(Array.from(selectedIds))}
-              >
-                Delete Selected
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={clearSelection}
-              >
-                Clear
-              </Button>
-            </div>
-          </div>
-        )}
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
               <tr className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600">
-                <th className="p-4 w-10">
-                  <Checkbox
-                    checked={areAllFilteredSelected(filteredInvoices) ? true : (selectedIds.size > 0 ? "indeterminate" : false)}
-                    onCheckedChange={(v) => selectAllFiltered(filteredInvoices, Boolean(v))}
-                    aria-label="Select all"
-                  />
-                </th>
                 <th className="text-left p-4 font-bold text-gray-800 dark:text-gray-200">Invoice ID</th>
                 <th className="text-left p-4 font-bold text-gray-800 dark:text-gray-200">Customer</th>
                 <th className="text-left p-4 font-bold text-gray-800 dark:text-gray-200">Date</th>
