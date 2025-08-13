@@ -2,13 +2,13 @@
 import React, { useState } from 'react';
 import { Shield, Users, Settings, BarChart3, Package, FileText, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 import ProductManagement from '../components/ProductManagement';
 import { Product, productsDatabase } from '../data/products';
 import AdminInfoDialog from '../components/AdminInfoDialog';
 
 const Admin = () => {
-  const { logout } = useAuth();
+  const { signOut } = useSupabaseAuth();
   const [products, setProducts] = useState<Product[]>(productsDatabase);
 
   const handleAddProduct = (productData: Omit<Product, 'id'>) => {
@@ -45,7 +45,7 @@ const Admin = () => {
             <div className="flex items-center">
               <AdminInfoDialog />
               <button
-                onClick={logout}
+                onClick={signOut}
                 className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center ml-3 dark:bg-red-800 dark:hover:bg-red-700"
               >
                 <LogOut className="mr-2 h-4 w-4" />

@@ -37,7 +37,7 @@ function App() {
                     {/* Redirect calls to /admin-login to /auth, handled in AdminLogin page */}
                     <Route path="/admin-login" element={<AdminLogin />} />
                     <Route path="/admin" element={
-                      <ProtectedRoute adminOnly>
+                      <ProtectedRoute>
                         <Admin />
                       </ProtectedRoute>
                     } />
