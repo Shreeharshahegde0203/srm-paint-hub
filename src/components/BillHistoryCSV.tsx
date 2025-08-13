@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, FileSpreadsheet, Calendar, DollarSign } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Download, FileSpreadsheet, Calendar, DollarSign, ArrowUpDown } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -38,6 +39,8 @@ export const BillHistoryCSV = () => {
   const [billData, setBillData] = useState<BillData[]>([]);
   const [summaryData, setSummaryData] = useState<InvoiceSummary[]>([]);
   const [loading, setLoading] = useState(false);
+  const [sortBy, setSortBy] = useState<'date' | 'amount' | 'hsn'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const fetchBillData = async () => {
     setLoading(true);
@@ -144,6 +147,82 @@ export const BillHistoryCSV = () => {
     fetchBillData();
   }, []);
 
+  const sortData = (data: BillData[]) => {
+    return [...data].sort((a, b) => {
+      let aVal: any, bVal: any;
+      
+      switch (sortBy) {
+        case 'date':
+          aVal = new Date(a.date);
+          bVal = new Date(b.date);
+          break;
+        case 'amount':
+          aVal = a.totalAmount;
+          bVal = b.totalAmount;
+          break;
+        case 'hsn':
+          aVal = a.hsnCode;
+          bVal = b.hsnCode;
+          break;
+        default:
+          return 0;
+      }
+      
+      if (sortBy === 'hsn') {
+        // String comparison for HSN codes
+        if (sortOrder === 'asc') {
+          return aVal.localeCompare(bVal);
+        } else {
+          return bVal.localeCompare(aVal);
+        }
+      } else {
+        // Numeric/Date comparison
+        if (sortOrder === 'asc') {
+          return aVal - bVal;
+        } else {
+          return bVal - aVal;
+        }
+      }
+    });
+  };
+
+  const sortSummaryData = (data: InvoiceSummary[]) => {
+    return [...data].sort((a, b) => {
+      let aVal: any, bVal: any;
+      
+      switch (sortBy) {
+        case 'date':
+          aVal = new Date(a.date);
+          bVal = new Date(b.date);
+          break;
+        case 'amount':
+          aVal = a.invoiceTotal;
+          bVal = b.invoiceTotal;
+          break;
+        case 'hsn':
+          aVal = a.hsnCode;
+          bVal = b.hsnCode;
+          break;
+        default:
+          return 0;
+      }
+      
+      if (sortBy === 'hsn') {
+        if (sortOrder === 'asc') {
+          return aVal.localeCompare(bVal);
+        } else {
+          return bVal.localeCompare(aVal);
+        }
+      } else {
+        if (sortOrder === 'asc') {
+          return aVal - bVal;
+        } else {
+          return bVal - aVal;
+        }
+      }
+    });
+  };
+
   const exportToCSV = (filterType: 'all' | 'paid' | 'unpaid' = 'all') => {
     let filteredBillData = billData;
     let filteredSummaryData = summaryData;
@@ -159,6 +238,10 @@ export const BillHistoryCSV = () => {
         billData.some(bill => bill.invoiceNumber === summary.invoiceNumber && bill.status === 'pending')
       );
     }
+
+    // Apply sorting
+    filteredBillData = sortData(filteredBillData);
+    filteredSummaryData = sortSummaryData(filteredSummaryData);
 
     if (filteredBillData.length === 0) {
       toast({
@@ -269,6 +352,33 @@ export const BillHistoryCSV = () => {
                 <p className="font-semibold">CSV Format</p>
               </div>
             </div>
+          </div>
+
+          {/* Sorting Controls */}
+          <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <div className="flex items-center gap-2">
+              <ArrowUpDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Arrange By:</span>
+            </div>
+            <Select value={sortBy} onValueChange={(value: 'date' | 'amount' | 'hsn') => setSortBy(value)}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date">Date</SelectItem>
+                <SelectItem value="amount">Bill Amount</SelectItem>
+                <SelectItem value="hsn">HSN Code</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={sortOrder} onValueChange={(value: 'asc' | 'desc') => setSortOrder(value)}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="asc">Ascending</SelectItem>
+                <SelectItem value="desc">Descending</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex flex-wrap gap-2">

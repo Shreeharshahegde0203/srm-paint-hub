@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, Download, Eye, EyeOff, Search } from 'lucide-react';
+import { Edit, Trash2, Download, Eye, EyeOff, Search, Square, CheckSquare, X } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Invoice } from "../hooks/useSupabaseInvoices";
@@ -12,6 +12,7 @@ interface InvoiceHistoryTableProps {
   onDelete: (invoice: Invoice) => void;
   onDownloadPDF: (invoice: Invoice) => void;
   onView: (invoice: Invoice) => void;
+  onBulkDelete: (invoiceIds: string[]) => void;
 }
 
 export const InvoiceHistoryTable = ({ 
@@ -19,7 +20,8 @@ export const InvoiceHistoryTable = ({
   onEdit, 
   onDelete, 
   onDownloadPDF, 
-  onView 
+  onView,
+  onBulkDelete 
 }: InvoiceHistoryTableProps) => {
   // Load hidden amounts from localStorage on component mount
   const [hiddenAmounts, setHiddenAmounts] = useState<Set<string>>(() => {
@@ -27,6 +29,13 @@ export const InvoiceHistoryTable = ({
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Multi-selection state
+  const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [marqueeStart, setMarqueeStart] = useState<{ x: number; y: number } | null>(null);
+  const [marqueeEnd, setMarqueeEnd] = useState<{ x: number; y: number } | null>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
 
   const toggleAmountVisibility = (invoiceId: string) => {
     const newHidden = new Set(hiddenAmounts);
@@ -113,6 +122,101 @@ export const InvoiceHistoryTable = ({
     }
   };
 
+  // Multi-selection handlers
+  const toggleInvoiceSelection = (invoiceId: string) => {
+    const newSelected = new Set(selectedInvoices);
+    if (newSelected.has(invoiceId)) {
+      newSelected.delete(invoiceId);
+    } else {
+      newSelected.add(invoiceId);
+    }
+    setSelectedInvoices(newSelected);
+  };
+
+  const selectAllInvoices = () => {
+    if (selectedInvoices.size === filteredInvoices.length) {
+      setSelectedInvoices(new Set());
+    } else {
+      setSelectedInvoices(new Set(filteredInvoices.map(inv => inv.id)));
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedInvoices(new Set());
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedInvoices.size === 0) return;
+    
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ${selectedInvoices.size} invoice(s)? This action cannot be undone.`
+    );
+    
+    if (confirmDelete) {
+      onBulkDelete(Array.from(selectedInvoices));
+      setSelectedInvoices(new Set());
+    }
+  };
+
+  // Marquee selection handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button === 2) { // Right mouse button
+      e.preventDefault();
+      setIsSelecting(true);
+      setMarqueeStart({ x: e.clientX, y: e.clientY });
+      setMarqueeEnd({ x: e.clientX, y: e.clientY });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isSelecting && marqueeStart) {
+      setMarqueeEnd({ x: e.clientX, y: e.clientY });
+      
+      // Get all invoice rows and check which ones are within the marquee
+      const rows = tableRef.current?.querySelectorAll('tbody tr');
+      if (rows) {
+        const newSelected = new Set<string>();
+        rows.forEach((row) => {
+          const rect = row.getBoundingClientRect();
+          const marqueeRect = {
+            left: Math.min(marqueeStart.x, e.clientX),
+            right: Math.max(marqueeStart.x, e.clientX),
+            top: Math.min(marqueeStart.y, e.clientY),
+            bottom: Math.max(marqueeStart.y, e.clientY)
+          };
+          
+          if (rect.left < marqueeRect.right && rect.right > marqueeRect.left &&
+              rect.top < marqueeRect.bottom && rect.bottom > marqueeRect.top) {
+            const invoiceId = row.getAttribute('data-invoice-id');
+            if (invoiceId) newSelected.add(invoiceId);
+          }
+        });
+        setSelectedInvoices(newSelected);
+      }
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsSelecting(false);
+    setMarqueeStart(null);
+    setMarqueeEnd(null);
+  };
+
+  useEffect(() => {
+    const handleGlobalMouseUp = () => handleMouseUp();
+    const handleContextMenu = (e: Event) => {
+      if (isSelecting) e.preventDefault();
+    };
+    
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    document.addEventListener('contextmenu', handleContextMenu);
+    
+    return () => {
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.removeEventListener('contextmenu', handleContextMenu);
+    };
+  }, [isSelecting]);
+
   // Filter invoices based on search term
   const filteredInvoices = invoices.filter(invoice => {
     const searchLower = searchTerm.toLowerCase();
@@ -129,22 +233,84 @@ export const InvoiceHistoryTable = ({
     <Card className="w-full shadow-lg border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
       <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
         <CardTitle className="text-2xl font-bold">Invoice History</CardTitle>
-        <div className="mt-4 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-300" />
-          <input
-            type="text"
-            placeholder="Search by customer name, invoice ID, or date..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-200 focus:outline-none focus:ring-2 focus:ring-white/50"
-          />
+        <div className="mt-4 space-y-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-300" />
+            <input
+              type="text"
+              placeholder="Search by customer name, invoice ID, or date..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-200 focus:outline-none focus:ring-2 focus:ring-white/50"
+            />
+          </div>
+          
+          {/* Selection Controls */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={selectAllInvoices}
+                className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+              >
+                {selectedInvoices.size === filteredInvoices.length && filteredInvoices.length > 0 ? (
+                  <CheckSquare className="h-4 w-4 mr-2" />
+                ) : (
+                  <Square className="h-4 w-4 mr-2" />
+                )}
+                {selectedInvoices.size === filteredInvoices.length && filteredInvoices.length > 0 ? 'Deselect All' : 'Select All'}
+              </Button>
+              {selectedInvoices.size > 0 && (
+                <span className="text-sm text-gray-200">
+                  {selectedInvoices.size} selected
+                </span>
+              )}
+            </div>
+            
+            {selectedInvoices.size > 0 && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearSelection}
+                  className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Clear
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleBulkDelete}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete ({selectedInvoices.size})
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </CardHeader>
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
+      <CardContent className="p-0 relative">
+        <div 
+          className="overflow-x-auto"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+        >
+          <table ref={tableRef} className="w-full border-collapse">
             <thead>
               <tr className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600">
+                <th className="text-left p-4 font-bold text-gray-800 dark:text-gray-200 w-12">
+                  <input
+                    type="checkbox"
+                    checked={selectedInvoices.size === filteredInvoices.length && filteredInvoices.length > 0}
+                    onChange={selectAllInvoices}
+                    className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                  />
+                </th>
                 <th className="text-left p-4 font-bold text-gray-800 dark:text-gray-200">Invoice ID</th>
                 <th className="text-left p-4 font-bold text-gray-800 dark:text-gray-200">Customer</th>
                 <th className="text-left p-4 font-bold text-gray-800 dark:text-gray-200">Date</th>
@@ -157,12 +323,22 @@ export const InvoiceHistoryTable = ({
             <tbody>
               {filteredInvoices.map((invoice, index) => (
                 <tr 
-                  key={invoice.id} 
+                  key={invoice.id}
+                  data-invoice-id={invoice.id}
                   className={`border-b border-gray-100 dark:border-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-gray-800 dark:hover:to-gray-700 transition-all duration-300 cursor-pointer ${
                     index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50/50 dark:bg-gray-800/50'
-                  }`}
+                  } ${selectedInvoices.has(invoice.id) ? 'bg-blue-100 dark:bg-blue-900/50' : ''}`}
                   onDoubleClick={() => onEdit(invoice)}
                 >
+                  <td className="p-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedInvoices.has(invoice.id)}
+                      onChange={() => toggleInvoiceSelection(invoice.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                    />
+                  </td>
                   <td className="p-4">
                     <span className="font-mono text-sm bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 px-3 py-1 rounded-full text-blue-800 dark:text-blue-200">
                       #{invoice.id.slice(0, 8)}
@@ -277,6 +453,19 @@ export const InvoiceHistoryTable = ({
             </div>
           )}
         </div>
+        
+        {/* Marquee Selection Overlay */}
+        {isSelecting && marqueeStart && marqueeEnd && (
+          <div
+            className="absolute border-2 border-blue-500 bg-blue-200/30 pointer-events-none z-10"
+            style={{
+              left: Math.min(marqueeStart.x, marqueeEnd.x) - (tableRef.current?.getBoundingClientRect().left || 0),
+              top: Math.min(marqueeStart.y, marqueeEnd.y) - (tableRef.current?.getBoundingClientRect().top || 0),
+              width: Math.abs(marqueeEnd.x - marqueeStart.x),
+              height: Math.abs(marqueeEnd.y - marqueeStart.y),
+            }}
+          />
+        )}
       </CardContent>
     </Card>
   );

@@ -26,6 +26,7 @@ const Billing = () => {
     fetchInvoices,
     editInvoice,
     deleteInvoice,
+    bulkDeleteInvoices,
   } = useSupabaseInvoices();
   const { products } = useSupabaseProducts();
   const { companyInfo } = useCompanyInfo();
@@ -309,6 +310,7 @@ const Billing = () => {
             onDelete={setDeletingInvoice}
             onDownloadPDF={handleDownloadPDF}
             onView={handleView}
+            onBulkDelete={bulkDeleteInvoices}
           />
         )}
       </div>
