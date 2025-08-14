@@ -13,6 +13,7 @@ interface DashboardData {
   pendingInvoices: number;
   thisMonthSales: number;
   lastMonthSales: number;
+  totalInventoryValue: number;
 }
 
 export const DashboardMetrics = () => {
@@ -26,6 +27,7 @@ export const DashboardMetrics = () => {
     pendingInvoices: 0,
     thisMonthSales: 0,
     lastMonthSales: 0,
+    totalInventoryValue: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -56,6 +58,7 @@ export const DashboardMetrics = () => {
       const outOfStockItems = products.filter(p => p.stock === 0).length;
       const totalCustomers = customers.length;
       const pendingInvoices = invoices.filter(inv => inv.status === 'pending').length;
+      const totalInventoryValue = products.reduce((sum: number, p: any) => sum + (Number(p.stock || 0) * Number(p.price || 0)), 0);
 
       // Calculate monthly sales
       const currentDate = new Date();
@@ -88,6 +91,7 @@ export const DashboardMetrics = () => {
         pendingInvoices,
         thisMonthSales,
         lastMonthSales,
+        totalInventoryValue,
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -119,6 +123,39 @@ export const DashboardMetrics = () => {
           event: '*',
           schema: 'public',
           table: 'invoices'
+        },
+        () => {
+          fetchDashboardData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'invoice_items'
+        },
+        () => {
+          fetchDashboardData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'inventory_receipts'
+        },
+        () => {
+          fetchDashboardData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'inventory_movements'
         },
         () => {
           fetchDashboardData();
@@ -203,6 +240,18 @@ export const DashboardMetrics = () => {
               <p className="text-sm text-purple-200">Live inventory</p>
             </div>
             <Package className="h-8 w-8 text-purple-200" />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-gradient-to-r from-amber-500 to-amber-600 text-white">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-amber-100">Inventory Value</p>
+              <p className="text-2xl font-bold">₹{dashboardData.totalInventoryValue.toLocaleString()}</p>
+              <p className="text-sm text-amber-200">Stock value @ unit price</p>
+            </div>
           </div>
         </CardContent>
       </Card>

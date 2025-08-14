@@ -32,7 +32,7 @@ interface EnhancedProductFormProps {
   isEditing?: boolean;
 }
 
-const BRANDS = ['Dulux', 'Indigo', 'Fomo', 'Asian Paints', 'Berger', 'Nerolac', 'Kansai Nerolac'];
+const BRANDS = ['Dulux', 'Indigo', 'Fomo', 'Other'];
 const CATEGORIES = [
   'Interior Paint',
   'Exterior Paint', 
@@ -73,6 +73,14 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
   const [uploading, setUploading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
+  const [brandOption, setBrandOption] = useState<string>(() => {
+    const initial = product?.brand || '';
+    return BRANDS.includes(initial) ? initial : 'Other';
+  });
+  const [otherBrand, setOtherBrand] = useState<string>(() => {
+    const initial = product?.brand || '';
+    return BRANDS.includes(initial) ? '' : initial;
+  });
 
   const [costPrice, setCostPrice] = useState("");
   const [price, setPrice] = useState("");
@@ -128,6 +136,18 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
     setUnitType(parsed.type);
     
     setHsnCode(formData.hsnCode || "");
+
+    // Initialize brand option/otherBrand when switching product
+    const incomingBrand = product?.brand || '';
+    if (incomingBrand) {
+      if (BRANDS.includes(incomingBrand)) {
+        setBrandOption(incomingBrand);
+        setOtherBrand('');
+      } else {
+        setBrandOption('Other');
+        setOtherBrand(incomingBrand);
+      }
+    }
   }, [product]);
 
   const validateForm = () => {
@@ -296,19 +316,36 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
 
           <div>
             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Brand</label>
-            <input
-              type="text"
-              value={formData.brand}
-              onChange={e => setFormData(prev => ({ ...prev, brand: e.target.value }))}
+            <select
+              value={brandOption}
+              onChange={(e) => {
+                const value = e.target.value;
+                setBrandOption(value);
+                if (value === 'Other') {
+                  setFormData(prev => ({ ...prev, brand: otherBrand }));
+                } else {
+                  setFormData(prev => ({ ...prev, brand: value }));
+                }
+              }}
               className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-600 dark:text-white ${errors.brand ? 'border-red-500' : 'border-gray-300 dark:border-gray-500'}`}
-              placeholder="Enter brand name or select from suggestions"
-              list="brand-suggestions"
-            />
-            <datalist id="brand-suggestions">
+            >
               {BRANDS.map(brand => (
-                <option key={brand} value={brand} />
+                <option key={brand} value={brand}>{brand}</option>
               ))}
-            </datalist>
+            </select>
+            {brandOption === 'Other' && (
+              <input
+                type="text"
+                value={otherBrand}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setOtherBrand(value);
+                  setFormData(prev => ({ ...prev, brand: value }));
+                }}
+                className={`mt-2 w-full px-3 py-2 border rounded-lg dark:bg-gray-600 dark:text-white ${errors.brand ? 'border-red-500' : 'border-gray-300 dark:border-gray-500'}`}
+                placeholder="Enter brand name"
+              />
+            )}
             {errors.brand && <p className="text-red-500 text-sm mt-1">{errors.brand}</p>}
           </div>
 

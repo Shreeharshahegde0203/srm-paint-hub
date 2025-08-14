@@ -27,7 +27,7 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
   // New product form
   const [formData, setFormData] = useState<Partial<Product>>({
     name: "",
-    brand: "",
+    brand: "Dulux",
     type: "",
     base: "",
     stock: 1,
@@ -38,6 +38,9 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
     cost_price: 0,
     supplier_id: "",
   });
+  const BRAND_OPTIONS = ["Dulux", "Indigo", "Fomo", "Other"] as const;
+  const [brandOption, setBrandOption] = useState<typeof BRAND_OPTIONS[number]>("Dulux");
+  const [otherBrand, setOtherBrand] = useState<string>("");
   const [quantity, setQuantity] = useState("");
   const [supplierId, setSupplierId] = useState("");
   const [costPrice, setCostPrice] = useState("");
@@ -73,12 +76,13 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
       const safeQuantity = quantity === "" ? 0 : parseFloat(quantity);
       const safeCostPrice = costPrice === "" ? 0 : parseFloat(costPrice);
       const safePrice = typeof formData.price === "string" ? (formData.price === "" ? 0 : parseFloat(formData.price)) : formData.price;
+      const brandToUse = brandOption === 'Other' ? (otherBrand || '').trim() : brandOption;
 
       const { data: inserted, error: insErr } = await supabase
         .from("products")
         .insert({
           name: formData.name,
-          brand: formData.brand,
+          brand: brandToUse,
           type: formData.type,
           base: formData.base,
           price: safePrice,
@@ -219,8 +223,40 @@ const UnifiedProductEntryDialog: React.FC<UnifiedProductEntryDialogProps> = ({
           <form onSubmit={handleSubmitNewProduct} className="space-y-3">
             <input type="text" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" placeholder="Product Name" value={formData.name} required
               onChange={e => setFormData(fd => ({ ...fd, name: e.target.value }))} />
-            <input type="text" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" placeholder="Brand" value={formData.brand} required
-              onChange={e => setFormData(fd => ({ ...fd, brand: e.target.value }))} />
+            <div>
+              <select
+                className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
+                value={brandOption}
+                onChange={(e) => {
+                  const value = e.target.value as typeof BRAND_OPTIONS[number];
+                  setBrandOption(value);
+                  if (value === 'Other') {
+                    setFormData(fd => ({ ...fd, brand: otherBrand }));
+                  } else {
+                    setFormData(fd => ({ ...fd, brand: value }));
+                  }
+                }}
+                required
+              >
+                {BRAND_OPTIONS.map(b => (
+                  <option key={b} value={b}>{b}</option>
+                ))}
+              </select>
+              {brandOption === 'Other' && (
+                <input
+                  type="text"
+                  className="mt-2 w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
+                  placeholder="Enter Brand"
+                  value={otherBrand}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setOtherBrand(value);
+                    setFormData(fd => ({ ...fd, brand: value }));
+                  }}
+                  required
+                />
+              )}
+            </div>
             <input type="text" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" placeholder="Type" value={formData.type} required
               onChange={e => setFormData(fd => ({ ...fd, type: e.target.value }))} />
             <input type="number" className="w-full p-2 border rounded bg-white dark:bg-slate-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100" placeholder="Base (optional)" value={formData.base}

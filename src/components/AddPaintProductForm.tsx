@@ -21,6 +21,9 @@ export default function AddPaintProductForm({
   const [form, setForm] = useState(initialState);
   const [loading, setLoading] = useState(false);
   const { addProduct } = usePaintProductsCatalog();
+  const BRAND_OPTIONS = ["Dulux", "Indigo", "Fomo", "Other"] as const;
+  const [brandOption, setBrandOption] = useState<typeof BRAND_OPTIONS[number]>("Dulux");
+  const [otherBrand, setOtherBrand] = useState<string>("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -30,15 +33,19 @@ export default function AddPaintProductForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    if (!form.code || !form.name || !form.brand || !form.type) {
+    const brandToSave = brandOption === 'Other' ? (otherBrand || '').trim() : brandOption;
+    const payload = { ...form, brand: brandToSave } as typeof form;
+    if (!payload.code || !payload.name || !payload.brand || !payload.type) {
       toast({ title: "Missing required fields", variant: "destructive" });
       setLoading(false);
       return;
     }
     try {
-      await addProduct(form);
+      await addProduct(payload);
       toast({ title: "Product added!" });
       setForm(initialState);
+      setBrandOption('Dulux');
+      setOtherBrand('');
       onClose?.();
     } catch (error: any) {
       toast({ title: "Error", description: error?.message ?? "Could not add product", variant: "destructive" });
@@ -65,8 +72,30 @@ export default function AddPaintProductForm({
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-medium text-gray-700 dark:text-gray-200">Brand *</label>
-          <input name="brand" type="text" required value={form.brand} onChange={handleChange}
-            className="w-full p-2 border rounded bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 transition-colors" />
+          <select
+            value={brandOption}
+            onChange={(e) => {
+              const value = e.target.value as typeof BRAND_OPTIONS[number];
+              setBrandOption(value);
+            }}
+            className="w-full p-2 border rounded bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 transition-colors"
+            required
+          >
+            {BRAND_OPTIONS.map(b => (
+              <option key={b} value={b}>{b}</option>
+            ))}
+          </select>
+          {brandOption === 'Other' && (
+            <input
+              name="brand"
+              type="text"
+              required
+              value={otherBrand}
+              onChange={(e) => setOtherBrand(e.target.value)}
+              className="mt-2 w-full p-2 border rounded bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 transition-colors"
+              placeholder="Enter brand"
+            />
+          )}
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-700 dark:text-gray-200">Type *</label>

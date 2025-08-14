@@ -50,8 +50,8 @@ const ProductManagement = ({
     'Primer', 'Thinner', 'Brush', 'Roller', 'Tools', 'Accessories', 'Other'
   ];
   
-  // Only Dulux and Indigo brands
-  const brands = ['Dulux', 'Indigo'];
+  // Brand dropdown options per requirement
+  const brands = ['Dulux', 'Indigo', 'Fomo', 'Other'];
   
   // Extended unit types including inches
   const getUnitTypes = (category: string) => {
@@ -218,8 +218,16 @@ const ProductManagement = ({
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Brand Name</label>
                 <select
-                  value={formData.brand || ''}
-                  onChange={e => setFormData({ ...formData, brand: e.target.value })}
+                  value={(brands.includes(formData.brand || '') ? formData.brand : 'Other') || ''}
+                  onChange={e => {
+                    const value = e.target.value;
+                    if (value === 'Other') {
+                      // keep manual input in a separate field below
+                      setFormData({ ...formData, brand: formData.brand || '' });
+                    } else {
+                      setFormData({ ...formData, brand: value });
+                    }
+                  }}
                   className="w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
                   required
                 >
@@ -228,6 +236,16 @@ const ProductManagement = ({
                     <option key={brand} value={brand}>{brand}</option>
                   ))}
                 </select>
+                {(formData.brand && !brands.includes(formData.brand)) || ((formData.brand || '') === '' && true) ? (
+                  <input
+                    type="text"
+                    className="mt-2 w-full p-2 border rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700"
+                    placeholder="Enter Brand"
+                    value={formData.brand || ''}
+                    onChange={e => setFormData({ ...formData, brand: e.target.value })}
+                    required
+                  />
+                ) : null}
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-gray-100">Category</label>
