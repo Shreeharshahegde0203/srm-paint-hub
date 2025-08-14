@@ -145,6 +145,37 @@ export const BillHistoryCSV = () => {
 
   useEffect(() => {
     fetchBillData();
+    
+    // Set up real-time subscription for invoice updates
+    const channel = supabase
+      .channel('bill-history-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'invoices'
+        },
+        () => {
+          fetchBillData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'invoice_items'
+        },
+        () => {
+          fetchBillData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const sortData = (data: BillData[]) => {
@@ -223,7 +254,7 @@ export const BillHistoryCSV = () => {
     });
   };
 
-  const exportToCSV = (filterType: 'all' | 'paid' | 'unpaid' = 'all') => {
+  const exportToCSV = (filterType: 'all' | 'paid' | 'unpaid' | 'gst' = 'all') => {
     let filteredBillData = billData;
     let filteredSummaryData = summaryData;
     
@@ -237,6 +268,14 @@ export const BillHistoryCSV = () => {
       filteredSummaryData = summaryData.filter(summary => 
         billData.some(bill => bill.invoiceNumber === summary.invoiceNumber && bill.status === 'pending')
       );
+    } else if (filterType === 'gst') {
+      // Filter only bills with GST (HSN code present and GST amount > 0)
+      filteredBillData = billData.filter(bill => 
+        bill.hsnCode && bill.hsnCode.trim() !== '' && (bill.cgstAmount > 0 || bill.sgstAmount > 0)
+      );
+      filteredSummaryData = summaryData.filter(summary => 
+        summary.hsnCode && summary.hsnCode.trim() !== '' && (summary.cgstTotal > 0 || summary.sgstTotal > 0)
+      );
     }
 
     // Apply sorting
@@ -246,7 +285,7 @@ export const BillHistoryCSV = () => {
     if (filteredBillData.length === 0) {
       toast({
         title: "No Data",
-        description: `No ${filterType === 'all' ? '' : filterType} bill data available to export`,
+        description: `No ${filterType === 'all' ? '' : filterType === 'gst' ? 'GST ' : filterType} bill data available to export`,
         variant: "destructive",
       });
       return;
@@ -314,7 +353,7 @@ export const BillHistoryCSV = () => {
 
     toast({
       title: "Export Successful",
-      description: `${filterType === 'all' ? 'All' : filterType === 'paid' ? 'Paid' : 'Unpaid'} bill history has been exported to CSV`,
+      description: `${filterType === 'all' ? 'All' : filterType === 'paid' ? 'Paid' : filterType === 'unpaid' ? 'Unpaid' : 'GST'} bill history has been exported to CSV`,
     });
   };
 
@@ -407,6 +446,15 @@ export const BillHistoryCSV = () => {
             >
               <Download className="h-4 w-4" />
               Export Unpaid Bills CSV
+            </Button>
+            <Button 
+              onClick={() => exportToCSV('gst')} 
+              disabled={loading || billData.length === 0}
+              variant="outline"
+              className="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+            >
+              <Download className="h-4 w-4" />
+              Export GST Bills CSV
             </Button>
             <Button 
               onClick={fetchBillData} 

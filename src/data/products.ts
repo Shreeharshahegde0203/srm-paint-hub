@@ -33,7 +33,7 @@ export interface InvoiceItem {
   unitType?: string;
 }
 
-export const UNIT_TYPES = ['Litre', 'Kg', 'Inch', 'Number', 'Piece'];
+export const UNIT_TYPES = ['Litre', 'ml', 'Kg', 'Inch', 'Number', 'Piece'];
 
 export const isValidQuantity = (quantity: number): boolean => {
   return quantity > 0 && (quantity % 0.5 === 0);

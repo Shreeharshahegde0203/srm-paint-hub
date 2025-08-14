@@ -32,7 +32,7 @@ interface EnhancedProductFormProps {
   isEditing?: boolean;
 }
 
-const BRANDS = ['Dulux', 'Indigo'];
+const BRANDS = ['Dulux', 'Indigo', 'Fomo', 'Asian Paints', 'Berger', 'Nerolac', 'Kansai Nerolac'];
 const CATEGORIES = [
   'Interior Paint',
   'Exterior Paint', 
@@ -44,7 +44,7 @@ const CATEGORIES = [
   'Roller',
   'Other Accessories'
 ];
-const UNIT_TYPES = ['Litre', 'Kg', 'Inch', 'Number', 'Piece'];
+const UNIT_TYPES = ['Litre', 'ml', 'Kg', 'Inch', 'Number', 'Piece'];
 const NON_MANDATORY_HSN_CATEGORIES = ['Brush', 'Roller', 'Other Accessories'];
 
 const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: EnhancedProductFormProps) => {
@@ -296,26 +296,19 @@ const EnhancedProductForm = ({ product, onSave, onCancel, isInline = false }: En
 
           <div>
             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Brand</label>
-            {NON_MANDATORY_HSN_CATEGORIES.includes(formData.category) ? (
-              <input
-                type="text"
-                value={formData.brand}
-                onChange={e => setFormData(prev => ({ ...prev, brand: e.target.value }))}
-                className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-600 dark:text-white ${errors.brand ? 'border-red-500' : 'border-gray-300 dark:border-gray-500'}`}
-                placeholder="Enter brand (optional)"
-              />
-            ) : (
-              <select
-                value={formData.brand}
-                onChange={(e) => setFormData(prev => ({ ...prev, brand: e.target.value }))}
-                className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-600 dark:text-white ${errors.brand ? 'border-red-500' : 'border-gray-300 dark:border-gray-500'}`}
-              >
-                <option value="">Select Brand</option>
-                {BRANDS.map(brand => (
-                  <option key={brand} value={brand}>{brand}</option>
-                ))}
-              </select>
-            )}
+            <input
+              type="text"
+              value={formData.brand}
+              onChange={e => setFormData(prev => ({ ...prev, brand: e.target.value }))}
+              className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-600 dark:text-white ${errors.brand ? 'border-red-500' : 'border-gray-300 dark:border-gray-500'}`}
+              placeholder="Enter brand name or select from suggestions"
+              list="brand-suggestions"
+            />
+            <datalist id="brand-suggestions">
+              {BRANDS.map(brand => (
+                <option key={brand} value={brand} />
+              ))}
+            </datalist>
             {errors.brand && <p className="text-red-500 text-sm mt-1">{errors.brand}</p>}
           </div>
 

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Package, AlertTriangle, TrendingDown, Truck, BarChart3 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { useSupabaseProducts } from '../hooks/useSupabaseProducts';
+import { supabase } from "@/integrations/supabase/client";
 
 const InventoryReport = () => {
   const { products, isLoading } = useSupabaseProducts();
@@ -15,7 +16,7 @@ const InventoryReport = () => {
     productAgingData: []
   });
 
-  // Calculate real-time data from products
+  // Calculate real-time data from products with real-time subscription
   useEffect(() => {
     if (!products) return;
 
@@ -57,6 +58,39 @@ const InventoryReport = () => {
       productAgingData
     });
   }, [products]);
+
+  // Set up real-time subscription for inventory updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('inventory-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'products'
+        },
+        () => {
+          // The products data will be updated automatically via useSupabaseProducts hook
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'inventory'
+        },
+        () => {
+          // The inventory data will be updated automatically
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   // Sample data for other charts that don't depend on real products
   const stockLevelsData = realTimeData.stockLevelsData.length > 0 ? realTimeData.stockLevelsData : [

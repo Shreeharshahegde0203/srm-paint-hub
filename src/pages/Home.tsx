@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import Logo from '../components/Logo';
+import { DashboardMetrics } from '../components/DashboardMetrics';
 
 const Home = () => {
   const { theme } = useTheme();
@@ -273,6 +274,21 @@ const Home = () => {
               </p>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Real-time Dashboard Metrics */}
+      <div className="py-20 bg-gradient-to-b from-slate-900 to-black">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
+              Live Business Dashboard
+            </h2>
+            <p className="text-xl text-gray-300">
+              Real-time metrics and analytics updated instantly
+            </p>
+          </div>
+          <DashboardMetrics />
         </div>
       </div>
 

@@ -51,7 +51,7 @@ export function useReferenceData() {
         "White", "Off White", "Cream", "Beige", "Tintable", "Deep Base"
       ])].sort();
 
-      const units = ["Litre", "Kg", "Piece", "Box", "Gallon", "Quart"];
+      const units = ["Litre", "ml", "Kg", "Piece", "Box", "Gallon", "Quart"];
       const customerTypes = ["Regular", "Dealer", "Contractor", "New"];
       const paymentMethods = ["Cash", "Card", "UPI", "Bank Transfer", "Cheque"];
 

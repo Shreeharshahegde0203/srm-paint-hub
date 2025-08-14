@@ -25,6 +25,37 @@ const SalesReport = () => {
 
   useEffect(() => {
     fetchRealTimeSalesData();
+    
+    // Set up real-time subscription for sales updates
+    const channel = supabase
+      .channel('sales-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'invoices'
+        },
+        () => {
+          fetchRealTimeSalesData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'invoice_items'
+        },
+        () => {
+          fetchRealTimeSalesData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchRealTimeSalesData = async () => {
